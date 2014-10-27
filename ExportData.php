@@ -227,6 +227,7 @@ class ExportData extends GridView
     public function run() 
     {
         $triggerDownload = !empty($_POST) && !empty($_POST[$this->exportRequestParam]) && $_POST[$this->exportRequestParam];
+        $this->initI18N();
         $this->registerAssets();
         echo $this->renderExportMenu();
         if (!$triggerDownload) {
@@ -252,8 +253,24 @@ class ExportData extends GridView
             $objWriter->save('php://output');
             Yii::$app->end();
         }
-    }    
+    }
 
+    /**
+     * Initializes i18n settings
+     */
+    public function initI18N()
+    {
+        Yii::setAlias('@kvexport', dirname(__FILE__));
+        if (empty($this->i18n)) {
+            $this->i18n = [
+                'class' => 'yii\i18n\PhpMessageSource',
+                'basePath' => '@kvexport/messages',
+                'forceTranslation' => true
+            ];
+        }
+        Yii::$app->i18n->translations['kvexport'] = $this->i18n;
+    }
+    
     /**
      * Renders the export menu
      * @return string the export menu markup
