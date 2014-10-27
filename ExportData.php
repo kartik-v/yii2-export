@@ -326,104 +326,6 @@ class ExportData extends GridView
     }
     
     /**
-     * Sets the HTTP headers needed by file download action.
-     */
-    protected function setHttpHeaders()
-    {
-        if (empty($this->exportConfig[$this->exportType])) {
-            return;
-        }
-        extract($this->exportConfig[$this->exportType]);
-        Yii::$app->getResponse()->getHeaders()
-            ->set('Pragma', 'public')
-            ->set('Expires', '0')
-            ->set('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
-            ->set('Content-Disposition', 'attachment; filename="' . $this->filename . '.' . $extension . '"')
-            ->set('Content-type', $mime . '; charset=utf-8');
-    }
-    
-    /**
-     * Raises a callable event
-     * @param string $event the event name
-     * @param PHPExcelCell $cell the output cell 
-     * @param string $output the output content for the cell
-     */
-    protected function raiseEvent($event, $cell, $output) {
-        if (is_callable($this->$event)) {
-            call_user_func($this->$event, $cell, $output, $this);
-        }    
-    }
-    
-    /**
-     * Gets the default export configuration
-     */
-    protected function setDefaultExportConfig()
-    {
-        $this->_defaultExportConfig = [
-            self::FORMAT_HTML => [
-                'label' => Yii::t('kvexport', 'HTML'),
-                'icon' => 'floppy-saved',
-                'linkOptions'=>[],
-                'options' => ['title' => Yii::t('kvexport', 'Save as HTML')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as a HTML file. Ok to proceed?'),
-                'mime' => 'text/html',
-                'extension' => 'html',
-                'writer' => 'HTML',
-                'header' => true,
-                'cssFile' => '',
-            ],
-            self::FORMAT_CSV => [
-                'label' => Yii::t('kvexport', 'CSV'),
-                'icon' => 'floppy-open',
-                'colDelimiter' => ",",
-                'rowDelimiter' => "\r\n",
-                'linkOptions'=>[],
-                'options' => ['title' => Yii::t('kvexport', 'Save as CSV')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Comma Separated Values (CSV). Ok to proceed?'),
-                'mime' => 'application/csv',
-                'extension' => 'csv',
-                'writer' => 'CSV',
-                'header' => false,
-            ],
-            self::FORMAT_PDF => [
-                'label' => Yii::t('kvexport', 'PDF'),
-                'icon' => 'floppy-save',
-                'linkOptions'=>[],
-                'options' => ['title' => Yii::t('kvexport', 'Save as PDF')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Portable Document Format (PDF). Ok to proceed?'),
-                'mime' => 'application/pdf',
-                'extension' => 'pdf',
-                'writer' => 'PDF',
-                'header' => true,
-            ],
-            self::FORMAT_EXCEL => [
-                'label' => Yii::t('kvexport', 'Excel 95 +'),
-                'icon' => 'floppy-remove',
-                'linkOptions'=>[],
-                'worksheet' => Yii::t('kvexport', 'ExportWorksheet'),
-                'options' => ['title' => Yii::t('kvexport', 'Save as Excel (xls)')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 95+ (xls) format. Ok to proceed?'),
-                'mime' => 'application/vnd.ms-excel',
-                'extension' => 'xls',
-                'writer' => 'Excel5',
-                'header' => true,
-            ],
-            self::FORMAT_EXCEL_X => [
-                'label' => Yii::t('kvexport', 'Excel 2007+'),
-                'icon' => 'floppy-remove',
-                'linkOptions'=>[],
-                'worksheet' => Yii::t('kvexport', 'ExportWorksheet'),
-                'options' => ['title' => Yii::t('kvexport', 'Save as Excel (xlsx)')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 2007+ (xlsx) format. Ok to proceed?'),
-                'mime' => 'application/vnd.ms-excel',
-                'extension' => 'xlsx',
-                'writer' => 'Excel2007',
-                'header' => true,
-            ],
-        ];
-    }
-    
-    /**
      * Initializes export settings
      */
     public function initExport()
@@ -603,18 +505,116 @@ class ExportData extends GridView
      * Returns an excel column name.
      * 
      * @param int $index the column index number
-     * @param string $tag the column tag (any character from 'A' to 'Z')
      * @return string
      */
-    public static function columnName($index, $tag = 'A') {
+    public static function columnName($index) {
         $i = $index - 1;
         if ($i >= 0 && $i < 26) {
-            return chr(ord($tag) + $i);
+            return chr(ord('A') + $i);
         }
         if ($i > 25) {
             return (self::columnName($i / 26)) . (self::columnName($i % 26 + 1));
         }
         throw new InvalidValueException("Invalid Column # {$index}");
+    }
+    
+    
+    /**
+     * Sets the HTTP headers needed by file download action.
+     */
+    protected function setHttpHeaders()
+    {
+        if (empty($this->exportConfig[$this->exportType])) {
+            return;
+        }
+        extract($this->exportConfig[$this->exportType]);
+        Yii::$app->getResponse()->getHeaders()
+            ->set('Pragma', 'public')
+            ->set('Expires', '0')
+            ->set('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
+            ->set('Content-Disposition', 'attachment; filename="' . $this->filename . '.' . $extension . '"')
+            ->set('Content-type', $mime . '; charset=utf-8');
+    }
+    
+    /**
+     * Raises a callable event
+     * @param string $event the event name
+     * @param PHPExcelCell $cell the output cell 
+     * @param string $output the output content for the cell
+     */
+    protected function raiseEvent($event, $cell, $output) {
+        if (is_callable($this->$event)) {
+            call_user_func($this->$event, $cell, $output, $this);
+        }    
+    }
+    
+    /**
+     * Gets the default export configuration
+     */
+    protected function setDefaultExportConfig()
+    {
+        $this->_defaultExportConfig = [
+            self::FORMAT_HTML => [
+                'label' => Yii::t('kvexport', 'HTML'),
+                'icon' => 'floppy-saved',
+                'linkOptions'=>[],
+                'options' => ['title' => Yii::t('kvexport', 'Save as HTML')],
+                'confirmMsg' => Yii::t('kvexport', 'Export data as a HTML file. Ok to proceed?'),
+                'mime' => 'text/html',
+                'extension' => 'html',
+                'writer' => 'HTML',
+                'header' => true,
+                'cssFile' => '',
+            ],
+            self::FORMAT_CSV => [
+                'label' => Yii::t('kvexport', 'CSV'),
+                'icon' => 'floppy-open',
+                'colDelimiter' => ",",
+                'rowDelimiter' => "\r\n",
+                'linkOptions'=>[],
+                'options' => ['title' => Yii::t('kvexport', 'Save as CSV')],
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Comma Separated Values (CSV). Ok to proceed?'),
+                'mime' => 'application/csv',
+                'extension' => 'csv',
+                'writer' => 'CSV',
+                'header' => false,
+            ],
+            self::FORMAT_PDF => [
+                'label' => Yii::t('kvexport', 'PDF'),
+                'icon' => 'floppy-save',
+                'linkOptions'=>[],
+                'options' => ['title' => Yii::t('kvexport', 'Save as PDF')],
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Portable Document Format (PDF). Ok to proceed?'),
+                'mime' => 'application/pdf',
+                'extension' => 'pdf',
+                'writer' => 'PDF',
+                'header' => true,
+            ],
+            self::FORMAT_EXCEL => [
+                'label' => Yii::t('kvexport', 'Excel 95 +'),
+                'icon' => 'floppy-remove',
+                'linkOptions'=>[],
+                'worksheet' => Yii::t('kvexport', 'ExportWorksheet'),
+                'options' => ['title' => Yii::t('kvexport', 'Save as Excel (xls)')],
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 95+ (xls) format. Ok to proceed?'),
+                'mime' => 'application/vnd.ms-excel',
+                'extension' => 'xls',
+                'writer' => 'Excel5',
+                'header' => true,
+            ],
+            self::FORMAT_EXCEL_X => [
+                'label' => Yii::t('kvexport', 'Excel 2007+'),
+                'icon' => 'floppy-remove',
+                'linkOptions'=>[],
+                'worksheet' => Yii::t('kvexport', 'ExportWorksheet'),
+                'options' => ['title' => Yii::t('kvexport', 'Save as Excel (xlsx)')],
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 2007+ (xlsx) format. Ok to proceed?'),
+                'mime' => 'application/vnd.ms-excel',
+                'extension' => 'xlsx',
+                'writer' => 'Excel2007',
+                'header' => true,
+            ],
+        ];
     }
  
     /**
