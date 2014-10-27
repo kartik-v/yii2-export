@@ -222,19 +222,14 @@ class ExportData extends GridView
     ];
     
     /**
-     * @var bool whether to trigger download
-     */
-    private $_triggerDownload = false;
-    
-    /**
      * @inherit doc
      */
     public function run() 
     {
-        $this->_triggerDownload = !empty($_POST) && !empty($_POST[$this->exportRequestParam]) && $_POST[$this->exportRequestParam];
+        $triggerDownload = !empty($_POST) && !empty($_POST[$this->exportRequestParam]) && $_POST[$this->exportRequestParam];
         $this->registerAssets();
         echo $this->renderExportMenu();
-        if (!$this->_triggerDownload) {
+        if (!$triggerDownload) {
             return;
         }
         $this->initExport();
