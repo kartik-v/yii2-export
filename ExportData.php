@@ -233,8 +233,8 @@ class ExportData extends GridView
     {
         $this->_triggerDownload = !empty($_POST) && !empty($_POST[$this->exportRequestParam]) && $_POST[$this->exportRequestParam];
         $this->registerAssets();
+        echo $this->renderExportMenu();
         if (!$this->_triggerDownload) {
-            echo $this->renderExportMenu();
             return;
         }
         $this->initExport();
