@@ -16,6 +16,7 @@ use \PHPExcel_Style_Fill;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidValueException;
 use yii\helpers\Html;
+use yii\helpers\Json;
 use yii\helpers\Inflector;
 use yii\helpers\ArrayHelper;
 use yii\data\DataProvider;
@@ -144,6 +145,11 @@ class ExportData extends GridView
     public $exportRequestParam = 'exportFull';
     
     /**
+     * @var array the the internalization configuration for this module
+     */
+    public $i18n = [];
+
+    /**
      * @var array the default export configuration
      */
      
@@ -228,22 +234,25 @@ class ExportData extends GridView
     {
         $triggerDownload = !empty($_POST) && !empty($_POST[$this->exportRequestParam]) && $_POST[$this->exportRequestParam];
         $this->initI18N();
+        $this->initExport();
         $this->registerAssets();
         echo $this->renderExportMenu();
         if (!$triggerDownload) {
             return;
         }
-        $this->initExport();
         $this->initPHPExcel();
-        $this->renderHeader();
-        $row = $this->renderBody();
-        $this->renderFooter($row);
+        $this->generateHeader();
+        $row = $this->generateBody();
+        $this->generateFooter($row);
         if ($this->autoWidth) {
             foreach ($this->columns as $n => $column) {
                 $this->_objPHPExcel->getActiveSheet()->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
             }
         }
-        $objWriter = PHPExcel_IOFactory::createWriter($this->_objPHPExcel, $this->exportConfig['PHPExcel_Writer']);
+        if (empty($this->exportConfig[$this->exportType]['writer'])) { 
+            return;
+        }
+        $objWriter = PHPExcel_IOFactory::createWriter($this->_objPHPExcel, $this->exportConfig[$this->exportType]['writer']);
         if (!$this->stream) {
             $objWriter->save($this->filename);
         }
@@ -278,7 +287,8 @@ class ExportData extends GridView
     public function renderExportMenu()
     {
         $items = $this->asButtonDropdown ? [] : '';
-        foreach ($this->exportConfig as $format => $setting) {
+        foreach ($this->exportConfig as $format => $settings) {
+            $icon = '';
             $label = '';
             if (!empty($settings['icon'])) {
                 $label = "<i class='glyphicon glyphicon-{$icon}'></i> ";
@@ -302,14 +312,13 @@ class ExportData extends GridView
                 $items .= Html::tag('li', Html::a($label, '#', $linkOptions), $options);
             }
         }
-        
         $form = Html::beginForm('', 'post', [
             'class' => 'kv-export-full-form',
             'style' => 'display:none',
             'target' => '_blank',
             'data-pjax' => false,
-            'options' => ['id'=>$this->options['id'] . '-form']
-        ]) . Html::hiddenInput($this->exportRequestParam, true) . '</form>';
+            'id'=>$this->options['id'] . '-form'
+        ]) . Html::hiddenInput($this->exportRequestParam, 1) . '</form>';
         
         if ($this->asButtonDropdown) {
             $title = ArrayHelper::remove($this->buttonDropdownOptions, 'label', '<i class="glyphicon glyphicon-export"></i>');
@@ -403,7 +412,7 @@ class ExportData extends GridView
         $this->_endCol = 0;
         foreach ($this->columns as $column) {
             $this->_endCol++;
-            if ($column->header === null) {
+            if ($column->header === null && !empty($column->attribute)) {
                 if ($this->_provider instanceof ActiveDataProvider && $this->_provider->query instanceof ActiveQueryInterface) {
                     /* @var $model Model */
                     $model = new $this->_provider->query->modelClass;
@@ -423,7 +432,7 @@ class ExportData extends GridView
 
             $cell = $sheet->setCellValue(self::columnName($this->_endCol) . $this->_beginRow, $head, true);
             // Apply formatting to header cell
-            $cell = $sheet->getStyle($colFirst . $i)->applyFromArray($style);
+            $cell = $sheet->getStyle(self::columnName($this->_endCol) . $this->_beginRow)->applyFromArray($style);
             $this->raiseEvent('onRenderHeaderCell', $cell, $head);
         }
 
@@ -472,9 +481,10 @@ class ExportData extends GridView
         foreach ($this->columns as $column) {
             if ($column instanceof \yii\grid\SerialColumn || $column instanceof \kartik\grid\SerialColumn) {
                 $value = $column->renderDataCell($model, $key, $index);
-            }
-            elseif ($column->attribute !== null) {
+            } elseif (!empty($column->attribute) && $column->attribute !== null) {
                 $value = empty($model[$column->attribute]) ? "" : $model[$column->attribute];
+            } elseif ($column instanceof \yii\grid\ActionColumn) {
+                $value = '';
             } else {
                 $value = $column->renderDataCellContent();
             }
@@ -624,9 +634,10 @@ class ExportData extends GridView
     {
         $view = $this->getView();
         ExportDataAsset::register($view);
+        
         foreach ($this->exportConfig as $format => $setting) {
             $id = $this->options['id'] . '-' . strtolower($format);
-            $options = Json::encode(['formId'=>$this->options['id'] . '-form', 'confirmMsg' => $setting['confirmMsg']);
+            $options = Json::encode(['formId'=>$this->options['id'] . '-form', 'confirmMsg' => $setting['confirmMsg']]);
             $view->registerJs("jQuery('#{$id}').exportdata({$options});");
         }
     }

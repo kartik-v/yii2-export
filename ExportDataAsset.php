@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-namespace kartik\grid;
+namespace kartik\export;
 
 use kartik\widgets\AssetBundle;
 
