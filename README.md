@@ -31,10 +31,10 @@ to the ```require``` section of your `composer.json` file.
 
 ## Usage
 
-### Slider
+### Export
 
 ```php
-use kartik\export\ExportGrid;
+use kartik\export\ExportData;
 ```
 
 ## License
