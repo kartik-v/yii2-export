@@ -292,14 +292,12 @@ class ExportData extends GridView
         }
         
         $form = Html::beginForm('', 'post', [
-                'class' => 'kv-export-full-form',
-                'style' => 'display:none',
-                'target' => '_blank',
-                'data-pjax' => false,
-                'options' => ['id'=>$this->options['id'] . '-form']
-            ]) .
-            Html::hiddenInput($this->exportRequestParam, true) .
-        '</form>';
+            'class' => 'kv-export-full-form',
+            'style' => 'display:none',
+            'target' => '_blank',
+            'data-pjax' => false,
+            'options' => ['id'=>$this->options['id'] . '-form']
+        ]) . Html::hiddenInput($this->exportRequestParam, true) . '</form>';
         
         if ($this->asButtonDropdown) {
             $title = ArrayHelper::remove($this->buttonDropdownOptions, 'label', '<i class="glyphicon glyphicon-export"></i>');
