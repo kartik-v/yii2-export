@@ -48,8 +48,6 @@ class ExportData extends GridView
      */
     public $asButtonDropdown = true;
     
-    public $browserPopupsMsg;
-    
     /**
      * @var array the HTML attributes for the export button menu. Applicable only if `isButtonDropdown`
      * is set to `true`. The following special options are available:
@@ -615,6 +613,7 @@ class ExportData extends GridView
     protected function registerAssets()
     {
         $view = $this->getView();
+        ExportDataAsset::register($view);
         foreach ($this->exportConfig as $format => $setting) {
             $id = $this->options['id'] . '-' . strtolower($format);
             $options = Json::encode(['formId'=>$this->options['id'] . '-form', 'confirmMsg' => $setting['confirmMsg']);
