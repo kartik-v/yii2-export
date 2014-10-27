@@ -117,27 +117,7 @@ class ExportData extends GridView
      * - `$content`: the footer cell content being rendered
      * - `$grid`: the GridView object
      */    
-    public $onRenderFooterCell = null;    
-    
-    /**
-     * @var int the header beginning row
-     */
-    protected $_headerBeginRow = 1;
-
-    /**
-     * @var int the table beginning row
-     */
-    protected $_beginRow = 1;
-    
-    /**
-     * @var int the current table end row
-     */
-    protected $_endRow = 1;
-
-    /**
-     * @var int the current table end column
-     */
-    protected $_endCol = 1;
+    public $onRenderFooterCell = null;
 
     /**
      * @var array the PHPExcel document properties
@@ -183,6 +163,26 @@ class ExportData extends GridView
      * @var PHPExcel object instance
      */
     protected $_objWriter;
+    
+    /**
+     * @var int the header beginning row
+     */
+    protected $_headerBeginRow = 1;
+
+    /**
+     * @var int the table beginning row
+     */
+    protected $_beginRow = 1;
+    
+    /**
+     * @var int the current table end row
+     */
+    protected $_endRow = 1;
+
+    /**
+     * @var int the current table end column
+     */
+    protected $_endCol = 1;
     
     /**
      * @var array the default style configuration
