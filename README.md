@@ -1,9 +1,7 @@
 yii2-export
 ===========
 
-A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.). The widget allows you to configure the `dataProvider`, `columns` just like one would do within a `yii\grid\GridView`. However, the widget is made lean to not render or process default grid table markup. Instead it will display a user friendly export actions ButtonDropdown menu or list. This can be embedded into any of your views that may or may not contain a GridView. It uses PHPExcel library for converting data to the right format for export.
-
-# _Extension is under development_
+A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.). The widget allows you to configure the dataProvider, columns just like a yii\grid\GridView. However, it just displays the export actions in form of a ButtonDropdown menu, for embedding into any of your GridView or other components.
 
 ### Demo
 You can see detailed [documentation](http://demos.krajee.com/export) on usage of the extension.
@@ -33,10 +31,10 @@ to the ```require``` section of your `composer.json` file.
 
 ## Usage
 
-### Export
+### Slider
 
 ```php
-use kartik\export\ExportData;
+use kartik\export\ExportGrid;
 ```
 
 ## License

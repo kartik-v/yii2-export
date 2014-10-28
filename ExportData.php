@@ -37,11 +37,6 @@ class ExportData extends GridView
     const FORMAT_PDF = 'PDF';
     const FORMAT_EXCEL = 'Excel5';
     const FORMAT_EXCEL_X = 'Excel2007';
-    
-    /**
-     * @var string the data output format type. Defaults to `ExportData::FORMAT_EXCEL_X`.
-     */
-    public $exportType = self::FORMAT_EXCEL_X;
      
     /**
      * @var bool whether to render the export menu as bootstrap button dropdown widget. Defaults to `true`.
@@ -76,7 +71,7 @@ class ExportData extends GridView
     /**
      * @var bool whether to stream output to the browser
      */
-    public $stream = true;   
+    public $stream = true;
     
     /**
      * @var Closure the callback function on rendering the header cell output content. The anonymous function 
@@ -145,9 +140,19 @@ class ExportData extends GridView
     public $exportRequestParam = 'exportFull';
     
     /**
+     * @var the alias for the pdf library path to export to PDF
+     */
+    public $pdfLibraryPath = '@vendor/tecnick.com/tcpdf';
+    
+    /**
      * @var array the the internalization configuration for this module
      */
     public $i18n = [];
+    
+    /**
+     * @var string the data output format type. Defaults to `ExportData::FORMAT_EXCEL_X`.
+     */
+    protected $_exportType = self::FORMAT_EXCEL_X;
 
     /**
      * @var array the default export configuration
@@ -227,19 +232,34 @@ class ExportData extends GridView
         ],
     ];
     
+    private $_triggerDownload = false;
+    
     /**
      * @inherit doc
      */
-    public function run() 
+    public function init()
     {
-        $triggerDownload = !empty($_POST) && !empty($_POST[$this->exportRequestParam]) && $_POST[$this->exportRequestParam];
+        $this->_triggerDownload = !empty($_POST) && !empty($_POST[$this->exportRequestParam]) && $_POST[$this->exportRequestParam];
+        if ($this->_triggerDownload) {
+            Yii::$app->controller->layout = false;
+            $this->_exportType = $_POST['export_type'];
+        }
+        parent::init();
+    }
+    
+    /**
+     * @inherit doc
+     */
+    public function run()
+    {
         $this->initI18N();
         $this->initExport();
-        $this->registerAssets();
-        echo $this->renderExportMenu();
-        if (!$triggerDownload) {
+        if (!$this->_triggerDownload) {
+            $this->registerAssets();
+            echo $this->renderExportMenu();
             return;
         }
+        ob_end_clean();
         $this->initPHPExcel();
         $this->generateHeader();
         $row = $this->generateBody();
@@ -249,12 +269,19 @@ class ExportData extends GridView
                 $this->_objPHPExcel->getActiveSheet()->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
             }
         }
-        if (empty($this->exportConfig[$this->exportType]['writer'])) { 
+        if (empty($this->exportConfig[$this->_exportType]['writer'])) { 
             return;
         }
-        $objWriter = PHPExcel_IOFactory::createWriter($this->_objPHPExcel, $this->exportConfig[$this->exportType]['writer']);
+
+        $path = Yii::getAlias($this->pdfLibraryPath);
+        if (!PHPExcel_Settings::setPdfRenderer(
+                PHPExcel_Settings::PDF_RENDERER_TCPDF, $path
+            )) {
+            throw new InvalidConfigException("The pdf rendering library '{$path}' was not found or is not installed.");
+        }
+        $objWriter = PHPExcel_IOFactory::createWriter($this->_objPHPExcel, $this->exportConfig[$this->_exportType]['writer']);
         if (!$this->stream) {
-            $objWriter->save($this->filename);
+            $objWriter->save($this->filename . '.' . $this->exportConfig[$this->_exportType]['extension']);
         }
         else {
             ob_end_clean();
@@ -291,7 +318,7 @@ class ExportData extends GridView
             $icon = '';
             $label = '';
             if (!empty($settings['icon'])) {
-                $label = "<i class='glyphicon glyphicon-{$icon}'></i> ";
+                $label = "<i class='glyphicon glyphicon-" . $settings['icon'] . "'></i> ";
             }
             if (!empty($settings['label'])) {
                 $label .= $settings['label'];
@@ -299,6 +326,7 @@ class ExportData extends GridView
             $fmt = strtolower($format);
             $linkOptions = ArrayHelper::getValue($settings, 'linkOptions', []);
             $linkOptions['id'] = $this->options['id'] . '-' . $fmt;
+            $linkOptions['data-format'] = $format;
             $options = ArrayHelper::getValue($settings, 'options', []);
             Html::addCssClass($linkOptions, "export-full-{$fmt}");
             if ($this->asButtonDropdown) {
@@ -318,7 +346,10 @@ class ExportData extends GridView
             'target' => '_blank',
             'data-pjax' => false,
             'id'=>$this->options['id'] . '-form'
-        ]) . Html::hiddenInput($this->exportRequestParam, 1) . '</form>';
+        ]) . 
+        Html::hiddenInput('export_type', $this->_exportType) . 
+        Html::hiddenInput($this->exportRequestParam, 1) . 
+        '</form>';
         
         if ($this->asButtonDropdown) {
             $title = ArrayHelper::remove($this->buttonDropdownOptions, 'label', '<i class="glyphicon glyphicon-export"></i>');
@@ -351,6 +382,24 @@ class ExportData extends GridView
     }
     
     /**
+     * Initializes special format options specific to each format
+     */
+    protected function initFormatOptions()
+    {
+        if (empty($this->exportConfig['formatOptions'])) {
+            return;
+        }
+        $opts = $this->exportConfig['formatOptions'];
+
+        if (!empty($opts['delimiter'])) {
+            $this->_objWriter->setDelimiter($opts['delimiter']);
+        }
+        if (!empty($opts['delimiter'])) {
+            $this->_objWriter->setDelimiter($opts['delimiter']);
+        }
+    }
+    
+    /**
      * Gets the PHP Excel object
      * @return PHPExcel the object instance
      */
@@ -371,7 +420,7 @@ class ExportData extends GridView
         $description = '';
         $category = '';
         $keywords = '';
-        $lastModifiedBy = '';
+        $lastModifiedBy = date("Y-m-d H:i:s");
         extract($this->docProperties);
         $this->_objPHPExcel->getProperties()
             ->setCreator($creator)
@@ -403,7 +452,7 @@ class ExportData extends GridView
         }
         $content = Html::tag('tr', implode('', $cells), $this->headerRowOptions);
         $sheet = $this->_objPHPExcel->getActiveSheet();
-        $style = $this->styleOptions[$this->exportType];
+        $style = ArrayHelper::getValue($this->styleOptions, $this->_exportType, []);
         $colFirst = self::columnName(1);
         if (!empty($this->caption)) {
             $cell = $sheet->setCellValue($colFirst . $this->_beginRow, $this->caption, true);
@@ -494,7 +543,6 @@ class ExportData extends GridView
         }
     }
 
-
     /**
      * Generates the output footer row after a specific row number
      * @param int $row the row number after which the footer is to be generated
@@ -528,22 +576,19 @@ class ExportData extends GridView
         throw new InvalidValueException("Invalid Column # {$index}");
     }
     
-    
     /**
-     * Sets the HTTP headers needed by file download action.
+     * Set HTTP headers for download
      */
-    protected function setHttpHeaders()
+    protected function setHttpHeaders() 
     {
-        if (empty($this->exportConfig[$this->exportType])) {
-            return;
-        }
-        extract($this->exportConfig[$this->exportType]);
-        Yii::$app->getResponse()->getHeaders()
-            ->set('Pragma', 'public')
-            ->set('Expires', '0')
-            ->set('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
-            ->set('Content-Disposition', 'attachment; filename="' . $this->filename . '.' . $extension . '"')
-            ->set('Content-type', $mime . '; charset=utf-8');
+        $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
+        $extension = ArrayHelper::getValue($config, 'extension', 'xlsx');
+        $mime = ArrayHelper::getValue($config, 'mime', 'binary');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+        header('Content-type: ' . $mime);
+        header('Content-Disposition: attachment; filename="' . $this->filename . '.' . $extension . '"');
+        header('Cache-Control: max-age=0');
     }
     
     /**
@@ -569,12 +614,13 @@ class ExportData extends GridView
                 'icon' => 'floppy-saved',
                 'linkOptions'=>[],
                 'options' => ['title' => Yii::t('kvexport', 'Save as HTML')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as a HTML file. Ok to proceed?'),
+                'confirmMsg' => Yii::t('kvexport', 'Export data as a HTML file. Disable any browser popups for proper download. Ok to proceed?'),
                 'mime' => 'text/html',
                 'extension' => 'html',
                 'writer' => 'HTML',
-                'header' => true,
-                'cssFile' => '',
+                'formatOptions' => [
+                    'cssFile' => 'http://netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css',
+                ]
             ],
             self::FORMAT_CSV => [
                 'label' => Yii::t('kvexport', 'CSV'),
@@ -583,46 +629,67 @@ class ExportData extends GridView
                 'rowDelimiter' => "\r\n",
                 'linkOptions'=>[],
                 'options' => ['title' => Yii::t('kvexport', 'Save as CSV')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Comma Separated Values (CSV). Ok to proceed?'),
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Comma Separated Values (CSV). Disable any browser popups for proper download. Ok to proceed?'),
                 'mime' => 'application/csv',
                 'extension' => 'csv',
                 'writer' => 'CSV',
-                'header' => false,
+                'formatOptions' => [
+                    'delimiter' => ',',
+                ]
+            ],
+            self::FORMAT_TXT => [
+                'label' => Yii::t('kvexport', 'Text'),
+                'icon' => 'floppy-open',
+                'colDelimiter' => ",",
+                'rowDelimiter' => "\r\n",
+                'linkOptions'=>[],
+                'options' => ['title' => Yii::t('kvexport', 'Save as Text')],
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Tab Separated Text (TXT). Disable any browser popups for proper download. Ok to proceed?'),
+                'mime' => 'text/plain',
+                'extension' => 'csv',
+                'writer' => 'CSV',
+                'formatOptions' => [
+                    'delimiter' => "\t",
+                ]
             ],
             self::FORMAT_PDF => [
                 'label' => Yii::t('kvexport', 'PDF'),
                 'icon' => 'floppy-save',
                 'linkOptions'=>[],
                 'options' => ['title' => Yii::t('kvexport', 'Save as PDF')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Portable Document Format (PDF). Ok to proceed?'),
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Portable Document Format (PDF). Disable any browser popups for proper download. Ok to proceed?'),
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
                 'writer' => 'PDF',
-                'header' => true,
+                'formatOptions' => [
+                    'renderLib' => '',
+                ]
             ],
             self::FORMAT_EXCEL => [
                 'label' => Yii::t('kvexport', 'Excel 95 +'),
                 'icon' => 'floppy-remove',
                 'linkOptions'=>[],
-                'worksheet' => Yii::t('kvexport', 'ExportWorksheet'),
                 'options' => ['title' => Yii::t('kvexport', 'Save as Excel (xls)')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 95+ (xls) format. Ok to proceed?'),
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 95+ (xls) format. Disable any browser popups for proper download. Ok to proceed?'),
                 'mime' => 'application/vnd.ms-excel',
                 'extension' => 'xls',
                 'writer' => 'Excel5',
-                'header' => true,
+                'formatOptions' => [
+                    'sheetTitle' => Yii::t('kvexport', 'ExportWorksheet'),
+                ]
             ],
             self::FORMAT_EXCEL_X => [
                 'label' => Yii::t('kvexport', 'Excel 2007+'),
                 'icon' => 'floppy-remove',
                 'linkOptions'=>[],
-                'worksheet' => Yii::t('kvexport', 'ExportWorksheet'),
                 'options' => ['title' => Yii::t('kvexport', 'Save as Excel (xlsx)')],
-                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 2007+ (xlsx) format. Ok to proceed?'),
+                'confirmMsg' => Yii::t('kvexport', 'Export data as Excel 2007+ (xlsx) format. Disable any browser popups for proper download. Ok to proceed?'),
                 'mime' => 'application/vnd.ms-excel',
                 'extension' => 'xlsx',
                 'writer' => 'Excel2007',
-                'header' => true,
+                'formatOptions' => [
+                    'sheetTitle' => Yii::t('kvexport', 'ExportWorksheet'),
+                ]
             ],
         ];
     }
