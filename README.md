@@ -3,7 +3,7 @@ yii2-export
 
 A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.). The widget allows you to configure the dataProvider, columns just like a yii\grid\GridView. However, it just displays the export actions in form of a ButtonDropdown menu, for embedding into any of your GridView or other components.
 
-<div style="font-style:red; font-style:italic; font-size: 24px;">Extension is under development</div>
+<div style="color:red; font-style:italic; font-size: 24px;">Extension is under development</div>
 
 ### Demo
 You can see detailed [documentation](http://demos.krajee.com/export) on usage of the extension.
