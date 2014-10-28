@@ -33,7 +33,7 @@ to the ```require``` section of your `composer.json` file.
 
 ## Usage
 
-### Slider
+### ExportData
 
 ```php
 use kartik\export\ExportData;
