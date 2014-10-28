@@ -34,7 +34,7 @@ to the ```require``` section of your `composer.json` file.
 ### Slider
 
 ```php
-use kartik\export\ExportGrid;
+use kartik\export\ExportData;
 ```
 
 ## License
