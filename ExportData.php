@@ -530,12 +530,12 @@ class ExportData extends GridView
         foreach ($this->columns as $column) {
             if ($column instanceof \yii\grid\SerialColumn || $column instanceof \kartik\grid\SerialColumn) {
                 $value = $column->renderDataCell($model, $key, $index);
-            } elseif (!empty($column->attribute) && $column->attribute !== null) {
+            } elseif (!empty($column->attribute) && $column->attribute !== null && empty($column->value)) {
                 $value = empty($model[$column->attribute]) ? "" : $model[$column->attribute];
             } elseif ($column instanceof \yii\grid\ActionColumn) {
                 $value = '';
             } else {
-                $value = $column->renderDataCellContent();
+                $value = DataColumnWrapper::renderTheCell($column, $model, $key, $index);
             }
             $this->_endCol++;
             $cell = $this->_objPHPExcel->getActiveSheet()->setCellValue(self::columnName($this->_endCol) . ($index + $this->_beginRow + 1), strip_tags($value), true);
@@ -707,5 +707,12 @@ class ExportData extends GridView
             $options = Json::encode(['formId'=>$this->options['id'] . '-form', 'confirmMsg' => $setting['confirmMsg']]);
             $view->registerJs("jQuery('#{$id}').exportdata({$options});");
         }
+    }
+}
+
+class DataColumnWrapper extends \yii\grid\DataColumn {
+    
+    public static function renderTheCell($column, $model, $key, $index) {
+        return $column->renderDataCellContent($model, $key, $index);
     }
 }
