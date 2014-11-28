@@ -25,7 +25,7 @@
             self.$form.appendTo('body');
             self.$element.on('click', function(e) {
                 e.preventDefault();
-                if (confirm(self.confirmMsg)) {
+                if (!self.confirmMsg || confirm(self.confirmMsg)) {
                     var fmt = $(this).data('format');
                     self.$form.find('[name="export_type"]').val(fmt);
                     self.$form.trigger('submit');
