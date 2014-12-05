@@ -114,6 +114,19 @@ class ExportData extends GridView
      * - `$grid`: the GridView object
      */    
     public $onRenderFooterCell = null;
+   
+    /**
+     * @var Closure the callback function on finishing rendering the sheet. The anonymous function 
+     * should have the following signature:
+     *
+     * ```php
+     * function ($sheet, $grid)
+     * ```
+     *
+     * - `$sheet`: the current PHPExcel sheet being rendered
+     * - `$grid`: the GridView object
+     */    
+    public $onRenderSheet = null;
 
     /**
      * @var array the PHPExcel document properties
@@ -269,6 +282,11 @@ class ExportData extends GridView
                 $this->_objPHPExcel->getActiveSheet()->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
             }
         }
+        
+        if (is_callable($this->onRenderSheet)) {
+            call_user_func($this->onRenderSheet, $this->_objPHPExcel->getActiveSheet(), $this);
+        }
+        
         if (empty($this->exportConfig[$this->_exportType]['writer'])) { 
             return;
         }
