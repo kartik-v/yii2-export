@@ -74,7 +74,7 @@ class ExportMenu extends GridView
     public $autoWidth = true;
     
     /**
-     * @var string encoding for the downloaded file header. Defaults to `'utf-8'`.
+     * @var string encoding for the downloaded file header. Defaults to 'utf-8'.
      */
     public $encoding = 'utf-8';
 
