@@ -122,7 +122,7 @@ class ExportMenu extends GridView
      * @var array, the configuration of various messages that will be displayed at runtime:
      * - allowPopups: string, the message to be shown to disable browser popups for download. Defaults to `Disable any popup blockers in your browser to ensure proper download.`.
      * - confirmDownload: string, the message to be shown for confirming to proceed with the download. Defaults to `Ok to proceed?`.
-     * - downloadProgress: string, the message to be shown in a popup dialog when download request is triggered. Defaults to `Generating file. Please wait...`.
+     * - downloadProgress: string, the message to be shown in a popup dialog when download request is executed. Defaults to `Generating file. Please wait...`.
      * - downloadComplete: string, the message to be shown in a popup dialog when download request is completed. Defaults to 
      *   `All done! Click anywhere here to close this window, once you have downloaded the file.`.
      */
@@ -141,7 +141,7 @@ class ExportMenu extends GridView
     public $onInitWriter = null;
     
     /**
-     * @var Closure the callback function on initializing the active sheet. 
+     * @var Closure the callback function to be executed on initializing the active sheet. 
      * The anonymous function should have the following signature:
      * ```php
      * function ($sheet, $grid)
@@ -153,7 +153,7 @@ class ExportMenu extends GridView
     public $onInitSheet = null;
     
     /**
-     * @var Closure the callback function on rendering the header cell output
+     * @var Closure the callback function to be executed on rendering the header cell output
      * content. The anonymous function should have the following signature:
      * ```php
      * function ($cell, $content, $grid)
@@ -166,7 +166,7 @@ class ExportMenu extends GridView
     public $onRenderHeaderCell = null;
 
     /**
-     * @var Closure the callback function on rendering each body data cell
+     * @var Closure the callback function to be executed on rendering each body data cell
      * content. The anonymous function should have the following signature:
      * ```php
      * function ($cell, $content, $model, $key, $index, $grid)
@@ -182,7 +182,7 @@ class ExportMenu extends GridView
     public $onRenderDataCell = null;
 
     /**
-     * @var Closure the callback function on rendering the footer cell output
+     * @var Closure the callback function to be executed on rendering the footer cell output
      * content. The anonymous function should have the following signature:
      * ```php
      * function ($cell, $content, $grid)
@@ -195,7 +195,7 @@ class ExportMenu extends GridView
     public $onRenderFooterCell = null;
     
     /**
-     * @var Closure the callback function on finishing rendering the sheet. The anonymous function
+     * @var Closure the callback function to be executed on rendering the sheet. The anonymous function
      * should have the following signature:
      * ```php
      * function ($sheet, $grid)
