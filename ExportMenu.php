@@ -61,9 +61,39 @@ class ExportMenu extends GridView
     public $dropdownOptions = ['class' => 'btn btn-default'];
 
     /**
+     * @var boolean whether to use font awesome icons for rendering the icons
+     * as defined in `exportConfig`. If set to `true`, you must load the FontAwesome
+     * CSS separately in your application.
+     */
+    public $fontAwesome = false;
+
+    /**
+     * @var array the export configuration. The array keys must be the one of the `format` constants
+     * (CSV, HTML, TEXT, EXCEL, PDF, JSON) and the array value is a configuration array consisiting of these settings:
+     * - label: string,the label for the export format menu item displayed
+     * - icon: string,the glyphicon or font-awesome name suffix to be displayed before the export menu item label. 
+     *   If set to an empty string, this will not be displayed. 
+     * - iconOptions: array, HTML attributes for export menu icon.
+     * - linkOptions: array, HTML attributes for each export item link.
+     * - filename: the base file name for the generated file. Defaults to 'grid-export'. This will be used to generate a default
+     *   file name for downloading.
+     * - extension: the extension for the file name
+     * - alertMsg: string, the message prompt to show before saving. If this is empty or not set it will not be displayed.
+     * - options: array, HTML attributes for the export format menu item.
+     * - mime: string, the mime type (for the file format) to be set before downloading.
+     * - writer: string, the PHP Excel writer type
+     */
+    public $exportConfig = [];
+
+    /**
+     * @var string the request parameter ($_GET or $_POST) that
+     * will be submitted during export
+     */
+    public $exportRequestParam = 'exportFull';
+
+    /**
      * @var array the output style configuration options. It must be the style
-     * configuration
-     * array as required by PHPExcel.
+     * configuration array as required by PHPExcel.
      */
     public $styleOptions = [];
 
@@ -180,37 +210,6 @@ class ExportMenu extends GridView
      * @var array the PHPExcel document properties
      */
     public $docProperties = [];
-
-    /**
-     * @var boolean whether to use font awesome icons for rendering the icons
-     * as defined in `exportConfig`. If set to `true`, you must load the FontAwesome
-     * CSS separately in your application.
-     */
-    public $fontAwesome = false;
-
-    /**
-     * @var array the export configuration. The array keys must be the one of the `format` constants
-     * (CSV, HTML, TEXT, EXCEL, PDF, JSON) and the array value is a configuration array consisiting of these settings:
-     * - label: string,the label for the export format menu item displayed
-     * - icon: string,the glyphicon or font-awesome name suffix to be displayed before the export menu item label. 
-     *   If set to an empty string, this will not be displayed. Refer `defaultConfig` in `initExport` method for default settings.
-     * - iconOptions: array, HTML attributes for export menu icon.
-     * - linkOptions: array, HTML attributes for each export item link.
-     * - filename: the base file name for the generated file. Defaults to 'grid-export'. This will be used to generate a default
-     *   file name for downloading.
-     * - extension: the extension for the file name
-     * - alertMsg: string, the message prompt to show before saving. If this is empty or not set it will not be displayed.
-     * - options: array, HTML attributes for the export format menu item.
-     * - mime: string, the mime type (for the file format) to be set before downloading.
-     * - writer: string, the PHP Excel writer type
-     */
-    public $exportConfig = [];
-
-    /**
-     * @var string the request parameter ($_GET or $_POST) that
-     * will be submitted during export
-     */
-    public $exportRequestParam = 'exportFull';
 
     /**
      * @var string the library used to render the PDF. Defaults to `'mPDF'`.
