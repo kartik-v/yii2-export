@@ -37,6 +37,9 @@ to the ```require``` section of your `composer.json` file.
 
 ```php
 use kartik\export\ExportData;
+
+// Renders a dropdown menu
+echo ExportData
 ```
 
 ## License

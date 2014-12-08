@@ -16,14 +16,12 @@ use kartik\widgets\AssetBundle;
  * @author Kartik Visweswaran <kartikv2@gmail.com>
  * @since 1.0
  */
-class ExportDataAsset extends AssetBundle
+class ExportMenuAsset extends AssetBundle
 {
-
     public function init()
     {
         $this->setSourcePath(__DIR__ . '/assets');
         $this->setupAssets('js', ['js/kv-export-data']);
         parent::init();
     }
-
 }
