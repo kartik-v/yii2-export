@@ -166,7 +166,7 @@ class ExportMenu extends GridView
     public $onRenderHeaderCell = null;
 
     /**
-     * @var Closure the callback function on rendering the data cell output
+     * @var Closure the callback function on rendering each body data cell
      * content. The anonymous function should have the following signature:
      * ```php
      * function ($cell, $content, $model, $key, $index, $grid)
