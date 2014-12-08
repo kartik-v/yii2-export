@@ -53,7 +53,7 @@ class ExportMenu extends GridView
 
     /**
      * @var array the HTML attributes for the export button menu. Applicable only
-     * if `isButtonDropdown` is set to `true`. The following special options are
+     * if `asDropdown` is set to `true`. The following special options are
      * available:
      * - label: string, defaults to `<i class="glyphicon glyphicon-export"></i>'
      * - menuOptions: array, the HTML attributes for the dropdown menu.
@@ -129,9 +129,9 @@ class ExportMenu extends GridView
      * function ($cell, $content, $grid)
      * ```
      * where:
-     * - `$cell`: the current PHPExcel cell being rendered
-     * - `$content`: the header cell content being rendered
-     * - `$grid`: the GridView object
+     * - `$cell`: PHPExcel_Cell, is the current PHPExcel cell being rendered
+     * - `$content`: string, is the header cell content being rendered
+     * - `$grid`: GridView, is the current GridView object
      */
     public $onRenderHeaderCell = null;
 
