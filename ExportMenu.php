@@ -472,10 +472,10 @@ class ExportMenu extends GridView
     {
         $this->_provider = clone($this->dataProvider);
         $this->_provider->pagination = false;
-        $this->styleOptions = ArrayHelper::merge($this->_defaultStyleOptions, $this->styleOptions);
+        $this->styleOptions = array_replace_recursive($this->_defaultStyleOptions, $this->styleOptions);
         $this->filterModel = null;
         $this->setDefaultExportConfig();
-        $this->exportConfig = ArrayHelper::merge($this->_defaultExportConfig, $this->exportConfig);
+        $this->exportConfig = array_replace_recursive($this->_defaultExportConfig, $this->exportConfig);
         if (empty($this->filename)) {
             $this->filename = Yii::t('kvexport', 'grid-export');
         }
