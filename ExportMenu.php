@@ -79,9 +79,9 @@ class ExportMenu extends GridView
      *   file name for downloading.
      * - extension: the extension for the file name
      * - alertMsg: string, the message prompt to show before saving. If this is empty or not set it will not be displayed.
-     * - options: array, HTML attributes for the export format menu item.
      * - mime: string, the mime type (for the file format) to be set before downloading.
      * - writer: string, the PHP Excel writer type
+     * - options: array, HTML attributes for the export menu item.
      */
     public $exportConfig = [];
 
