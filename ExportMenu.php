@@ -689,7 +689,7 @@ class ExportMenu extends GridView
             } else {
                 $value = ($column->content === null) ? 
                     $this->formatter->format($column->getDataCellValue($model, $key, $index), $column->format) :
-                    call_user_func($this->content, $model, $key, $index, $column);
+                    call_user_func($column->content, $model, $key, $index, $column);
             }
             if (empty($value) && !empty($column->attribute) && $column->attribute !== null) {
                 $value = ArrayHelper::getValue($model, $column->attribute, '');
