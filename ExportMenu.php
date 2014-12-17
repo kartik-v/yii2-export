@@ -411,6 +411,9 @@ class ExportMenu extends GridView
     {
         $items = $this->asDropdown ? [] : '';
         foreach ($this->exportConfig as $format => $settings) {
+            if (empty($settings)) {
+                continue;
+            }
             $icon = '';
             $label = '';
             if (!empty($settings['icon'])) {
