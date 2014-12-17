@@ -585,7 +585,7 @@ class ExportMenu extends GridView
     
     /**
      * Gets the column header content
-     * @param \yii\grid\Column $col
+     * @param \yii\grid\DataColumn $col
      * @return string
      */
     public function getColumnHeader($col)
