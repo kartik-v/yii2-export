@@ -828,7 +828,7 @@ class ExportMenu extends GridView
                 'linkOptions' => [],
                 'options' => ['title' => Yii::t('kvexport', 'Microsoft Excel 2007+ (xlsx)')],
                 'alertMsg' => Yii::t('kvexport', 'The EXCEL 2007+ (xlsx) export file will be generated for download.'),
-                'mime' => 'application/vnd.ms-excel',
+                'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'extension' => 'xlsx',
                 'writer' => 'Excel2007'
             ],
