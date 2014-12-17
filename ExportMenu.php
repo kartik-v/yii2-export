@@ -59,9 +59,11 @@ class ExportMenu extends GridView
      * - icon: string, defaults to `<i class="glyphicon glyphicon-export"></i>`
      * - menuOptions: array, the HTML attributes for the dropdown menu.
      * - itemsBefore: array, any additional items that will be merged/prepended before with the export dropdown list. This should be similar 
-     *   to the `items` property as supported by `\yii\bootstrap\ButtonDropdown` widget.
+     *   to the `items` property as supported by `\yii\bootstrap\ButtonDropdown` widget. Note the page export items will be automatically 
+     *   generated based on settings in the `exportConfig` property.
      * - itemsAfter: array, any additional items that will be merged/appended after with the export dropdown list. This should be similar 
-     *   to the `items` property as supported by `\yii\bootstrap\ButtonDropdown` widget.
+     *   to the `items` property as supported by `\yii\bootstrap\ButtonDropdown` widget. Note the page export items will be automatically 
+     *   generated based on settings in the `exportConfig` property.
      */
     public $dropdownOptions = ['class' => 'btn btn-default'];
 
@@ -853,6 +855,9 @@ class ExportMenu extends GridView
         $menu = 'kvexpmenu_' . hash('crc32', $options);
         $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);
         foreach ($this->exportConfig as $format => $setting) {
+            if (empty($setting) || $setting === false) {
+                continue;
+            }
             $id = $this->options['id'] . '-' . strtolower($format);
             $options = Json::encode([
                 'settings' => new JsExpression($menu),
