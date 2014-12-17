@@ -23,7 +23,7 @@ use yii\helpers\Json;
 use yii\helpers\Inflector;
 use yii\helpers\ArrayHelper;
 use yii\data\DataProvider;
-use yii\grid\GridView;
+use kartik\grid\GridView;
 use yii\bootstrap\ButtonDropdown;
 use yii\web\View;
 use yii\web\JsExpression;
@@ -55,8 +55,13 @@ class ExportMenu extends GridView
      * @var array the HTML attributes for the export button menu. Applicable only
      * if `asDropdown` is set to `true`. The following special options are
      * available:
-     * - label: string, defaults to `<i class="glyphicon glyphicon-export"></i>'
+     * - label: string, defaults to empty string
+     * - icon: string, defaults to `<i class="glyphicon glyphicon-export"></i>`
      * - menuOptions: array, the HTML attributes for the dropdown menu.
+     * - itemsBefore: array, any additional items that will be merged/prepended before with the export dropdown list. This should be similar 
+     *   to the `items` property as supported by `\yii\bootstrap\ButtonDropdown` widget.
+     * - itemsAfter: array, any additional items that will be merged/appended after with the export dropdown list. This should be similar 
+     *   to the `items` property as supported by `\yii\bootstrap\ButtonDropdown` widget.
      */
     public $dropdownOptions = ['class' => 'btn btn-default'];
 
@@ -370,6 +375,9 @@ class ExportMenu extends GridView
         $this->generateFooter($row);
         $writer = $this->_objPHPExcelWriter;
         $sheet = $this->_objPHPExcelSheet;
+        if ($this->_exportType === self::FORMAT_TEXT) {
+            $writer->setDelimiter("\t");
+        }
         if ($this->autoWidth) {
             foreach ($this->columns as $n => $column) {
                 $sheet->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
@@ -451,8 +459,13 @@ class ExportMenu extends GridView
             '</form>';
 
         if ($this->asDropdown) {
-            $title = ArrayHelper::remove($this->dropdownOptions, 'label', '<i class="glyphicon glyphicon-export"></i>');
+            $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="glyphicon glyphicon-export"></i>');
+            $label = ArrayHelper::remove($this->dropdownOptions, 'label', '');
+            $title = empty($label) ? $icon : $icon . ' ' . $label;
             $menuOptions = ArrayHelper::remove($this->dropdownOptions, 'menuOptions', []);
+            $itemsBefore = ArrayHelper::remove($this->dropdownOptions, 'itemsBefore', []);
+            $itemsAfter = ArrayHelper::remove($this->dropdownOptions, 'itemsAfter', []);
+            $items = ArrayHelper::merge($itemsBefore, $items, $itemsAfter);
             return ButtonDropdown::widget([
                 'label' => $title,
                 'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions],
@@ -460,7 +473,7 @@ class ExportMenu extends GridView
                 'encodeLabel' => false
             ]) . $form;
         } else {
-            return $items;
+            return $items . "\n". $form;
         }
     }
 
@@ -781,7 +794,7 @@ class ExportMenu extends GridView
                 'options' => ['title' => Yii::t('kvexport', 'Tab Delimited Text')],
                 'alertMsg' => Yii::t('kvexport', 'The TEXT export file will be generated for download.'),
                 'mime' => 'text/plain',
-                'extension' => 'csv',
+                'extension' => 'txt',
                 'writer' => 'CSV'
             ],
             self::FORMAT_PDF => [
