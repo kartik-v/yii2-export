@@ -676,7 +676,7 @@ class ExportMenu extends GridView
             if ($column instanceof \yii\grid\SerialColumn || $column instanceof \kartik\grid\SerialColumn) {
                 $value = $column->renderDataCell($model, $key, $index);
             } elseif (!empty($column->attribute) && $column->attribute !== null) {
-                $value = empty($model[$column->attribute]) ? "" : $model[$column->attribute];
+                $value = ArrayHelper::getValue($model, $column->attribute, '');
             } elseif ($column instanceof \yii\grid\ActionColumn) {
                 $value = '';
             } else {
