@@ -582,18 +582,44 @@ class ExportMenu extends GridView
         $this->_objPHPExcel->disconnectWorksheets();
         unset($this->_objPHPExcel);
     }
-
+    
+    /**
+     * Gets the column header content
+     * @param \yii\grid\DataColumn $col
+     * @return string
+     */
+    public function getColumnHeader($col)
+    {
+        if ($col->header !== null || $col->label === null && $col->attribute === null) {
+            return trim($col->header) !== '' ? $col->header : $col->grid->emptyCell;
+        }
+        $provider = $this->dataProvider;
+        if ($col->label === null) {
+            if ($provider instanceof ActiveDataProvider && $provider->query instanceof ActiveQueryInterface) {
+                /* @var $model Model */
+                $model = new $provider->query->modelClass;
+                $label = $model->getAttributeLabel($col->attribute);
+            } else {
+                $models = $provider->getModels();
+                if (($model = reset($models)) instanceof Model) {
+                    /* @var $model Model */
+                    $label = $model->getAttributeLabel($col->attribute);
+                } else {
+                    $label = Inflector::camel2words($col->attribute);
+                }
+            }
+        } else {
+            $label = $col->label;
+        }
+        return $label;
+    }
+    
     /**
      * Generates the output data header content.
      */
     public function generateHeader()
     {
         $cells = [];
-        foreach ($this->columns as $column) {
-            /* @var $column Column */
-            $cells[] = $column->renderHeaderCell();
-        }
-        $content = Html::tag('tr', implode('', $cells), $this->headerRowOptions);
         $sheet = $this->_objPHPExcelSheet;
         $style = ArrayHelper::getValue($this->styleOptions, $this->_exportType, []);
         $colFirst = self::columnName(1);
@@ -604,30 +630,13 @@ class ExportMenu extends GridView
         $this->_endCol = 0;
         foreach ($this->columns as $column) {
             $this->_endCol++;
-            if ($column->header === null && !empty($column->attribute)) {
-                if ($this->_provider instanceof ActiveDataProvider && $this->_provider->query instanceof ActiveQueryInterface) {
-                    /* @var $model Model */
-                    $model = new $this->_provider->query->modelClass;
-                    $head = $model->getAttributeLabel($column->attribute);
-                } else {
-                    $models = $this->_provider->getModels();
-                    if (($model = reset($models)) instanceof Model) {
-                        /* @var $model Model */
-                        $head = $model->getAttributeLabel($column->attribute);
-                    } else {
-                        $head = Inflector::camel2words($column->attribute);
-                    }
-                }
-            } else {
-                $head = $column->header;
-            }
-
+            /* @var $column Column */
+            $head = ($column instanceof \yii\grid\DataColumn) ? $this->getColumnHeader($column) : $column->header;
             $cell = $sheet->setCellValue(self::columnName($this->_endCol) . $this->_beginRow, $head, true);
             // Apply formatting to header cell
             $cell = $sheet->getStyle(self::columnName($this->_endCol) . $this->_beginRow)->applyFromArray($style);
             $this->raiseEvent('onRenderHeaderCell', [$cell, $head, $this]);
         }
-
         for ($i = $this->_headerBeginRow; $i < ($this->_beginRow - 1); $i++) {
             $sheet->mergeCells($colFirst . $i . ":" . self::columnName($this->_endCol) . $i);
             $cell = $sheet->getStyle($colFirst . $i)->applyFromArray($style);
@@ -675,12 +684,15 @@ class ExportMenu extends GridView
         foreach ($this->columns as $column) {
             if ($column instanceof \yii\grid\SerialColumn || $column instanceof \kartik\grid\SerialColumn) {
                 $value = $column->renderDataCell($model, $key, $index);
-            } elseif (!empty($column->attribute) && $column->attribute !== null) {
-                $value = ArrayHelper::getValue($model, $column->attribute, '');
             } elseif ($column instanceof \yii\grid\ActionColumn) {
                 $value = '';
             } else {
-                $value = $column->renderDataCellContent();
+                $value = ($column->content === null) ? 
+                    $this->formatter->format($column->getDataCellValue($model, $key, $index), $column->format) :
+                    call_user_func($column->content, $model, $key, $index, $column);
+            }
+            if (empty($value) && !empty($column->attribute) && $column->attribute !== null) {
+                $value = ArrayHelper::getValue($model, $column->attribute, '');
             }
             $this->_endCol++;
             $cell = $this->_objPHPExcelSheet->setCellValue(self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
