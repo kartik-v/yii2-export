@@ -7,7 +7,7 @@ A library to export server/db data in various formats (e.g. excel, html, pdf, cs
 You can see detailed [documentation](http://demos.krajee.com/export) and [demonstration](http://demos.krajee.com/export-demo) on usage of the extension.
 
 ## Latest Release
->NOTE: The latest version of the extension is v1.0.0 released on 17-Dec-2014. Refer the [CHANGE LOG](https://github.com/kartik-v/yii2-export/blob/master/CHANGE.md) for details.
+>NOTE: The latest version of the extension is v1.1.0 released on 25-Dec-2014. Refer the [CHANGE LOG](https://github.com/kartik-v/yii2-export/blob/master/CHANGE.md) for details.
 
 ## Installation
 

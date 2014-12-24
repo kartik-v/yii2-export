@@ -1,6 +1,6 @@
 /*!
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
- * @version 1.0.0
+ * @version 1.1.0
  *
  * Export Data Validation Module.
  *
@@ -31,6 +31,7 @@
         this.$element = $(element);
         var settings = options.settings;
         this.alertMsg = options.alertMsg;
+        this.target = options.target;
         this.$form = $("#" + settings.formId);
         this.messages = settings.messages;
         this.popup = '';
@@ -98,21 +99,25 @@
         listen: function () {
             var self = this;
             self.$form.appendTo('body');
-            self.$form.on('submit', function() {
-                setTimeout(function () {
-                    self.setPopupAlert(self.messages.downloadComplete, true);
-                }, 1000);
-            });
             self.$element.on('click', function(e) {
                 if (self.notify(e)) {
                     var fmt = $(this).data('format');
                     self.$form.find('[name="export_type"]').val(fmt);
-                    self.popup = popupDialog('', 'kvDownloadDialog', 350, 120);
-                    self.popup.focus();
-                    self.setPopupAlert(self.messages.downloadProgress);
+                    if (self.target == '_popup') {
+                        self.popup = popupDialog('', 'kvDownloadDialog', 350, 120);
+                        self.popup.focus();
+                        self.setPopupAlert(self.messages.downloadProgress);
+                    }
                     self.$form.trigger('submit');
                 }
             });
+            if (self.target == '_popup') {
+                self.$form.on('submit', function() {
+                    setTimeout(function () {
+                        self.setPopupAlert(self.messages.downloadComplete, true);
+                    }, 1000);
+                });
+            }
         }
     };
 
@@ -137,6 +142,7 @@
 
     $.fn.exportdata.defaults = {
         filename: 'export',
+        target: '_popup',
         alertMsg: '',
         settings: {
             formId: '',
@@ -148,5 +154,4 @@
             }
         }
     };
-
 })(window.jQuery);

@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "kartik-v/yii2-widgets": "*",
+        "kartik-v/yii2-grid": "*",
         "phpoffice/phpexcel": "1.8.0"
     },
     "autoload": {

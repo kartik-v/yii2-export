@@ -3,7 +3,7 @@
 /**
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
  * @package yii2-export
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 namespace kartik\export;
@@ -43,6 +43,17 @@ class ExportMenu extends GridView
     const FORMAT_PDF = 'PDF';
     const FORMAT_EXCEL = 'Excel5';
     const FORMAT_EXCEL_X = 'Excel2007';
+    
+    const TARGET_POPUP = '_popup';
+    const TARGET_SELF = '_self';
+    const TARGET_BLANK = '_blank';
+    
+    /**
+     * @var string the target for submitting the export form, which will trigger 
+     * the download of the exported file. Must be one of the `TARGET_` constants.
+     * Defaults to `ExportMenu::TARGET_POPUP`.
+     */
+    public $target = self::TARGET_POPUP;
 
     /**
      * @var bool whether to render the export menu as bootstrap button dropdown
@@ -449,10 +460,11 @@ class ExportMenu extends GridView
                 $items .= Html::tag('li', Html::a($label, '#', $linkOptions), $options);
             }
         }
+        $target = $this->target == self::TARGET_POPUP ? 'kvDownloadDialog' : $this->target;
         $form = Html::beginForm('', 'post', [
                 'class' => 'kv-export-full-form',
                 'style' => 'display:none',
-                'target' => 'kvDownloadDialog',
+                'target' => $target,
                 'data-pjax' => false,
                 'id' => $this->options['id'] . '-form'
             ]) .
@@ -873,7 +885,8 @@ class ExportMenu extends GridView
             $id = $this->options['id'] . '-' . strtolower($format);
             $options = Json::encode([
                 'settings' => new JsExpression($menu),
-                'alertMsg' => $setting['alertMsg']
+                'alertMsg' => $setting['alertMsg'],
+                'target' => $this->target
             ]);
             $view->registerJs("jQuery('#{$id}').exportdata({$options});");
         }
