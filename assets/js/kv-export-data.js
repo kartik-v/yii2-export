@@ -15,17 +15,28 @@
         || value === '' || trim && $.trim(value) === '';
     }, 
     popupDialog = function (url, name, w, h) {
-        var left = (screen.width / 2) - (w / 2);
-        var top = 60; //(screen.height / 2) - (h / 2);
-        return window.open(url, name, 'toolbar=no, location=no, directories=no, status=yes, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' 
-            + w +', height=' + h + ', top=' + top + ', left=' + left);
+        var left = (screen.width / 2) - (w / 2), top = 60,
+            existWin = window.open('', name, '', true);
+        existWin.close();
+        return window.open(url, name, 'toolbar=no, location=no, directories=no, status=yes, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w +', height=' + h + ', top=' + top + ', left=' + left);
     },
     popupTemplate = '<html style="display:table;width:100%;height:100%;">' +
         '<title>Export Data - &copy; Krajee</title>' +
         '<body style="display:table-cell;font-family:Helvetica,Arial,sans-serif;color:#888;font-weight:bold;line-height:1.4em;text-align:center;vertical-align:middle;width:100%;height:100%;padding:0 10px;">' +
         '{msg}' +
         '</body>' +
-        '</html>';
+        '</html>',
+    kvConfirm = function(msg) {
+        if (isEmpty(msg)) {
+            return true;
+        }
+        try {
+           return confirm(msg);
+        } 
+        catch (err) {
+            return true;
+        }
+    };
     
     var ExportData = function (element, options) {
         this.$element = $(element);
@@ -40,23 +51,6 @@
     
     ExportData.prototype = {
         constructor: ExportData,
-        popupDialog: function (url, name, w, h) {
-            var left = (screen.width / 2) - (w / 2);
-            var top = 60;
-            return window.open(url, name, 'toolbar=no, location=no, directories=no, status=yes, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' 
-                + w +', height=' + h + ', top=' + top + ', left=' + left);
-        },
-        kvConfirm: function(msg) {
-            if (isEmpty(msg)) {
-                return true;
-            }
-            try {
-               return confirm(msg);
-            } 
-            catch (err) {
-                return true;
-            }
-        },
         notify: function (e) {
             var self = this, msgs = self.messages;
             var msg1 = isEmpty(self.alertMsg) ? '' : self.alertMsg,
@@ -79,7 +73,7 @@
             if (isEmpty(msg)) {
                 return true;
             }
-            return self.kvConfirm(msg);
+            return kvConfirm(msg);
         },
         setPopupAlert: function (msg) {
             var self = this;
@@ -104,7 +98,7 @@
                     var fmt = $(this).data('format');
                     self.$form.find('[name="export_type"]').val(fmt);
                     if (self.target == '_popup') {
-                        self.popup = popupDialog('', 'kvDownloadDialog', 350, 120);
+                        self.popup = popupDialog('', 'kvExportFullDialog', 350, 120);
                         self.popup.focus();
                         self.setPopupAlert(self.messages.downloadProgress);
                     }

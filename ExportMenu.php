@@ -460,7 +460,7 @@ class ExportMenu extends GridView
                 $items .= Html::tag('li', Html::a($label, '#', $linkOptions), $options);
             }
         }
-        $target = $this->target == self::TARGET_POPUP ? 'kvDownloadDialog' : $this->target;
+        $target = $this->target == self::TARGET_POPUP ? 'kvExportFullDialog' : $this->target;
         $form = Html::beginForm('', 'post', [
                 'class' => 'kv-export-full-form',
                 'style' => 'display:none',
