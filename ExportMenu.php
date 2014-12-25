@@ -56,6 +56,13 @@ class ExportMenu extends GridView
     public $target = self::TARGET_POPUP;
 
     /**
+     * @var bool whether to show a confirmation alert dialog before download. This 
+     * confirmation dialog will notify user about the type of exported file for download 
+     * and to disable popup blockers. Defaults to `true`.
+     */
+    public $showConfirmAlert = true;
+
+    /**
      * @var bool whether to render the export menu as bootstrap button dropdown
      * widget. Defaults to `true`. If set to `false`, this will generate a simple
      * HTML list of links.
@@ -886,7 +893,8 @@ class ExportMenu extends GridView
             $options = Json::encode([
                 'settings' => new JsExpression($menu),
                 'alertMsg' => $setting['alertMsg'],
-                'target' => $this->target
+                'target' => $this->target,
+                'showConfirmAlert' => $this->showConfirmAlert
             ]);
             $view->registerJs("jQuery('#{$id}').exportdata({$options});");
         }

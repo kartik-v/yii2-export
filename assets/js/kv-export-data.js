@@ -41,6 +41,7 @@
     var ExportData = function (element, options) {
         this.$element = $(element);
         var settings = options.settings;
+        this.showConfirmAlert = options.showConfirmAlert;
         this.alertMsg = options.alertMsg;
         this.target = options.target;
         this.$form = $("#" + settings.formId);
@@ -52,8 +53,12 @@
     ExportData.prototype = {
         constructor: ExportData,
         notify: function (e) {
-            var self = this, msgs = self.messages;
-            var msg1 = isEmpty(self.alertMsg) ? '' : self.alertMsg,
+            var self = this;
+            if (!self.showConfirmAlert) {
+                return true;
+            }
+            var msgs = self.messages,
+                msg1 = isEmpty(self.alertMsg) ? '' : self.alertMsg,
                 msg2 = isEmpty(msgs.allowPopups) ? '' : msgs.allowPopups,
                 msg3 = isEmpty(msgs.confirmDownload) ? '' : msgs.confirmDownload,
                 msg = '', out;
@@ -137,6 +142,7 @@
     $.fn.exportdata.defaults = {
         filename: 'export',
         target: '_popup',
+        showConfirmAlert: true,
         alertMsg: '',
         settings: {
             formId: '',
