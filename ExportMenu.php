@@ -256,6 +256,11 @@ class ExportMenu extends GridView
      * @var array the the internalization configuration for this module
      */
     public $i18n = [];
+    
+    /**
+     * @var bool whether to apply yii formatting to the cell values
+     */
+    public $formatValues = true;
 
     /**
      * @var string the data output format type. Defaults to
@@ -712,7 +717,7 @@ class ExportMenu extends GridView
                 $value = '';
             } else {
                 $value = ($column->content === null) ? 
-                    $this->formatter->format($column->getDataCellValue($model, $key, $index), $column->format) :
+                    $this->formatter->format($column->getDataCellValue($model, $key, $index), $this->formatValues ? $column->format : 'raw') :
                     call_user_func($column->content, $model, $key, $index, $column);
             }
             if (empty($value) && !empty($column->attribute) && $column->attribute !== null) {
