@@ -55,6 +55,7 @@
         notify: function (e) {
             var self = this;
             if (!self.showConfirmAlert) {
+                e.preventDefault();
                 return true;
             }
             var msgs = self.messages,

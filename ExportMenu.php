@@ -23,10 +23,12 @@ use yii\helpers\Json;
 use yii\helpers\Inflector;
 use yii\helpers\ArrayHelper;
 use yii\data\DataProvider;
-use kartik\grid\GridView;
-use yii\bootstrap\ButtonDropdown;
+use yii\data\ActiveDataProvider;
+use yii\db\ActiveQueryInterface;
 use yii\web\View;
 use yii\web\JsExpression;
+use yii\bootstrap\ButtonDropdown;
+use kartik\grid\GridView;
 
 /**
  * Export menu widget. Export tabular data to various formats using the PHPExcel library
@@ -439,6 +441,9 @@ class ExportMenu extends GridView
     {
         $items = $this->asDropdown ? [] : '';
         foreach ($this->exportConfig as $format => $settings) {
+            if (empty($settings) || $settings === false) {
+                continue;
+            }
             $icon = '';
             $label = '';
             if (!empty($settings['icon'])) {
