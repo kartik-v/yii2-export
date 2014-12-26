@@ -10,6 +10,7 @@ version 1.1.0
 - (bug #16): Prevent default on menu item click when showConfirmAlert is set to false.
 - (bug #19): Correct rendering of menu when format config is disabled.
 - (bug #21): Set correct reference to `ActiveDataProvider` and `ActiveQueryInterface`.
+- (enh #22): Add property `enableFormatter` to enable/disable yii grid formatter.
 
 version 1.0.0
 =============

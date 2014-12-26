@@ -65,6 +65,14 @@ class ExportMenu extends GridView
     public $showConfirmAlert = true;
 
     /**
+     * @var bool whether to enable the yii gridview formatter component.
+     * Defaults to `true`. If set to `false`, this will render content 
+     * as `raw` format.
+     */
+    public $enableFormatter = true;
+
+
+    /**
      * @var bool whether to render the export menu as bootstrap button dropdown
      * widget. Defaults to `true`. If set to `false`, this will generate a simple
      * HTML list of links.
@@ -711,8 +719,9 @@ class ExportMenu extends GridView
             } elseif ($column instanceof \yii\grid\ActionColumn) {
                 $value = '';
             } else {
+                $format = $this->enableFormatter ? $column->format : 'raw';
                 $value = ($column->content === null) ? 
-                    $this->formatter->format($column->getDataCellValue($model, $key, $index), $column->format) :
+                    $this->formatter->format($column->getDataCellValue($model, $key, $index), $format) :
                     call_user_func($column->content, $model, $key, $index, $column);
             }
             if (empty($value) && !empty($column->attribute) && $column->attribute !== null) {
