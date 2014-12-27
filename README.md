@@ -3,7 +3,7 @@ yii2-export
 
 A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.) using the [PHPExcel library](https://phpexcel.codeplex.com/). The widget allows you to configure the dataProvider, columns just like a yii\grid\GridView. However, it just displays the export actions in form of a ButtonDropdown menu, for embedding into any of your GridView or other components.
 
-In addition, with release v1.2.0, the extension now also displays a handy grid columns selector for controlling the columns for export. The features available with the column selector are:
+In addition, with release v1.2.0, the extension also displays a handy grid columns selector for controlling the columns for export. The features available with the column selector are:
 
 - shows a column picker dropdown list to allow selection of columns for export.
 - new `container` property allows you to group the export menu and column selector dropdowns.
