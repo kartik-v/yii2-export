@@ -1,6 +1,6 @@
 /*!
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
- * @version 1.1.0
+ * @version 1.2.0
  *
  * Export Data Validation Module.
  *
@@ -39,15 +39,16 @@
     };
     
     var ExportData = function (element, options) {
-        this.$element = $(element);
+        var self = this;
+        self.$element = $(element);
+        for (var key in options) {
+            self[key] = options[key];
+        }
         var settings = options.settings;
-        this.showConfirmAlert = options.showConfirmAlert;
-        this.alertMsg = options.alertMsg;
-        this.target = options.target;
-        this.$form = $("#" + settings.formId);
-        this.messages = settings.messages;
-        this.popup = '';
-        this.listen();
+        self.$form = $("#" + settings.formId);
+        self.messages = settings.messages;
+        self.popup = '';
+        self.listen();
     };
     
     ExportData.prototype = {
@@ -108,6 +109,17 @@
                         self.popup.focus();
                         self.setPopupAlert(self.messages.downloadProgress);
                     }
+                    if (!isEmpty(self.columnSelectorId)) {
+                        var $selected = $('#' + self.columnSelectorId).parent().find('input[name="export_columns_selector[]"]'),
+                            cols = [];
+                        $selected.each(function() {
+                            var $el = $(this);
+                            if ($el.is(':checked')) {
+                                cols.push($el.attr('data-key'));
+                            }
+                        });
+                        self.$form.find('input[name="export_columns"]').val(cols.join(','));
+                    }
                     self.$form.trigger('submit');
                 }
             });
@@ -144,6 +156,7 @@
         filename: 'export',
         target: '_popup',
         showConfirmAlert: true,
+        columnSelectorId: null,
         alertMsg: '',
         settings: {
             formId: '',

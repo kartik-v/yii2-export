@@ -3,7 +3,7 @@
 /**
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
  * @package yii2-export
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 namespace kartik\export;
@@ -55,7 +55,7 @@ class ExportMenu extends GridView
      * the download of the exported file. Must be one of the `TARGET_` constants.
      * Defaults to `ExportMenu::TARGET_POPUP`.
      */
-    public $target = self::TARGET_POPUP;
+    public $target = self::TARGET_BLANK;
 
     /**
      * @var bool whether to show a confirmation alert dialog before download. This 
@@ -71,7 +71,6 @@ class ExportMenu extends GridView
      */
     public $enableFormatter = true;
 
-
     /**
      * @var bool whether to render the export menu as bootstrap button dropdown
      * widget. Defaults to `true`. If set to `false`, this will generate a simple
@@ -85,6 +84,7 @@ class ExportMenu extends GridView
      * available:
      * - label: string, defaults to empty string
      * - icon: string, defaults to `<i class="glyphicon glyphicon-export"></i>`
+     * - title: string, defaults to `Export data in selected format`.
      * - menuOptions: array, the HTML attributes for the dropdown menu.
      * - itemsBefore: array, any additional items that will be merged/prepended before with the export dropdown list. This should be similar 
      *   to the `items` property as supported by `\yii\bootstrap\ButtonDropdown` widget. Note the page export items will be automatically 
@@ -94,7 +94,75 @@ class ExportMenu extends GridView
      *   generated based on settings in the `exportConfig` property.
      */
     public $dropdownOptions = ['class' => 'btn btn-default'];
+    
+    /**
+     * @var bool whether to show a column selector to select columns for export.
+     * Defaults to `true`. 
+     */
+    public $showColumnSelector = true;
+    
+    /**
+     * @var array the configuration of the column selector. This will display the 
+     * list of column names to be selected for export. This list should be setup
+     * in the same sequence and keys matching the `$columns`. Wherever a key is 
+     * not set the column name will be auto generated. 
+     */
+    public $columnSelector = [];
+    
+    /** 
+     * @var array the HTML attributes for the column selector dropdown button.
+     * The following special options are recognized:
+     * - label: string, defaults to empty string.
+     * - icon: string, defaults to `<i class="glyphicon glyphicon-list"></i>`
+     * - title: string, defaults to `Select columns for export.`.
+     */
+    public $columnSelectorOptions = [];
+    
+    /**
+     * @var array, HTML attributes for the container to wrap the widget.
+     * Defaults to ['class'=>'btn-group', 'role'=>'group']
+     */
+    public $container = ['class'=>'btn-group', 'role'=>'group'];
+    
+    /**
+     * @var array the HTML attributes for the export form. 
+     */
+    public $exportFormOptions = [];
+    
+    /**
+     * @var array the selected column indexes for export. If not set this will default to
+     * all columns.
+     */
+    public $selectedColumns;
+    
+    /**
+     * @var array the column indexes for export that will be disabled for selection
+     * in the column selector.
+     */
+    public $disabledColumns = [];
+    
+    /**
+     * @var array the column indexes for export that will be hidden for selection
+     * in the column selector, but will still be displayed in export output.
+     */
+    public $hiddenColumns = [];
+    
+    /**
+     * @var array the column indexes for export that will not be exported at all nor
+     * will they be shown in the column selector
+     */
+    public $noExportColumns = [];
 
+    /**
+     * @var string the view file for rendering the export form
+     */
+    public $exportFormView = '_form';
+    
+    /**
+     * @var string the view file for rendering the columns selection
+     */
+    public $exportColumnsView = '_columns';
+    
     /**
      * @var boolean whether to use font awesome icons for rendering the icons
      * as defined in `exportConfig`. If set to `true`, you must load the FontAwesome
@@ -316,6 +384,16 @@ class ExportMenu extends GridView
      * @var int the current table end column
      */
     protected $_endCol = 1;
+    
+    /**
+     * @var array the grid columns stored
+     */
+    protected $_columns = [];
+    
+    /**
+     * @var array the visble columns for export
+     */
+    protected $_visibleColumns = [];
 
     /**
      * @var array the default style configuration
@@ -367,7 +445,9 @@ class ExportMenu extends GridView
         if ($this->_triggerDownload) {
             Yii::$app->controller->layout = false;
             $this->_exportType = $_POST['export_type'];
+            $this->initSelectedColumns();
         }
+        $this->_columns = $this->columns;
         parent::init();
     }
 
@@ -377,6 +457,8 @@ class ExportMenu extends GridView
     public function run()
     {
         $this->initI18N();
+        $this->initColumnSelector();
+        $this->setVisibleColumns();
         $this->initExport();
         if (!$this->_triggerDownload) {
             $this->registerAssets();
@@ -386,7 +468,7 @@ class ExportMenu extends GridView
         ob_end_clean();
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         if (empty($config)) {
-            throw new InvalidConfigException("The  '{$this->pdfLibrary}' was not found or installed at path '{$path}'.");
+            throw new InvalidConfigException("The '{$this->pdfLibrary}' was not found or installed at path '{$path}'.");
         }
         if (empty($config['writer'])) {
             throw new InvalidConfigException("The 'writer' setting for PHPExcel must be setup in 'exportConfig'.");
@@ -409,7 +491,7 @@ class ExportMenu extends GridView
             $writer->setDelimiter("\t");
         }
         if ($this->autoWidth) {
-            foreach ($this->columns as $n => $column) {
+            foreach ($this->_visibleColumns as $n => $column) {
                 $sheet->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
             }
         }
@@ -480,37 +562,52 @@ class ExportMenu extends GridView
                 $items .= Html::tag('li', Html::a($label, '#', $linkOptions), $options);
             }
         }
-        $target = $this->target == self::TARGET_POPUP ? 'kvExportFullDialog' : $this->target;
-        $form = Html::beginForm('', 'post', [
-                'class' => 'kv-export-full-form',
-                'style' => 'display:none',
-                'target' => $target,
-                'data-pjax' => false,
-                'id' => $this->options['id'] . '-form'
-            ]) .
-            Html::hiddenInput('export_type', $this->_exportType) .
-            Html::hiddenInput($this->exportRequestParam, 1) .
-            '</form>';
-
+        $form = $this->render($this->exportFormView, [
+            'options' => $this->exportFormOptions,
+            'exportType' => $this->_exportType,
+            'exportRequestParam' => $this->exportRequestParam,
+        ]);
         if ($this->asDropdown) {
             $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="glyphicon glyphicon-export"></i>');
             $label = ArrayHelper::remove($this->dropdownOptions, 'label', '');
-            $title = empty($label) ? $icon : $icon . ' ' . $label;
+            $label = empty($label) ? $icon : $icon . ' ' . $label;
+            if (empty($this->dropdownOptions['title'])) {
+                $this->dropdownOptions['title'] = Yii::t('kvexport', 'Export data in selected format');
+            }
             $menuOptions = ArrayHelper::remove($this->dropdownOptions, 'menuOptions', []);
             $itemsBefore = ArrayHelper::remove($this->dropdownOptions, 'itemsBefore', []);
             $itemsAfter = ArrayHelper::remove($this->dropdownOptions, 'itemsAfter', []);
             $items = ArrayHelper::merge($itemsBefore, $items, $itemsAfter);
-            return ButtonDropdown::widget([
-                'label' => $title,
+            $content = ButtonDropdown::widget([
+                'label' => $label,
                 'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions],
                 'options' => $this->dropdownOptions,
                 'encodeLabel' => false
-            ]) . $form;
+            ]) . $this->renderColumnSelector() . "\n" . $form;
+            return Html::tag('div', $content, $this->container);
         } else {
             return $items . "\n". $form;
         }
     }
 
+    /**
+     * Renders the columns selector
+     */
+    public function renderColumnSelector()
+    {
+        if (!$this->showColumnSelector) {
+            return '';
+        }
+        return $this->render($this->exportColumnsView, [
+            'options' => $this->columnSelectorOptions,
+            'columnSelector' => $this->columnSelector,
+            'selectedColumns' => $this->selectedColumns,
+            'disabledColumns' => $this->disabledColumns,
+            'hiddenColumns' => $this->hiddenColumns,
+            'noExportColumns' => $this->noExportColumns
+        ]);
+    }
+    
     /**
      * Initializes export settings
      */
@@ -525,6 +622,14 @@ class ExportMenu extends GridView
         if (empty($this->filename)) {
             $this->filename = Yii::t('kvexport', 'grid-export');
         }
+        $target = $this->target == self::TARGET_POPUP ? 'kvExportFullDialog' : $this->target;
+        $id = ArrayHelper::getValue($this->exportFormOptions, 'id', $this->options['id'] . '-form');
+        Html::addCssClass($this->exportFormOptions, 'kv-export-full-form');
+        $this->exportFormOptions += [
+            'id' => $id,
+            'target' => $target,
+            'data-pjax' => false
+        ];
     }
     
     /**
@@ -647,6 +752,26 @@ class ExportMenu extends GridView
     }
     
     /**
+     * Sets visible columns for export
+     */
+    protected function setVisibleColumns() {
+        $cols = [];
+        foreach($this->columns as $key => $column) {
+            if (!in_array($key, $this->noExportColumns) && in_array($key, $this->selectedColumns)) {
+                $cols[] = $column;
+            }
+        }
+        $this->_visibleColumns = $cols;
+    }
+    
+    /**
+     * Gets the visible columns for export
+     */
+    public function getVisibleColumns() {
+        return $this->_visibleColumns;
+    }
+    
+    /**
      * Generates the output data header content.
      */
     public function generateHeader()
@@ -660,7 +785,7 @@ class ExportMenu extends GridView
             $this->_beginRow += 2;
         }
         $this->_endCol = 0;
-        foreach ($this->columns as $column) {
+        foreach ($this->_visibleColumns as $column) {
             $this->_endCol++;
             /* @var $column Column */
             $head = ($column instanceof \yii\grid\DataColumn) ? $this->getColumnHeader($column) : $column->header;
@@ -713,7 +838,7 @@ class ExportMenu extends GridView
         $cells = [];
         /* @var $column Column */
         $this->_endCol = 0;
-        foreach ($this->columns as $column) {
+        foreach ($this->_visibleColumns as $column) {
             if ($column instanceof \yii\grid\SerialColumn || $column instanceof \kartik\grid\SerialColumn) {
                 $value = $column->renderDataCell($model, $key, $index);
             } elseif ($column instanceof \yii\grid\ActionColumn) {
@@ -741,7 +866,7 @@ class ExportMenu extends GridView
     public function generateFooter($row)
     {
         $this->_endCol = 0;
-        foreach ($this->columns as $n => $column) {
+        foreach ($this->_visibleColumns as $n => $column) {
             $this->_endCol = $this->_endCol + 1;
             if ($column->footer) {
                 $footer = trim($column->footer) !== '' ? $column->footer : $column->grid->blankDisplay;
@@ -881,11 +1006,129 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Initialize columns selected for export
+     */
+    protected function initSelectedColumns() {
+        $this->selectedColumns = array_keys($this->columnSelector);
+        if (empty($_POST['export_columns'])) {
+            return;
+        }
+        $this->selectedColumns = explode(',', $_POST['export_columns']);
+    }
+    
+    /**
+     * Initialize column selector list
+     */
+    protected function initColumnSelector() {
+        if (!$this->showColumnSelector) {
+            return;
+        }
+        $selector = [];
+        Html::addCssClass($this->columnSelectorOptions, 'btn btn-default dropdown-toggle');
+        $header = ArrayHelper::getValue($this->columnSelectorOptions, 'header', Yii::t('kvexport', 'Select Columns'));    
+        $this->columnSelectorOptions['header'] = (empty($header) || $header === false) ? '' : 
+            '<li class="dropdown-header">' . $header . '</li><li class="kv-divider"></li>';
+        $this->columnSelectorOptions = array_replace_recursive([
+            'id' => $this->options['id'] . '-cols',
+            'icon' => '<i class="glyphicon glyphicon-list"></i>',
+            'title' => Yii::t('kvexport', 'Select columns to export'),
+            'type' => 'button',
+            'data-toggle' => 'dropdown',
+            'aria-haspopup' => 'true',
+            'aria-expanded' => 'false',
+        ], $this->columnSelectorOptions);
+        foreach($this->_columns as $key => $column) {
+            $selector[$key] = $this->getColumnLabel($key, $column);
+        }
+        $this->columnSelector = array_replace($selector, $this->columnSelector);
+        if (!isset($this->selectedColumns)) {
+            $keys = array_keys($this->columnSelector);
+            $this->selectedColumns = array_combine($keys, $keys);
+        }
+    }
+    
+    /**
+     * Fetches the column label
+     *
+     * @param mixed $key
+     * @param mixed $column
+     * @return string
+     */
+    protected function getColumnLabel($key, $column)
+    {
+        if (is_string($column)) {
+            $matches = $this->matchColumnString($column);
+            $attribute = $matches[1];
+            if (isset($matches[5])) {
+                return $matches[5];
+            } //header specified is in the format "attribute:format:label"
+            return $this->getAttributeLabel($attribute);
+        } else {
+            $label = $key;
+            if (is_array($column)) {
+                if (!empty($column['label'])) {
+                    $label = $column['label'];
+                } elseif (!empty($column['header'])) {
+                    $label = $column['header'];
+                } elseif (!empty($column['attribute'])) {
+                    $label = $this->getAttributeLabel($column['attribute']);
+                } elseif (!empty($column['class'])) {
+                    $class = explode("\\", $column['class']);
+                    $label = Inflector::camel2words(end($class));
+                }
+            }
+            return trim(strip_tags(str_replace(['<br>', '<br/>'], ' ', $label)));
+        }
+    }
+    
+    /**
+     * Generates the attribute label
+     *
+     * @param $attribute
+     * @return string
+     */
+    protected function getAttributeLabel($attribute)
+    {
+        $provider = clone($this->dataProvider);
+        /** @var Model $model */
+        if ($provider instanceof yii\data\ActiveDataProvider && $provider->query instanceof yii\db\ActiveQueryInterface) {
+            $model = new $provider->query->modelClass;
+            return $model->getAttributeLabel($attribute);
+        } else {
+            $models = $provider->getModels();
+            if (($model = reset($models)) instanceof Model) {
+                return $model->getAttributeLabel($attribute);
+            } else {
+                return Inflector::camel2words($attribute);
+            }
+        }
+    }
+
+    /**
+     * Finds the matches for a string column format
+     *
+     * @param string $column
+     * @return mixed
+     * @throws \yii\base\InvalidConfigException
+     */
+    protected function matchColumnString($column)
+    {
+        $matches = [];
+        if (!preg_match('/^([\w\.]+)(:(\w*))?(:(.*))?$/', $column, $matches)) {
+            throw new InvalidConfigException("Invalid column configuration for '{$column}'. The column must be specified in the format of 'attribute', 'attribute:format' or 'attribute:format: label'.");
+        }
+        return $matches;
+    }
+
+    /**
      * Registers client assets needed for Export Menu widget
      */
     protected function registerAssets()
     {
         $view = $this->getView();
+        if ($this->showColumnSelector) {
+            $view->registerJs("\$(document).on('click', '.kv-checkbox-list', function(e){e.stopPropagation();});");
+        }
         ExportMenuAsset::register($view);
         $this->messages += [
             'allowPopups' => Yii::t('kvexport', 'Disable any popup blockers in your browser to ensure proper download.'),
@@ -893,8 +1136,9 @@ class ExportMenu extends GridView
             'downloadProgress' => Yii::t('kvexport', 'Generating the export file. Please wait...'),
             'downloadComplete' => Yii::t('kvexport', 'Request submitted! You may safely close this dialog after saving your downloaded file.'),
         ];
+        $formId = $this->exportFormOptions['id'];
         $options = Json::encode([
-            'formId' => $this->options['id'] . '-form',
+            'formId' => $formId,
             'messages' => $this->messages
         ]);
         $menu = 'kvexpmenu_' . hash('crc32', $options);
@@ -904,13 +1148,20 @@ class ExportMenu extends GridView
                 continue;
             }
             $id = $this->options['id'] . '-' . strtolower($format);
-            $options = Json::encode([
+            $options = [
                 'settings' => new JsExpression($menu),
                 'alertMsg' => $setting['alertMsg'],
                 'target' => $this->target,
                 'showConfirmAlert' => $this->showConfirmAlert
-            ]);
+            ];
+            if ($this->showColumnSelector) {
+                $options['columnSelectorId'] = $this->columnSelectorOptions['id'];
+            }
+            $options = Json::encode($options);
             $view->registerJs("jQuery('#{$id}').exportdata({$options});");
+        }
+        if ($this->showColumnSelector) {
+            $view->registerJs("\$(document).on('click', '.kv-checkbox-list', function(e){e.stopPropagation();});");
         }
     }
 }

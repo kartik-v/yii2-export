@@ -3,7 +3,7 @@
 /**
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
  * @package yii2-export
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 namespace kartik\export;
@@ -11,7 +11,7 @@ namespace kartik\export;
 use kartik\widgets\AssetBundle;
 
 /**
- * Asset bundle for GridView Widget (for exporting content)
+ * Asset bundle for ExportMenu Widget (for export menu data)
  *
  * @author Kartik Visweswaran <kartikv2@gmail.com>
  * @since 1.0
@@ -22,6 +22,7 @@ class ExportMenuAsset extends AssetBundle
     {
         $this->setSourcePath(__DIR__ . '/assets');
         $this->setupAssets('js', ['js/kv-export-data']);
+        $this->setupAssets('css', ['css/kv-export-data']);
         parent::init();
     }
 }
