@@ -8,4 +8,4 @@
  * Copyright: 2014, Kartik Visweswaran, Krajee.com
  * For more JQuery plugins visit http://plugins.krajee.com
  * For more Yii related demos visit http://demos.krajee.com
- */.kv-export-full-form{margin:0;padding:0;display:none}.kv-checkbox-list{padding-left:15px}.kv-checkbox-list label{width:100%}
+ */.kv-export-full-form{margin:0;padding:0;display:none}.kv-checkbox-list .checkbox{padding:0 20px}.kv-checkbox-list label{width:100%}.kv-checkbox-list label.disabled{cursor:not-allowed;filter:alpha(opacity=65);opacity:.65}

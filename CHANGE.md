@@ -16,7 +16,7 @@ version 1.2.0
 - (enh #18): Configurable user interfaces for advanced cases using view templates
     - `exportFormView` allows you to setup your own custom view file for rendering the export form.
     - `exportColumnsView` allows you to setup your own custom view file for rendering the column selector dropdown.
-- added ability to configure export form HTML options
+- added ability to configure export form HTML options.
 
 version 1.1.0
 =============
