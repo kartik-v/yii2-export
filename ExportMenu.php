@@ -403,11 +403,6 @@ class ExportMenu extends GridView
      * @var bool whether the column selector is enabled
      */
     protected $_columnSelectorEnabled = true;
-        
-    /**
-     * @var array the grid columns stored
-     */
-    protected $_columns = [];
     
     /**
      * @var array the visble columns for export
@@ -467,9 +462,6 @@ class ExportMenu extends GridView
             $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
             $this->_columnSelectorEnabled = $_POST[self::PARAM_COLSEL_FLAG];
             $this->initSelectedColumns();
-        }
-        if ($this->_columnSelectorEnabled) {
-            $this->_columns = $this->columns;
         }
         parent::init();
     }
@@ -1074,7 +1066,7 @@ class ExportMenu extends GridView
             'aria-haspopup' => 'true',
             'aria-expanded' => 'false',
         ], $this->columnSelectorOptions);
-        foreach($this->_columns as $key => $column) {
+        foreach($this->columns as $key => $column) {
             $selector[$key] = $this->getColumnLabel($key, $column);
         }
         $this->columnSelector = array_replace($selector, $this->columnSelector);
@@ -1093,29 +1085,18 @@ class ExportMenu extends GridView
      */
     protected function getColumnLabel($key, $column)
     {
-        if (is_string($column)) {
-            $matches = $this->matchColumnString($column);
-            $attribute = $matches[1];
-            if (isset($matches[5])) {
-                return $matches[5];
-            } //header specified is in the format "attribute:format:label"
-            return $this->getAttributeLabel($attribute);
-        } else {
-            $label = $key;
-            if (is_array($column)) {
-                if (!empty($column['label'])) {
-                    $label = $column['label'];
-                } elseif (!empty($column['header'])) {
-                    $label = $column['header'];
-                } elseif (!empty($column['attribute'])) {
-                    $label = $this->getAttributeLabel($column['attribute']);
-                } elseif (!empty($column['class'])) {
-                    $class = explode("\\", $column['class']);
-                    $label = Inflector::camel2words(end($class));
-                }
-            }
-            return trim(strip_tags(str_replace(['<br>', '<br/>'], ' ', $label)));
+        $label = $key;
+        if (!empty($column->label)) {
+            $label = $column->label;
+        } elseif (!empty($column->header)) {
+            $label = $column->header;
+        } elseif (!empty($column->attribute)) {
+            $label = $this->getAttributeLabel($column->attribute);
+        } elseif (!$column instanceof \yii\grid\DataColumn) {
+            $class = explode("\\", $column::classname());
+            $label = Inflector::camel2words(end($class));
         }
+        return trim(strip_tags(str_replace(['<br>', '<br/>'], ' ', $label)));
     }
     
     /**
