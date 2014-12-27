@@ -6,6 +6,7 @@ A library to export server/db data in various formats (e.g. excel, html, pdf, cs
 In addition, with release v1.2.0, the extension now also displays a handy grid columns selector for controlling the columns for export. The features available with the column selector are:
 
 - shows a column picker dropdown list to allow selection of columns for export.
+- new `container` property allows you to group the export menu and column selector dropdowns.
 - allows configuration of column picker dropdown button through `columnSelectorOptions`
 - auto-generates column labels in the column selector. But you can override displayed column labels for each column key through `columnSelector` property settings.
 - allows preselected columns through `selectedColumns` (you must set the selected column keys)
