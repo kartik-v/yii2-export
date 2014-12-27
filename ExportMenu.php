@@ -55,7 +55,7 @@ class ExportMenu extends GridView
      * the download of the exported file. Must be one of the `TARGET_` constants.
      * Defaults to `ExportMenu::TARGET_POPUP`.
      */
-    public $target = self::TARGET_BLANK;
+    public $target = self::TARGET_POPUP;
 
     /**
      * @var bool whether to show a confirmation alert dialog before download. This 
@@ -386,6 +386,11 @@ class ExportMenu extends GridView
     protected $_endCol = 1;
     
     /**
+     * @var bool whether the column selector is enabled
+     */
+    protected $_columnSelectorEnabled = true;
+        
+    /**
      * @var array the grid columns stored
      */
     protected $_columns = [];
@@ -393,7 +398,7 @@ class ExportMenu extends GridView
     /**
      * @var array the visble columns for export
      */
-    protected $_visibleColumns = [];
+    protected $_visibleColumns;
 
     /**
      * @var array the default style configuration
@@ -439,15 +444,19 @@ class ExportMenu extends GridView
      */
     public function init()
     {
+        $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
         $this->_triggerDownload = !empty($_POST) &&
             !empty($_POST[$this->exportRequestParam]) &&
             $_POST[$this->exportRequestParam];
         if ($this->_triggerDownload) {
             Yii::$app->controller->layout = false;
             $this->_exportType = $_POST['export_type'];
+            $this->_columnSelectorEnabled = $_POST['export_column_selector'];
             $this->initSelectedColumns();
         }
-        $this->_columns = $this->columns;
+        if ($this->_columnSelectorEnabled) {
+            $this->_columns = $this->columns;
+        }
         parent::init();
     }
 
@@ -491,7 +500,7 @@ class ExportMenu extends GridView
             $writer->setDelimiter("\t");
         }
         if ($this->autoWidth) {
-            foreach ($this->_visibleColumns as $n => $column) {
+            foreach ($this->getVisibleColumns() as $n => $column) {
                 $sheet->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
             }
         }
@@ -566,6 +575,7 @@ class ExportMenu extends GridView
             'options' => $this->exportFormOptions,
             'exportType' => $this->_exportType,
             'exportRequestParam' => $this->exportRequestParam,
+            'exportColumnSelector' => $this->_columnSelectorEnabled,
         ]);
         if ($this->asDropdown) {
             $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="glyphicon glyphicon-export"></i>');
@@ -595,7 +605,7 @@ class ExportMenu extends GridView
      */
     public function renderColumnSelector()
     {
-        if (!$this->showColumnSelector) {
+        if (!$this->_columnSelectorEnabled) {
             return '';
         }
         return $this->render($this->exportColumnsView, [
@@ -755,6 +765,10 @@ class ExportMenu extends GridView
      * Sets visible columns for export
      */
     protected function setVisibleColumns() {
+        if (!$this->_columnSelectorEnabled) {
+            $this->_visibleColumns = $this->columns;
+            return;
+        }
         $cols = [];
         foreach($this->columns as $key => $column) {
             if (!in_array($key, $this->noExportColumns) && in_array($key, $this->selectedColumns)) {
@@ -768,6 +782,9 @@ class ExportMenu extends GridView
      * Gets the visible columns for export
      */
     public function getVisibleColumns() {
+        if (!$this->_columnSelectorEnabled) {
+            return $this->columns;
+        }
         return $this->_visibleColumns;
     }
     
@@ -785,7 +802,7 @@ class ExportMenu extends GridView
             $this->_beginRow += 2;
         }
         $this->_endCol = 0;
-        foreach ($this->_visibleColumns as $column) {
+        foreach ($this->getVisibleColumns() as $column) {
             $this->_endCol++;
             /* @var $column Column */
             $head = ($column instanceof \yii\grid\DataColumn) ? $this->getColumnHeader($column) : $column->header;
@@ -838,7 +855,7 @@ class ExportMenu extends GridView
         $cells = [];
         /* @var $column Column */
         $this->_endCol = 0;
-        foreach ($this->_visibleColumns as $column) {
+        foreach ($this->getVisibleColumns() as $column) {
             if ($column instanceof \yii\grid\SerialColumn || $column instanceof \kartik\grid\SerialColumn) {
                 $value = $column->renderDataCell($model, $key, $index);
             } elseif ($column instanceof \yii\grid\ActionColumn) {
@@ -866,7 +883,7 @@ class ExportMenu extends GridView
     public function generateFooter($row)
     {
         $this->_endCol = 0;
-        foreach ($this->_visibleColumns as $n => $column) {
+        foreach ($this->getVisibleColumns() as $n => $column) {
             $this->_endCol = $this->_endCol + 1;
             if ($column->footer) {
                 $footer = trim($column->footer) !== '' ? $column->footer : $column->grid->blankDisplay;
@@ -1009,6 +1026,9 @@ class ExportMenu extends GridView
      * Initialize columns selected for export
      */
     protected function initSelectedColumns() {
+        if (!$this->_columnSelectorEnabled) {
+            return;
+        }
         $this->selectedColumns = array_keys($this->columnSelector);
         if (empty($_POST['export_columns'])) {
             return;
@@ -1020,7 +1040,7 @@ class ExportMenu extends GridView
      * Initialize column selector list
      */
     protected function initColumnSelector() {
-        if (!$this->showColumnSelector) {
+        if (!$this->_columnSelectorEnabled) {
             return;
         }
         $selector = [];
@@ -1126,7 +1146,7 @@ class ExportMenu extends GridView
     protected function registerAssets()
     {
         $view = $this->getView();
-        if ($this->showColumnSelector) {
+        if ($this->_columnSelectorEnabled) {
             $view->registerJs("\$(document).on('click', '.kv-checkbox-list', function(e){e.stopPropagation();});");
         }
         ExportMenuAsset::register($view);
@@ -1154,13 +1174,13 @@ class ExportMenu extends GridView
                 'target' => $this->target,
                 'showConfirmAlert' => $this->showConfirmAlert
             ];
-            if ($this->showColumnSelector) {
+            if ($this->_columnSelectorEnabled) {
                 $options['columnSelectorId'] = $this->columnSelectorOptions['id'];
             }
             $options = Json::encode($options);
             $view->registerJs("jQuery('#{$id}').exportdata({$options});");
         }
-        if ($this->showColumnSelector) {
+        if ($this->_columnSelectorEnabled) {
             $view->registerJs("\$(document).on('click', '.kv-checkbox-list', function(e){e.stopPropagation();});");
         }
     }
