@@ -15,6 +15,11 @@ In addition, with release v1.2.0, the extension now also displays a handy grid c
 - toggle display of the column selector through `showColumnSelector` property
 - column selector is displayed only if `asDropdown` is set to `true`.
 
+The extension offers configurable user interfaces for advanced cases using view templates.
+
+- `exportFormView` allows you to setup your own custom view file for rendering the export form.
+- `exportColumnsView` allows you to setup your own custom view file for rendering the column selector dropdown.
+
 ## Demo
 You can see detailed [documentation](http://demos.krajee.com/export) and [demonstration](http://demos.krajee.com/export-demo) on usage of the extension.
 
