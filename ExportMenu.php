@@ -451,7 +451,7 @@ class ExportMenu extends GridView
         if ($this->_triggerDownload) {
             Yii::$app->controller->layout = false;
             $this->_exportType = $_POST['export_type'];
-            $this->_columnSelectorEnabled = $_POST['export_column_selector'];
+            $this->_columnSelectorEnabled = $_POST['column_selector_enabled'];
             $this->initSelectedColumns();
         }
         if ($this->_columnSelectorEnabled) {
@@ -575,7 +575,7 @@ class ExportMenu extends GridView
             'options' => $this->exportFormOptions,
             'exportType' => $this->_exportType,
             'exportRequestParam' => $this->exportRequestParam,
-            'exportColumnSelector' => $this->_columnSelectorEnabled,
+            'columnSelectorEnabled' => $this->_columnSelectorEnabled,
         ]);
         if ($this->asDropdown) {
             $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="glyphicon glyphicon-export"></i>');

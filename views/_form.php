@@ -15,6 +15,6 @@ echo Html::beginForm('', 'post', $options);
 echo Html::hiddenInput('export_type', $exportType);
 echo Html::hiddenInput($exportRequestParam, 1); 
 echo Html::hiddenInput('export_columns', '');
-echo Html::hiddenInput('export_column_selector', $exportColumnSelector);
+echo Html::hiddenInput('column_selector_enabled', $columnSelectorEnabled);
 echo Html::endForm();
 ?>
