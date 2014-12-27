@@ -39,6 +39,9 @@ use kartik\grid\GridView;
  */
 class ExportMenu extends GridView
 {
+    /**
+     * Export formats
+     */
     const FORMAT_HTML = 'HTML';
     const FORMAT_CSV = 'CSV';
     const FORMAT_TEXT = 'TXT';
@@ -46,9 +49,19 @@ class ExportMenu extends GridView
     const FORMAT_EXCEL = 'Excel5';
     const FORMAT_EXCEL_X = 'Excel2007';
     
+    /**
+     * Export form submission targets
+     */
     const TARGET_POPUP = '_popup';
     const TARGET_SELF = '_self';
     const TARGET_BLANK = '_blank';
+    
+    /**
+     * Input parameters from export form
+     */
+    const PARAM_EXPORT_TYPE = 'export_type';
+    const PARAM_EXPORT_COLS = 'export_columns';
+    const PARAM_COLSEL_FLAG = 'column_selector_enabled';
     
     /**
      * @var string the target for submitting the export form, which will trigger 
@@ -450,8 +463,8 @@ class ExportMenu extends GridView
             $_POST[$this->exportRequestParam];
         if ($this->_triggerDownload) {
             Yii::$app->controller->layout = false;
-            $this->_exportType = $_POST['export_type'];
-            $this->_columnSelectorEnabled = $_POST['column_selector_enabled'];
+            $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
+            $this->_columnSelectorEnabled = $_POST[self::PARAM_COLSEL_FLAG];
             $this->initSelectedColumns();
         }
         if ($this->_columnSelectorEnabled) {
@@ -574,8 +587,11 @@ class ExportMenu extends GridView
         $form = $this->render($this->exportFormView, [
             'options' => $this->exportFormOptions,
             'exportType' => $this->_exportType,
-            'exportRequestParam' => $this->exportRequestParam,
             'columnSelectorEnabled' => $this->_columnSelectorEnabled,
+            'exportRequestParam' => $this->exportRequestParam,
+            'exportTypeParam' => self::PARAM_EXPORT_TYPE,
+            'exportColsParam' => self::PARAM_EXPORT_COLS,
+            'colselFlagParam' => self::PARAM_COLSEL_FLAG,
         ]);
         if ($this->asDropdown) {
             $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="glyphicon glyphicon-export"></i>');
@@ -1030,10 +1046,10 @@ class ExportMenu extends GridView
             return;
         }
         $this->selectedColumns = array_keys($this->columnSelector);
-        if (empty($_POST['export_columns'])) {
+        if (empty($_POST[self::PARAM_EXPORT_COLS])) {
             return;
         }
-        $this->selectedColumns = explode(',', $_POST['export_columns']);
+        $this->selectedColumns = explode(',', $_POST[self::PARAM_EXPORT_COLS]);
     }
     
     /**
