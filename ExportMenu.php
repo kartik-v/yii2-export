@@ -1079,8 +1079,8 @@ class ExportMenu extends GridView
     /**
      * Fetches the column label
      *
-     * @param mixed $key
-     * @param mixed $column
+     * @param int $key
+     * @param \yii\grid\Column $column
      * @return string
      */
     protected function getColumnLabel($key, $column)
@@ -1102,7 +1102,7 @@ class ExportMenu extends GridView
     /**
      * Generates the attribute label
      *
-     * @param $attribute
+     * @param string $attribute
      * @return string
      */
     protected function getAttributeLabel($attribute)
