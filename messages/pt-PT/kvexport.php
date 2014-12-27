@@ -17,6 +17,9 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
+    'Export data in selected format' => '',
+    'Select Columns' => '',
+    'Select columns to export' => '',
     'CSV' => 'CSV',
     'Comma Separated Values' => 'Valores separados por vírgula',
     'Disable any popup blockers in your browser to ensure proper download.' => 'Desactive qualquer bloqueador de popups no seu browser para garantir o correcto download',
@@ -40,5 +43,5 @@ return [
     'The HTML export file will be generated for download.' => 'O ficheiro HTML será gerado para download',
     'The PDF export file will be generated for download.' => 'O ficheiro PDF será gerado para download',
     'The TEXT export file will be generated for download.' => 'O ficheiro de Texto será gerado para download',
-    'grid-export' => 'grid-export'
+    'grid-export' => 'grid-export',
 ];
