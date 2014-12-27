@@ -18,6 +18,7 @@
  */
 return [
     'CSV' => '',
+    'Column' => '',
     'Comma Separated Values' => '',
     'Disable any popup blockers in your browser to ensure proper download.' => '',
     'Excel 2007+' => '',

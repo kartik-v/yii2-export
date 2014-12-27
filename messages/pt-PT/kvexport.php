@@ -17,6 +17,7 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
+    'Column' => '',
     'Export data in selected format' => '',
     'Select Columns' => '',
     'Select columns to export' => '',

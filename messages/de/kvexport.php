@@ -18,6 +18,7 @@
  */
 return [
     'CSV' => '',
+    'Column' => '',
     'Comma Separated Values' => '',
     'Excel 2007+' => '',
     'Excel 95 +' => '',
