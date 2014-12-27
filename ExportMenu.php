@@ -115,10 +115,11 @@ class ExportMenu extends GridView
     public $showColumnSelector = true;
     
     /**
-     * @var array the configuration of the column selector. This will display the 
-     * list of column names to be selected for export. This list should be setup
-     * in the same sequence and keys matching the `$columns`. Wherever a key is 
-     * not set the column name will be auto generated. 
+     * @var array the configuration of the column names in the column selector. Note: column names will be 
+     * auto-generated anyway. Any setting in this property will override the auto-generated column names. 
+     * This list should be setup as `$key => $value` where: 
+     * $key: int, is the zero based index of the column as set in `$columns`.
+     * $value: string, is the column name/label you wish to display in the column selector.
      */
     public $columnSelector = [];
     
