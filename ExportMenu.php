@@ -1123,22 +1123,6 @@ class ExportMenu extends GridView
     }
 
     /**
-     * Finds the matches for a string column format
-     *
-     * @param string $column
-     * @return mixed
-     * @throws \yii\base\InvalidConfigException
-     */
-    protected function matchColumnString($column)
-    {
-        $matches = [];
-        if (!preg_match('/^([\w\.]+)(:(\w*))?(:(.*))?$/', $column, $matches)) {
-            throw new InvalidConfigException("Invalid column configuration for '{$column}'. The column must be specified in the format of 'attribute', 'attribute:format' or 'attribute:format: label'.");
-        }
-        return $matches;
-    }
-
-    /**
      * Registers client assets needed for Export Menu widget
      */
     protected function registerAssets()
