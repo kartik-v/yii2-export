@@ -1107,7 +1107,7 @@ class ExportMenu extends GridView
      */
     protected function getAttributeLabel($attribute)
     {
-        $provider = clone($this->dataProvider);
+        $provider = $this->dataProvider;
         /** @var Model $model */
         if ($provider instanceof yii\data\ActiveDataProvider && $provider->query instanceof yii\db\ActiveQueryInterface) {
             $model = new $provider->query->modelClass;
