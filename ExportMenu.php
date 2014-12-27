@@ -128,7 +128,7 @@ class ExportMenu extends GridView
      * The following special options are recognized:
      * - label: string, defaults to empty string.
      * - icon: string, defaults to `<i class="glyphicon glyphicon-list"></i>`
-     * - title: string, defaults to `Select columns for export.`.
+     * - title: string, defaults to `Select columns for export`.
      */
     public $columnSelectorOptions = [];
     
