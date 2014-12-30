@@ -141,8 +141,8 @@ class ExportMenu extends GridView
     /**
      * @var string, the template for rendering the content in the container. This will 
      * be parsed only if `asDropdown` is `true`. The following tags will be replaced:
-     * - {menu}: will be replaced with export menu dropdown
      * - {columns}: will be replaced with the column selector dropdown
+     * - {menu}: will be replaced with export menu dropdown
      */
     public $template = "{columns}\n{menu}";
 
