@@ -4,6 +4,7 @@ use yii\helpers\ArrayHelper;
 
 $label = ArrayHelper::remove($options, 'label');
 $icon = ArrayHelper::remove($options, 'icon');
+$showToggle = ArrayHelper::remove($batchToggle, 'show', true);
 if (!empty($icon)) {
     $label = $icon . ' ' . $label;
 }
@@ -21,15 +22,24 @@ foreach($columnSelector as $value => $label) {
 }
 echo Html::beginTag('ul', $menuOptions);
 ?>
+
+<?php if ($showToggle): ?>
+<?php
+    $toggleOptions = ArrayHelper::remove($batchToggle, 'options', []);
+    $toggleLabel = ArrayHelper::remove($batchToggle, 'label', Yii::t('kvexport', 'Toggle All'));
+    Html::addCssClass($toggleOptions, 'kv-toggle-all');
+?>
 <li>
     <div class="checkbox"> 
         <label>
         <?= Html::checkbox('export_columns_toggle', true) ?>
-        <span class="kv-toggle-all"><?= Yii::t('kvexport', 'Toggle All') ?></span>
+        <?= Html::tag('span', $toggleLabel , $toggleOptions) ?>
         </label>
     </div>
 </li>
 <li class="divider"></li>
+<?php endif;?>
+
 <?php
 foreach($columnSelector as $value => $label) {
     $checked = in_array($value, $selectedColumns);

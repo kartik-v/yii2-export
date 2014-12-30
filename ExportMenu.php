@@ -137,6 +137,19 @@ class ExportMenu extends GridView
      */
     public $columnSelectorMenuOptions = [];
     
+    /** 
+     * @var array the settings for the toggle all checkbox to check/uncheck
+     * the columns as a batch. Should be setup as an associative array which
+     * can have the following keys:
+     * - `show`: bool, whether the batch toggle checkbox is to be shown. Defaults
+     *    to `true`.
+     * - `label`: string, the label to be displayed for toggle all. Defaults to
+     *    `Toggle All`.
+     * - `options`: array, the HTML attributes for the toggle label text. Defaults 
+     *   to `['class'=>'kv-toggle-all']`
+     */
+    public $columnBatchToggleSettings = [];
+    
     /**
      * @var array, HTML attributes for the container to wrap the widget.
      * Defaults to ['class'=>'btn-group', 'role'=>'group']
@@ -548,8 +561,8 @@ class ExportMenu extends GridView
             ];
         }
         Yii::$app->i18n->translations['kvexport'] = $this->i18n;
-    }
-
+    }    
+        
     /**
      * Renders the export menu
      *
@@ -637,6 +650,7 @@ class ExportMenu extends GridView
             'options' => $this->columnSelectorOptions,
             'menuOptions' => $this->columnSelectorMenuOptions,
             'columnSelector' => $this->columnSelector,
+            'batchToggle' => $this->columnBatchToggleSettings,
             'selectedColumns' => $this->selectedColumns,
             'disabledColumns' => $this->disabledColumns,
             'hiddenColumns' => $this->hiddenColumns,
