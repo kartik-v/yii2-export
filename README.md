@@ -7,6 +7,7 @@ In addition, with release v1.2.0, the extension also displays a handy grid colum
 
 - shows a column picker dropdown list to allow selection of columns for export.
 - new `container` property allows you to group the export menu and column selector dropdowns.
+- new `template` property for manipulating the display of menu, column selector or additional buttons in button group.
 - allows configuration of column picker dropdown button through `columnSelectorOptions`
 - auto-generates column labels in the column selector. But you can override displayed column labels for each column key through `columnSelector` property settings.
 - allows preselected columns through `selectedColumns` (you must set the selected column keys)
