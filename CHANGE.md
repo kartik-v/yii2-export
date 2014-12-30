@@ -19,6 +19,11 @@ version 1.2.0
 - added ability to configure export form HTML options.
 - (enh #25): Template to configure the export menu and column selector button groups.
 - (enh #26): Russian translation added.
+- (enh #27): Add ability to toggle (check/uncheck) all columns in column selector.
+- (bug #28): Validation of column name correctly when 0 or 1 column selected.
+- (enh #29): Display emptyText when no columns selected.
+- (enh #30): Create new jquery plugin for export columns selector.
+- (enh #31): Configure separate `AssetBundle` for export columns selector.
 
 version 1.1.0
 =============

@@ -1,11 +1,7 @@
 <?php
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
-$menuOptions = [
-    'role' => 'menu',
-    'class' => 'dropdown-menu kv-checkbox-list',
-    'aria-labelledby' => $options['id']
-];
+
 $label = ArrayHelper::remove($options, 'label');
 $icon = ArrayHelper::remove($options, 'icon');
 if (!empty($icon)) {
@@ -13,7 +9,6 @@ if (!empty($icon)) {
 }
 echo Html::beginTag('div', ['class'=>'btn-group', 'role'=>'group']);
 echo Html::button($label . ' <span class="caret"></span>', $options);
-
 foreach($columnSelector as $value => $label) {
     if (in_array($value, $hiddenColumns)) {
         $checked = in_array($value, $selectedColumns);
@@ -25,6 +20,17 @@ foreach($columnSelector as $value => $label) {
     }
 }
 echo Html::beginTag('ul', $menuOptions);
+?>
+<li>
+    <div class="checkbox"> 
+        <label>
+        <?= Html::checkbox('export_columns_toggle', true) ?>
+        <span class="kv-toggle-all"><?= Yii::t('kvexport', 'Toggle All') ?></span>
+        </label>
+    </div>
+</li>
+<li class="divider"></li>
+<?php
 foreach($columnSelector as $value => $label) {
     $checked = in_array($value, $selectedColumns);
     $disabled = in_array($value, $disabledColumns);

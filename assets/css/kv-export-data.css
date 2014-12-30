@@ -14,14 +14,3 @@
     padding: 0;
     display: none;
 }
-.kv-checkbox-list .checkbox{
-    padding: 0 20px;
-}
-.kv-checkbox-list label {
-    width: 100%;
-}
-.kv-checkbox-list label.disabled {
-    cursor: not-allowed;
-    filter: alpha(opacity=65);
-    opacity: .65;
-}

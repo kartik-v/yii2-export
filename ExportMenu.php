@@ -132,6 +132,11 @@ class ExportMenu extends GridView
      */
     public $columnSelectorOptions = [];
     
+    /** 
+     * @var array the HTML attributes for the column selector menu list.
+     */
+    public $columnSelectorMenuOptions = [];
+    
     /**
      * @var array, HTML attributes for the container to wrap the widget.
      * Defaults to ['class'=>'btn-group', 'role'=>'group']
@@ -630,6 +635,7 @@ class ExportMenu extends GridView
         }
         return $this->render($this->exportColumnsView, [
             'options' => $this->columnSelectorOptions,
+            'menuOptions' => $this->columnSelectorMenuOptions,
             'columnSelector' => $this->columnSelector,
             'selectedColumns' => $this->selectedColumns,
             'disabledColumns' => $this->disabledColumns,
@@ -813,6 +819,10 @@ class ExportMenu extends GridView
      */
     public function generateHeader()
     {
+        $columns = $this->getVisibleColumns();
+        if (count($columns) == 0) {
+            return;
+        }
         $cells = [];
         $sheet = $this->_objPHPExcelSheet;
         $style = ArrayHelper::getValue($this->styleOptions, $this->_exportType, []);
@@ -845,7 +855,14 @@ class ExportMenu extends GridView
      */
     public function generateBody()
     {
+        $columns = $this->getVisibleColumns();
         $models = array_values($this->_provider->getModels());
+        if (count($columns) == 0) {
+            $cell = $this->_objPHPExcelSheet->setCellValue('A1', $this->emptyText, true);
+            $model = reset($models);
+            $this->raiseEvent('onRenderDataCell', [$cell, $this->emptyText, $model, null, 0, $this]);
+            return 0;
+        } 
         $keys = $this->_provider->getKeys();
         $this->_endRow = 0;
         foreach ($models as $index => $model) {
@@ -853,6 +870,7 @@ class ExportMenu extends GridView
             $this->generateRow($model, $key, $index);
             $this->_endRow++;
         }
+    
         // Set autofilter on
         $this->_objPHPExcelSheet->setAutoFilter(
             self::columnName(1) .
@@ -902,6 +920,10 @@ class ExportMenu extends GridView
      */
     public function generateFooter($row)
     {
+        $columns = $this->getVisibleColumns();
+        if (count($columns) == 0) {
+            return;
+        }
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $n => $column) {
             $this->_endCol = $this->_endCol + 1;
@@ -929,7 +951,7 @@ class ExportMenu extends GridView
         if ($i > 25) {
             return (self::columnName($i / 26)) . (self::columnName($i % 26 + 1));
         }
-        throw new InvalidValueException("Invalid Column # {$index}");
+        return 'A';
     }
 
     /**
@@ -1068,8 +1090,15 @@ class ExportMenu extends GridView
         $header = ArrayHelper::getValue($this->columnSelectorOptions, 'header', Yii::t('kvexport', 'Select Columns'));    
         $this->columnSelectorOptions['header'] = (empty($header) || $header === false) ? '' : 
             '<li class="dropdown-header">' . $header . '</li><li class="kv-divider"></li>';
+        $id = $this->options['id'] . '-cols';
+        Html::addCssClass($this->columnSelectorMenuOptions, 'dropdown-menu kv-checkbox-list');
+        $this->columnSelectorMenuOptions =  array_replace_recursive([
+            'id' => $id . '-list',
+            'role' => 'menu',
+            'aria-labelledby' => $id,
+        ], $this->columnSelectorMenuOptions);
         $this->columnSelectorOptions = array_replace_recursive([
-            'id' => $this->options['id'] . '-cols',
+            'id' => $id,
             'icon' => '<i class="glyphicon glyphicon-list"></i>',
             'title' => Yii::t('kvexport', 'Select columns to export'),
             'type' => 'button',
@@ -1139,9 +1168,6 @@ class ExportMenu extends GridView
     protected function registerAssets()
     {
         $view = $this->getView();
-        if ($this->_columnSelectorEnabled) {
-            $view->registerJs("\$(document).on('click', '.kv-checkbox-list', function(e){e.stopPropagation();});");
-        }
         ExportMenuAsset::register($view);
         $this->messages += [
             'allowPopups' => Yii::t('kvexport', 'Disable any popup blockers in your browser to ensure proper download.'),
@@ -1174,7 +1200,9 @@ class ExportMenu extends GridView
             $view->registerJs("jQuery('#{$id}').exportdata({$options});");
         }
         if ($this->_columnSelectorEnabled) {
-            $view->registerJs("\$(document).on('click', '.kv-checkbox-list', function(e){e.stopPropagation();});");
+            $id = $this->columnSelectorMenuOptions['id'];
+            ExportColumnAsset::register($view);
+            $view->registerJs("jQuery('#{$id}').exportcolumns({});");
         }
     }
 }

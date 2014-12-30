@@ -1,0 +1,11 @@
+/*!
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
+ * @version 1.2.0
+ *
+ * Export Columns Selector Validation Module.
+ *
+ * Author: Kartik Visweswaran
+ * Copyright: 2014, Kartik Visweswaran, Krajee.com
+ * For more JQuery plugins visit http://plugins.krajee.com
+ * For more Yii related demos visit http://demos.krajee.com
+ */!function(t){var n=function(n,o){var e=this;e.$element=t(n),e.options=o,e.listen()};n.prototype={constructor:n,listen:function(){var t=this,n=t.$element,o=n.find('input[name="export_columns_toggle"]');n.on("click",function(t){t.stopPropagation()}),o.on("change",function(){var t=o.is(":checked");n.find('input[name="export_columns_selector[]"]:not([disabled])').prop("checked",t)})}},t.fn.exportcolumns=function(o){var e=Array.apply(null,arguments);return e.shift(),this.each(function(){var i=t(this),c=i.data("exportcolumns"),r="object"==typeof o&&o;c||i.data("exportcolumns",c=new n(this,t.extend({},t.fn.exportcolumns.defaults,r,t(this).data()))),"string"==typeof o&&c[o].apply(c,e)})},t.fn.exportcolumns.defaults={}}(window.jQuery);

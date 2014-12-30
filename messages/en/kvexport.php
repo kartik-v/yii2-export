@@ -45,4 +45,5 @@ return [
     'The PDF export file will be generated for download.' => '',
     'The TEXT export file will be generated for download.' => '',
     'grid-export' => '',
+    'Toggle All' => '',
 ];

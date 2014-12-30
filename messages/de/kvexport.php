@@ -45,4 +45,6 @@ return [
     'The HTML export file will be generated for download.' => 'Die HTML-Export-Datei wird für den Download erstellt.',
     'The PDF export file will be generated for download.' => 'Die PDF-Export-Datei wird für den Download erstellt.',
     'The TEXT export file will be generated for download.' => 'Die Text-Export-Datei wird für den Download erstellt.',
+    'grid-export' => '',
+    'Toggle All' => '',
 ];
