@@ -17,6 +17,7 @@ version 1.2.0
     - `exportFormView` allows you to setup your own custom view file for rendering the export form.
     - `exportColumnsView` allows you to setup your own custom view file for rendering the column selector dropdown.
 - added ability to configure export form HTML options.
+- (enh #25): Template to configure the export menu and column selector button groups.
 
 version 1.1.0
 =============

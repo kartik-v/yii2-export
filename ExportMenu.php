@@ -139,6 +139,14 @@ class ExportMenu extends GridView
     public $container = ['class'=>'btn-group', 'role'=>'group'];
     
     /**
+     * @var string, the template for rendering the content in the container. This will 
+     * be parsed only if `asDropdown` is `true`. The following tags will be replaced:
+     * - {menu}: will be replaced with export menu dropdown
+     * - {columns}: will be replaced with the column selector dropdown
+     */
+    public $template = "{columns}\n{menu}";
+
+    /**
      * @var array the HTML attributes for the export form. 
      */
     public $exportFormOptions = [];
@@ -597,12 +605,15 @@ class ExportMenu extends GridView
             $itemsBefore = ArrayHelper::remove($this->dropdownOptions, 'itemsBefore', []);
             $itemsAfter = ArrayHelper::remove($this->dropdownOptions, 'itemsAfter', []);
             $items = ArrayHelper::merge($itemsBefore, $items, $itemsAfter);
-            $content = ButtonDropdown::widget([
-                'label' => $label,
-                'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions],
-                'options' => $this->dropdownOptions,
-                'encodeLabel' => false
-            ]) . $this->renderColumnSelector() . "\n" . $form;
+            $content = strtr($this->template, [
+                '{menu}' => ButtonDropdown::widget([
+                    'label' => $label,
+                    'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions],
+                    'options' => $this->dropdownOptions,
+                    'encodeLabel' => false
+                ]),
+                '{columns}' => $this->renderColumnSelector()
+            ]) . "\n" . $form;
             return Html::tag('div', $content, $this->container);
         } else {
             return $items . "\n". $form;
