@@ -18,6 +18,10 @@ use kartik\widgets\AssetBundle;
  */
 class ExportColumnAsset extends AssetBundle
 {
+    /**
+     * @inheritdoc
+     * @return void
+     */
     public function init()
     {
         $this->setSourcePath(__DIR__ . '/assets');

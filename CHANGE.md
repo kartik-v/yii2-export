@@ -25,6 +25,7 @@ version 1.2.0
 - (enh #30): Create new jquery plugin for export columns selector.
 - (enh #31): Configure separate `AssetBundle` for export columns selector.
 - (enh #32): Add`columnBatchToggleSettings` to configure column toggle all checkbox.
+- Code formatting updates.
 
 version 1.1.0
 =============
