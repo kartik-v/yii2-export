@@ -1,6 +1,6 @@
 version 1.2.0
 =============
-**Date:** 12-Jan-2014
+**Date:** 12-Jan-2015
 
 - (enh #17): New column selector feature to allow selection of columns
     - shows a column picker dropdown list to allow selection of columns for export.
