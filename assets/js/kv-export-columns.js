@@ -1,6 +1,8 @@
 /*!
+ * @package   yii2-export
+ * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
- * @version 1.2.0
+ * @version   1.2.0
  *
  * Export Columns Selector Validation Module.
  *
@@ -16,15 +18,15 @@
         self.options = options;
         self.listen();
     };
-    
+
     ExportColumns.prototype = {
         constructor: ExportColumns,
         listen: function () {
             var self = this, $el = self.$element, $tog = $el.find('input[name="export_columns_toggle"]');
-            $el.on('click', function(e) {
+            $el.on('click', function (e) {
                 e.stopPropagation();
             });
-            $tog.on('change', function() {
+            $tog.on('change', function () {
                 var checked = $tog.is(':checked');
                 $el.find('input[name="export_columns_selector[]"]:not([disabled])').prop('checked', checked);
             });
@@ -41,7 +43,8 @@
                 options = typeof option === 'object' && option;
 
             if (!data) {
-                $this.data('exportcolumns', (data = new ExportColumns(this, $.extend({}, $.fn.exportcolumns.defaults, options, $(this).data()))));
+                $this.data('exportcolumns', (data = new ExportColumns(this,
+                    $.extend({}, $.fn.exportcolumns.defaults, options, $(this).data()))));
             }
 
             if (typeof option === 'string') {
@@ -51,5 +54,5 @@
     };
 
     $.fn.exportcolumns.defaults = {};
-    
+
 })(window.jQuery);

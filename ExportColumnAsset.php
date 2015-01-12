@@ -20,7 +20,6 @@ class ExportColumnAsset extends AssetBundle
 {
     /**
      * @inheritdoc
-     * @return void
      */
     public function init()
     {

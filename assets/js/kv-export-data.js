@@ -1,6 +1,8 @@
 /*!
+ * @package   yii2-export
+ * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
- * @version 1.2.0
+ * @version   1.2.0
  *
  * Export Data Validation Module.
  *
@@ -11,33 +13,34 @@
  */
 (function ($) {
     var isEmpty = function (value, trim) {
-        return value === null || value === undefined || value == []
-        || value === '' || trim && $.trim(value) === '';
-    }, 
-    popupDialog = function (url, name, w, h) {
-        var left = (screen.width / 2) - (w / 2), top = 60,
-            existWin = window.open('', name, '', true);
-        existWin.close();
-        return window.open(url, name, 'toolbar=no, location=no, directories=no, status=yes, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w +', height=' + h + ', top=' + top + ', left=' + left);
-    },
-    popupTemplate = '<html style="display:table;width:100%;height:100%;">' +
-        '<title>Export Data - &copy; Krajee</title>' +
-        '<body style="display:table-cell;font-family:Helvetica,Arial,sans-serif;color:#888;font-weight:bold;line-height:1.4em;text-align:center;vertical-align:middle;width:100%;height:100%;padding:0 10px;">' +
-        '{msg}' +
-        '</body>' +
-        '</html>',
-    kvConfirm = function(msg) {
-        if (isEmpty(msg)) {
-            return true;
-        }
-        try {
-           return confirm(msg);
-        } 
-        catch (err) {
-            return true;
-        }
-    };
-    
+            return value === null || value === undefined || value == []
+            || value === '' || trim && $.trim(value) === '';
+        },
+        popupDialog = function (url, name, w, h) {
+            var left = (screen.width / 2) - (w / 2), top = 60,
+                existWin = window.open('', name, '', true);
+            existWin.close();
+            return window.open(url, name,
+                'toolbar=no, location=no, directories=no, status=yes, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
+        },
+        popupTemplate = '<html style="display:table;width:100%;height:100%;">' +
+            '<title>Export Data - &copy; Krajee</title>' +
+            '<body style="display:table-cell;font-family:Helvetica,Arial,sans-serif;color:#888;font-weight:bold;line-height:1.4em;text-align:center;vertical-align:middle;width:100%;height:100%;padding:0 10px;">' +
+            '{msg}' +
+            '</body>' +
+            '</html>',
+        kvConfirm = function (msg) {
+            if (isEmpty(msg)) {
+                return true;
+            }
+            try {
+                return confirm(msg);
+            }
+            catch (err) {
+                return true;
+            }
+        };
+
     var ExportData = function (element, options) {
         var self = this;
         self.$element = $(element);
@@ -50,7 +53,7 @@
         self.popup = '';
         self.listen();
     };
-    
+
     ExportData.prototype = {
         constructor: ExportData,
         notify: function (e) {
@@ -88,7 +91,7 @@
                 return;
             }
             if (arguments.length && arguments[1]) {
-                var el =  self.popup.document.getElementsByTagName('body');
+                var el = self.popup.document.getElementsByTagName('body');
                 setTimeout(function () {
                     el[0].innerHTML = msg;
                 }, 4000);
@@ -100,7 +103,7 @@
         listen: function () {
             var self = this;
             self.$form.appendTo('body');
-            self.$element.on('click', function(e) {
+            self.$element.on('click', function (e) {
                 if (self.notify(e)) {
                     var fmt = $(this).data('format');
                     self.$form.find('[name="export_type"]').val(fmt);
@@ -112,7 +115,7 @@
                     if (!isEmpty(self.columnSelectorId)) {
                         var $selected = $('#' + self.columnSelectorId).parent().find('input[name="export_columns_selector[]"]'),
                             cols = [];
-                        $selected.each(function() {
+                        $selected.each(function () {
                             var $el = $(this);
                             if ($el.is(':checked')) {
                                 cols.push($el.attr('data-key'));
@@ -124,7 +127,7 @@
                 }
             });
             if (self.target == '_popup') {
-                self.$form.on('submit', function() {
+                self.$form.on('submit', function () {
                     setTimeout(function () {
                         self.setPopupAlert(self.messages.downloadComplete, true);
                     }, 1000);
@@ -143,7 +146,8 @@
                 options = typeof option === 'object' && option;
 
             if (!data) {
-                $this.data('exportdata', (data = new ExportData(this, $.extend({}, $.fn.exportdata.defaults, options, $(this).data()))));
+                $this.data('exportdata',
+                    (data = new ExportData(this, $.extend({}, $.fn.exportdata.defaults, options, $(this).data()))));
             }
 
             if (typeof option === 'string') {
