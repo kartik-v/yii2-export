@@ -28,7 +28,6 @@ version 1.2.0
 - Revamp to use new Krajee base Module and TranslationTrait.
 - Code formatting updates as per Yii2 coding style.
 
-
 version 1.1.0
 =============
 **Date:** 26-Dec-2014
