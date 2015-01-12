@@ -1,6 +1,6 @@
 version 1.2.0
 =============
-**Date:** 30-Dec-2014
+**Date:** 12-Jan-2014
 
 - (enh #17): New column selector feature to allow selection of columns
     - shows a column picker dropdown list to allow selection of columns for export.
@@ -25,7 +25,9 @@ version 1.2.0
 - (enh #30): Create new jquery plugin for export columns selector.
 - (enh #31): Configure separate `AssetBundle` for export columns selector.
 - (enh #32): Add`columnBatchToggleSettings` to configure column toggle all checkbox.
-- Code formatting updates.
+- Revamp to use new Krajee base Module and TranslationTrait.
+- Code formatting updates as per Yii2 coding style.
+
 
 version 1.1.0
 =============
