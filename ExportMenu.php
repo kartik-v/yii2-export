@@ -918,7 +918,7 @@ class ExportMenu extends GridView
         $manager = '';
         $company = 'Krajee Solutions';
         $created = date("Y-m-d H:i:s");
-        $lastModifiedBy = date("Y-m-d H:i:s");
+        $lastModifiedBy = 'krajee';
         extract($this->docProperties);
         $this->_objPHPExcel->getProperties()
             ->setCreator($creator)

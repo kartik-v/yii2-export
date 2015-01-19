@@ -1,3 +1,9 @@
+version 1.2.1
+=============
+**Date:** 20-Jan-2015
+
+- (bug #34): Set lastModifiedBy to default to username instead of datetime 
+
 version 1.2.0
 =============
 **Date:** 12-Jan-2015
@@ -25,6 +31,7 @@ version 1.2.0
 - (enh #30): Create new jquery plugin for export columns selector.
 - (enh #31): Configure separate `AssetBundle` for export columns selector.
 - (enh #32): Add`columnBatchToggleSettings` to configure column toggle all checkbox.
+- (enh #33): Updated Russian translations.
 - Revamp to use new Krajee base Module and TranslationTrait.
 - Code formatting updates as per Yii2 coding style.
 
