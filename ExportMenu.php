@@ -568,7 +568,9 @@ class ExportMenu extends GridView
         if (!$this->stream) {
             $writer->save($this->filename . '.' . $config['extension']);
         } else {
-            ob_end_clean();
+            while (ob_get_level() > 1) {
+                ob_end_clean();
+            }
             $this->setHttpHeaders();
             $writer->save('php://output');
             Yii::$app->end();
