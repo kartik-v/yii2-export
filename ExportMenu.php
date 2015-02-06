@@ -689,7 +689,7 @@ class ExportMenu extends GridView
     }
 
     /**
-     * Gets the default export configuration
+     * Sets the default export configuration
      */
     protected function setDefaultExportConfig()
     {
