@@ -1,3 +1,10 @@
+version 1.2.2
+=============
+**Date:** 05-Feb-2015
+
+- (enh #37): Added zh-CN translations
+- (enh #39): Set AssetBundle dependency to kartik\base\AssetBundle.
+
 version 1.2.1
 =============
 **Date:** 20-Jan-2015

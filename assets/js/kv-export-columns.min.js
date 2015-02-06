@@ -2,7 +2,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
- * @version   1.2.1
+ * @version   1.2.2
  *
  * Export Columns Selector Validation Module.
  *
