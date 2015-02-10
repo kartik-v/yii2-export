@@ -1095,6 +1095,7 @@ class ExportMenu extends GridView
     public function generateBody()
     {
         $columns = $this->getVisibleColumns();
+        $this->_provider->prepare(true);
         $models = array_values($this->_provider->getModels());
         if (count($columns) == 0) {
             $cell = $this->_objPHPExcelSheet->setCellValue('A1', $this->emptyText, true);
