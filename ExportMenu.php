@@ -112,6 +112,12 @@ class ExportMenu extends GridView
     public $dropdownOptions = ['class' => 'btn btn-default'];
 
     /**
+     * @var bool whether to initialize data provider and clear models before rendering.
+     * Defaults to `false`.
+     */
+    public $initProvider = false;
+
+    /**
      * @var bool whether to show a column selector to select columns for export.
      * Defaults to `true`.
      */
@@ -387,6 +393,11 @@ class ExportMenu extends GridView
     protected $_msgCat = 'kvexport';
 
     /**
+     * @var DataProvider the modified data provider for usage with export.
+     */
+    protected $_provider;
+
+    /**
      * @var string the data output format type. Defaults to
      * `ExportMenu::FORMAT_EXCEL_X`.
      */
@@ -397,11 +408,6 @@ class ExportMenu extends GridView
      */
 
     private $_defaultExportConfig = [];
-
-    /**
-     * @var DataProvider the modified data provider for usage with export.
-     */
-    private $_provider;
 
     /**
      * @var PHPExcel object instance
@@ -485,6 +491,9 @@ class ExportMenu extends GridView
         ],
     ];
 
+    /**
+     * @var bool flag to identify if download is triggered
+     */
     private $_triggerDownload = false;
 
     /**
@@ -671,7 +680,10 @@ class ExportMenu extends GridView
     {
         $this->_provider = clone($this->dataProvider);
         $this->_provider->pagination = false;
-        $this->styleOptions = ArrayHelper::merge($this->_defaultStyleOptions, $this->styleOptions);
+        if ($this->initProvider) {
+            $this->_provider->prepare(true);
+        }
+       $this->styleOptions = ArrayHelper::merge($this->_defaultStyleOptions, $this->styleOptions);
         $this->filterModel = null;
         $this->setDefaultExportConfig();
         $this->exportConfig = ArrayHelper::merge($this->_defaultExportConfig, $this->exportConfig);
@@ -1063,19 +1075,18 @@ class ExportMenu extends GridView
      */
     public function getColumnHeader($col)
     {
-        if ($col->header !== null || $col->label === null && $col->attribute === null) {
+        /* @var $model yii\base\Model */
+        if ($col->header !== null || ($col->label === null && $col->attribute === null)) {
             return trim($col->header) !== '' ? $col->header : $col->grid->emptyCell;
         }
         $provider = $this->dataProvider;
         if ($col->label === null) {
             if ($provider instanceof ActiveDataProvider && $provider->query instanceof ActiveQueryInterface) {
-                /* @var $model Model */
                 $model = new $provider->query->modelClass;
                 $label = $model->getAttributeLabel($col->attribute);
             } else {
                 $models = $provider->getModels();
                 if (($model = reset($models)) instanceof Model) {
-                    /* @var $model Model */
                     $label = $model->getAttributeLabel($col->attribute);
                 } else {
                     $label = Inflector::camel2words($col->attribute);

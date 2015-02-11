@@ -1,10 +1,11 @@
 version 1.2.2
 =============
-**Date:** 06-Feb-2015
+**Date:** 11-Feb-2015
 
 - (enh #37): Added zh-CN translations
 - (enh #39): Set AssetBundle dependency to kartik\base\AssetBundle.
 - (enh #40): Fix buffer clearing.
+- (enh #41): New bool property `initProvider` to clear previously fetched models before render.
 
 version 1.2.1
 =============
