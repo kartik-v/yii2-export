@@ -1,13 +1,13 @@
 /*!
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015
  * @version   1.2.2
  *
  * Export Columns Selector Validation Module.
  *
  * Author: Kartik Visweswaran
- * Copyright: 2014, Kartik Visweswaran, Krajee.com
+ * Copyright: 2015, Kartik Visweswaran, Krajee.com
  * For more JQuery plugins visit http://plugins.krajee.com
  * For more Yii related demos visit http://demos.krajee.com
  */
