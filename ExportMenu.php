@@ -112,6 +112,11 @@ class ExportMenu extends GridView
     public $dropdownOptions = ['class' => 'btn btn-default'];
 
     /**
+     * @var bool whether to clear all previous / parent buffers. Defaults to `false`.
+     */
+    public $clearBuffers = false;
+
+    /**
      * @var bool whether to initialize data provider and clear models before rendering.
      * Defaults to `false`.
      */
@@ -577,7 +582,11 @@ class ExportMenu extends GridView
         if (!$this->stream) {
             $writer->save($this->filename . '.' . $config['extension']);
         } else {
-            while (ob_get_level() > 1) {
+            if ($this->clearBuffers) {
+                while (ob_get_level() > 1) {
+                    ob_end_clean();
+                }
+            } else {
                 ob_end_clean();
             }
             $this->setHttpHeaders();

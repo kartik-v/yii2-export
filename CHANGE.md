@@ -1,3 +1,9 @@
+version 1.2.3
+=============
+**Date:** 24-Feb-2015
+
+- (enh #43): Added new `clearBuffers` property for better fix of #40.
+
 version 1.2.2
 =============
 **Date:** 14-Feb-2015
