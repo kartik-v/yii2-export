@@ -3,7 +3,7 @@
 /**
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015
  * @package yii2-export
- * @version 1.2.2
+ * @version 1.2.3
  */
 
 namespace kartik\export;
