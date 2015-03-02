@@ -539,7 +539,7 @@ class ExportMenu extends GridView
      */
     public function run()
     {
-        $this->initI18N();
+        $this->initI18N(__DIR__);
         $this->initColumnSelector();
         $this->setVisibleColumns();
         $this->initExport();
