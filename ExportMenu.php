@@ -583,7 +583,7 @@ class ExportMenu extends GridView
             $writer->save($this->filename . '.' . $config['extension']);
         } else {
             if ($this->clearBuffers) {
-                while (ob_get_level() > 1) {
+                while (ob_get_level() > 0) {
                     ob_end_clean();
                 }
             } else {
