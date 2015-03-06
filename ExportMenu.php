@@ -93,6 +93,13 @@ class ExportMenu extends GridView
      * HTML list of links.
      */
     public $asDropdown = true;
+    
+    /**
+     * @var string the pjax container identifier inside which this menu is being 
+     * rendered. If set the jQuery export menu plugin will get auto initialized
+     * on pjax request completion.
+     */
+    public $pjaxContainerId;
 
     /**
      * @var array the HTML attributes for the export button menu. Applicable only
@@ -807,6 +814,7 @@ class ExportMenu extends GridView
         ]);
         $menu = 'kvexpmenu_' . hash('crc32', $options);
         $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);
+        $script = "";
         foreach ($this->exportConfig as $format => $setting) {
             if (empty($setting) || $setting === false) {
                 continue;
@@ -822,13 +830,19 @@ class ExportMenu extends GridView
                 $options['columnSelectorId'] = $this->columnSelectorOptions['id'];
             }
             $options = Json::encode($options);
-            $view->registerJs("jQuery('#{$id}').exportdata({$options});");
+            $script .= "jQuery('#{$id}').exportdata({$options});\n";
         }
         if ($this->_columnSelectorEnabled) {
             $id = $this->columnSelectorMenuOptions['id'];
             ExportColumnAsset::register($view);
-            $view->registerJs("jQuery('#{$id}').exportcolumns({});");
+            $script .= "jQuery('#{$id}').exportcolumns({});\n";
         }
+        if (!empty($script) && isset($this->pjaxContainerId)) {
+            $script .= "jQuery('#{$this->pjaxContainerId}').on('pjax:complete', function() {
+                {$script}
+            });\n";
+        }
+        $view->registerJs($script);
     }
 
     /**
@@ -1159,9 +1173,10 @@ class ExportMenu extends GridView
             } elseif ($column instanceof \yii\grid\ActionColumn) {
                 $value = '';
             } else {
-                $format = $this->enableFormatter ? $column->format : 'raw';
-                $value = ($column->content === null) ?
+                $format = $this->enableFormatter && isset($column->format) ? $column->format : 'raw';
+                $value = ($column->content === null) ? (method_exists($column, 'getDataCellValue') ?
                     $this->formatter->format($column->getDataCellValue($model, $key, $index), $format) :
+                    $column->renderDataCell($model, $key, $index)) :
                     call_user_func($column->content, $model, $key, $index, $column);
             }
             if (empty($value) && !empty($column->attribute) && $column->attribute !== null) {

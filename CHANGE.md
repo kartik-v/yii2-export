@@ -1,9 +1,11 @@
 version 1.2.3
 =============
-**Date:** 24-Feb-2015
+**Date:** 06-Mar-2015
 
 - (enh #43): Added new `clearBuffers` property for better fix of #40.
 - (enh #44): Improve validation to retrieve the right translation messages folder.
+- (enh #45): Fix buffer clearing.
+- (enh #46): New `pjaxContainerId` property added to widget to enable refreshing via pjax.
 
 version 1.2.2
 =============
