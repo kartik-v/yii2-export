@@ -6,6 +6,7 @@ version 1.2.3
 - (enh #44): Improve validation to retrieve the right translation messages folder.
 - (enh #45): Fix buffer clearing.
 - (enh #46): New `pjaxContainerId` property added to widget to enable refreshing via pjax.
+- (enh #47): Set asset bundle dependencies with yii2-krajee-base.
 
 version 1.2.2
 =============
