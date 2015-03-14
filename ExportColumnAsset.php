@@ -8,7 +8,7 @@
 
 namespace kartik\export;
 
-use kartik\widgets\AssetBundle;
+use kartik\base\AssetBundle;
 
 /**
  * Asset bundle for ExportMenu Widget (for export columns selector)
