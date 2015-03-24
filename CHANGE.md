@@ -7,6 +7,8 @@ version 1.2.3
 - (enh #45): Fix buffer clearing.
 - (enh #46): New `pjaxContainerId` property added to widget to enable refreshing via pjax.
 - (enh #47): Set asset bundle dependencies with yii2-krajee-base.
+- (enh #49): Set a better PHP Excel version dependency.
+- (enh #50): Better exit and resetting of memory after output generation.
 
 version 1.2.2
 =============

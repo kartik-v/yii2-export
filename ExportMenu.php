@@ -555,7 +555,7 @@ class ExportMenu extends GridView
             echo $this->renderExportMenu();
             return;
         }
-        ob_end_clean();
+        $this->clearOutputBuffers();
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         if (empty($config)) {
             throw new InvalidConfigException("The '{$this->pdfLibrary}' was not found or installed at path '{$path}'.");
@@ -589,16 +589,24 @@ class ExportMenu extends GridView
         if (!$this->stream) {
             $writer->save($this->filename . '.' . $config['extension']);
         } else {
-            if ($this->clearBuffers) {
-                while (ob_get_level() > 0) {
-                    ob_end_clean();
-                }
-            } else {
-                ob_end_clean();
-            }
+            $this->clearOutputBuffers();
             $this->setHttpHeaders();
             $writer->save('php://output');
-            Yii::$app->end();
+            $this->destroyPHPExcel();
+            exit();
+        }
+    }
+
+    /**
+     * Clear output buffers
+     */
+    protected function clearOutputBuffers() {
+        if ($this->clearBuffers) {
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+        } else {
+            ob_end_clean();
         }
     }
 
@@ -711,8 +719,7 @@ class ExportMenu extends GridView
         Html::addCssClass($this->exportFormOptions, 'kv-export-full-form');
         $this->exportFormOptions += [
             'id' => $id,
-            'target' => $target,
-            'data-pjax' => false
+            'target' => $target
         ];
     }
 
@@ -1219,7 +1226,7 @@ class ExportMenu extends GridView
     {
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         $extension = ArrayHelper::getValue($config, 'extension', 'xlsx');
-        $mime = ArrayHelper::getValue($config, 'mime', 'binary');
+        $mime = ArrayHelper::getValue($config, 'mime', '');
         if (strstr($_SERVER["HTTP_USER_AGENT"], "MSIE") == false) {
             header("Cache-Control: no-cache");
             header("Pragma: no-cache");
@@ -1229,7 +1236,9 @@ class ExportMenu extends GridView
         }
         header("Expires: Sat, 26 Jul 1979 05:00:00 GMT");
         header("Content-Encoding: {$this->encoding}");
-        header("Content-Type: {$mime}; charset={$this->encoding}");
+        if (!empty($mime)) {
+            header("Content-Type: {$mime}; charset={$this->encoding}");
+        }
         header("Content-Disposition: attachment; filename={$this->filename}.{$extension}");
         header("Cache-Control: max-age=0");
     }
@@ -1269,7 +1278,9 @@ class ExportMenu extends GridView
      */
     public function destroyPHPExcel()
     {
-        $this->_objPHPExcel->disconnectWorksheets();
-        unset($this->_objPHPExcel);
+        if (isset($this->_objPHPExcel)) {
+            $this->_objPHPExcel->disconnectWorksheets();
+        }
+        unset($this->_provider, $this->_objPHPExcelWriter, $this->_objPHPExcelSheet, $this->_objPHPExcel);
     }
 }
