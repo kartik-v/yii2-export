@@ -102,6 +102,7 @@
         },
         listen: function () {
             var self = this;
+            self.$form.attr('action', window.location.href);
             self.$form.appendTo('body');
             self.$element.on('click', function (e) {
                 if (self.notify(e)) {

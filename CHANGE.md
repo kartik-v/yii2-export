@@ -1,6 +1,6 @@
 version 1.2.3
 =============
-**Date:** 06-Mar-2015
+**Date:** 24-Mar-2015
 
 - (enh #43): Added new `clearBuffers` property for better fix of #40.
 - (enh #44): Improve validation to retrieve the right translation messages folder.
@@ -9,6 +9,7 @@ version 1.2.3
 - (enh #47): Set asset bundle dependencies with yii2-krajee-base.
 - (enh #49): Set a better PHP Excel version dependency.
 - (enh #50): Better exit and resetting of memory after output generation.
+- (enh #51): Fix to correct right filtering of exported data via pjax.
 
 version 1.2.2
 =============
