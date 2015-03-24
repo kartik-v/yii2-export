@@ -104,7 +104,7 @@
             var self = this;
             self.$form.attr('action', window.location.href);
             self.$form.appendTo('body');
-            self.$element.on('click', function (e) {
+            self.$element.off('click').on('click', function (e) {
                 if (self.notify(e)) {
                     var fmt = $(this).data('format');
                     self.$form.find('[name="export_type"]').val(fmt);
@@ -128,7 +128,7 @@
                 }
             });
             if (self.target == '_popup') {
-                self.$form.on('submit', function () {
+                self.$form.off('submit').on('submit', function () {
                     setTimeout(function () {
                         self.setPopupAlert(self.messages.downloadComplete, true);
                     }, 1000);

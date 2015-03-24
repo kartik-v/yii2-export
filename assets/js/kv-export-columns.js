@@ -23,10 +23,10 @@
         constructor: ExportColumns,
         listen: function () {
             var self = this, $el = self.$element, $tog = $el.find('input[name="export_columns_toggle"]');
-            $el.on('click', function (e) {
+            $el.off('click').on('click', function (e) {
                 e.stopPropagation();
             });
-            $tog.on('change', function () {
+            $tog.off('change').on('change', function () {
                 var checked = $tog.is(':checked');
                 $el.find('input[name="export_columns_selector[]"]:not([disabled])').prop('checked', checked);
             });
