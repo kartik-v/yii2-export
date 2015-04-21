@@ -1,11 +1,11 @@
 yii2-export
 ===========
 
-[![Latest Stable Version](https://poser.pugx.org/kartik-v/yii2-export/v/stable.svg)](https://packagist.org/packages/kartik-v/yii2-export)
-[![License](https://poser.pugx.org/kartik-v/yii2-export/license.svg)](https://packagist.org/packages/kartik-v/yii2-export)
-[![Total Downloads](https://poser.pugx.org/kartik-v/yii2-export/downloads.svg)](https://packagist.org/packages/kartik-v/yii2-export)
-[![Monthly Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/monthly.png)](https://packagist.org/packages/kartik-v/yii2-export)
-[![Daily Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/daily.png)](https://packagist.org/packages/kartik-v/yii2-export)
+[![Latest Stable Version](https://poser.pugx.org/kartik-v/yii2-export/v/stable)](https://packagist.org/packages/kartik-v/yii2-export)
+[![License](https://poser.pugx.org/kartik-v/yii2-export/license)](https://packagist.org/packages/kartik-v/yii2-export)
+[![Total Downloads](https://poser.pugx.org/kartik-v/yii2-export/downloads)](https://packagist.org/packages/kartik-v/yii2-export)
+[![Monthly Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/monthly)](https://packagist.org/packages/kartik-v/yii2-export)
+[![Daily Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/daily)](https://packagist.org/packages/kartik-v/yii2-export)
 
 A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.) using the [PHPExcel library](https://phpexcel.codeplex.com/). The widget allows you to configure the dataProvider, columns just like a yii\grid\GridView. However, it just displays the export actions in form of a ButtonDropdown menu, for embedding into any of your GridView or other components.
 
