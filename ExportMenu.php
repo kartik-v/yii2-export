@@ -277,12 +277,22 @@ class ExportMenu extends GridView
      * @var string the exported output file name. Defaults to 'grid-export';
      */
     public $filename;
-
+	
     /**
      * @var bool whether to stream output to the browser
      */
     public $stream = true;
 
+	/**
+     * @var string temporary directory path
+     */
+    public $tmpFolderPath = '@webroot/tmp/';
+	
+	/**
+     * @var bool whether to stream output to the browser using temp file
+     */
+    public $emulateBuffer = false;
+	
     /**
      * @var array, the configuration of various messages that will be displayed at runtime:
      * - allowPopups: string, the message to be shown to disable browser popups for download. Defaults to `Disable any
@@ -398,6 +408,7 @@ class ExportMenu extends GridView
      * @var array the the internalization configuration for this widget
      */
     public $i18n = [];
+	
 
     /**
      * @var string translation message file category name for i18n
@@ -589,10 +600,19 @@ class ExportMenu extends GridView
         if (!$this->stream) {
             $writer->save($this->filename . '.' . $config['extension']);
         } else {
-            $this->clearOutputBuffers();
+			$this->clearOutputBuffers();
             $this->setHttpHeaders();
-            $writer->save('php://output');
-            $this->destroyPHPExcel();
+			
+			if($this->emulateBuffer && ($tpmFolderPath = \Yii::getAlias($this->tmpFolderPath)) && file_exists($tpmFolderPath) && is_writable($tpmFolderPath)) {
+				$filePath = $tpmFolderPath . $this->filename . '.' . $config['extension'];
+				$writer->save($filePath);
+				readfile($filePath);
+				@unlink($filePath);
+			} else {
+				$writer->save('php://output');
+			}
+			
+			$this->destroyPHPExcel();
             exit();
         }
     }
