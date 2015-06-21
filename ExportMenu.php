@@ -19,6 +19,7 @@ use \PHPExcel_Worksheet;
 use \Closure;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidValueException;
+use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Inflector;
@@ -69,7 +70,8 @@ class ExportMenu extends GridView
     /**
      * @var string the target for submitting the export form, which will trigger
      * the download of the exported file. Must be one of the `TARGET_` constants.
-     * Defaults to `ExportMenu::TARGET_POPUP`.
+     * Defaults to `ExportMenu::TARGET_POPUP`. Note if you set `stream` and 
+     * `streamAfterSave` to `false`, then this will be overridden to `_self`.
      */
     public $target = self::TARGET_POPUP;
 
@@ -251,10 +253,11 @@ class ExportMenu extends GridView
     public $exportConfig = [];
 
     /**
-     * @var string the request parameter ($_GET or $_POST) that
-     * will be submitted during export
+     * @var string the request parameter ($_GET or $_POST) that will be submitted 
+     * during export. If not set this will be auto generated. This should be unique
+     * for each export menu widget (for multiple export menu widgets on same page).
      */
-    public $exportRequestParam = 'exportFull';
+    public $exportRequestParam;
 
     /**
      * @var array the output style configuration options. It must be the style
@@ -279,21 +282,55 @@ class ExportMenu extends GridView
     public $filename;
 
     /**
-     * @var bool whether to stream output to the browser
+     * @var string the folder to save the exported file. Defaults to '@webroot/tmp/'.
+     * This property will be parsed only if `stream` is false. If the specified folder
+     * does not exist, files will be saved to `@webroot`.
+     */
+    public $folder = '@webroot/tmp';
+
+    /**
+     * @var string the web accessible path for the saved file location. This property will be 
+     * parsed only if `stream` is false. Note the `afterSaveView` property that will render
+     * the displayed file link.
+     */
+    public $linkPath = '/tmp';
+    
+    /**
+     * @var bool whether to stream output to the browser.
      */
     public $stream = true;
 
     /**
+     * @var bool whether to stream after saving file to `$folder` and when `$stream` is
+     *`false`. This property will be validated only when `$stream` is `false`.
+     */
+    public $streamAfterSave = false;
+
+    /**
+     * @var bool whether to delete file after saving file to `$folder` and when `$stream` is
+     *`false`. This property will be validated only when `$stream` is `false`. This property
+     * is useful only if `streamAfterSave` is `true`.
+     */
+    public $deleteAfterSave = false;
+
+    /**
+     * @var string|bool the view file to show details of exported file link. This property will 
+     * be validated only when `$stream` is `false` and `streamAfterSave` is `false`. You can
+     * set this to `false` to not display any file link details for view.
+     */
+    public $afterSaveView = '_view';
+    
+    /**
      * @var array, the configuration of various messages that will be displayed at runtime:
-     * - allowPopups: string, the message to be shown to disable browser popups for download. Defaults to `Disable any
-     *     popup blockers in your browser to ensure proper download.`.
-     * - confirmDownload: string, the message to be shown for confirming to proceed with the download. Defaults to `Ok
-     *     to proceed?`.
-     * - downloadProgress: string, the message to be shown in a popup dialog when download request is executed.
-     *     Defaults to `Generating file. Please wait...`.
-     * - downloadComplete: string, the message to be shown in a popup dialog when download request is completed.
-     *     Defaults to
-     *   `All done! Click anywhere here to close this window, once you have downloaded the file.`.
+     * - allowPopups: string, the message to be shown to disable browser popups for download.
+     *   Defaults to `Disable any popup blockers in your browser to ensure proper download.`.
+     * - confirmDownload: string, the message to be shown for confirming to proceed with the 
+     *   download. Defaults to `Ok to proceed?`.
+     * - downloadProgress: string, the message to be shown in a popup dialog when download request.
+     *   is executed. Defaults to `Generating file. Please wait...`.
+     * - downloadComplete: string, the message to be shown in a popup dialog when download request
+     *   is completed. Defaults to `All done! Click anywhere here to close this window, once you have 
+     *   downloaded the file.`.
      */
     public $messages = [];
 
@@ -419,57 +456,57 @@ class ExportMenu extends GridView
      * @var array the default export configuration
      */
 
-    private $_defaultExportConfig = [];
+    protected $_defaultExportConfig = [];
 
     /**
      * @var PHPExcel object instance
      */
-    private $_objPHPExcel;
+    protected $_objPHPExcel;
 
     /**
      * @var PHPExcel_Writer_IWriter object instance
      */
-    private $_objPHPExcelWriter;
+    protected $_objPHPExcelWriter;
 
     /**
      * @var PHPExcel_Worksheet object instance
      */
-    private $_objPHPExcelSheet;
+    protected $_objPHPExcelSheet;
 
     /**
      * @var int the header beginning row
      */
-    private $_headerBeginRow = 1;
+    protected $_headerBeginRow = 1;
 
     /**
      * @var int the table beginning row
      */
-    private $_beginRow = 1;
+    protected $_beginRow = 1;
 
     /**
      * @var int the current table end row
      */
-    private $_endRow = 1;
+    protected $_endRow = 1;
 
     /**
      * @var int the current table end column
      */
-    private $_endCol = 1;
+    protected $_endCol = 1;
 
     /**
      * @var bool whether the column selector is enabled
      */
-    private $_columnSelectorEnabled = true;
+    protected $_columnSelectorEnabled = true;
 
     /**
      * @var array the visble columns for export
      */
-    private $_visibleColumns;
+    protected $_visibleColumns;
 
     /**
      * @var array the default style configuration
      */
-    private $_defaultStyleOptions = [
+    protected $_defaultStyleOptions = [
         self::FORMAT_EXCEL => [
             'font' => [
                 'bold' => true,
@@ -506,19 +543,36 @@ class ExportMenu extends GridView
     /**
      * @var bool flag to identify if download is triggered
      */
-    private $_triggerDownload = false;
+    protected $_triggerDownload = false;
+    
+    /**
+     * @var bool flag to identify if no streaming of file is desired
+     */
+    protected $_doNotStream = false;
 
     /**
      * @inheritdoc
      */
     public function init()
     {
+        if (empty($this->options['id'])) {
+            $this->options['id'] = $this->getId();
+        }
+        if (empty($this->exportRequestParam)) {
+            $this->exportRequestParam = 'exportFull_' . $this->options['id'];
+        }
         $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
         $this->_triggerDownload = !empty($_POST) &&
             !empty($_POST[$this->exportRequestParam]) &&
             $_POST[$this->exportRequestParam];
+        $this->_doNotStream = (!$this->stream && !$this->streamAfterSave);
+        if ($this->_doNotStream) {
+            $this->target = self::TARGET_SELF;
+        }
         if ($this->_triggerDownload) {
-            Yii::$app->controller->layout = false;
+            if (!$this->_doNotStream) {
+                Yii::$app->controller->layout = false;
+            }
             $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
             $this->_columnSelectorEnabled = $_POST[self::PARAM_COLSEL_FLAG];
             $this->initSelectedColumns();
@@ -555,7 +609,9 @@ class ExportMenu extends GridView
             echo $this->renderExportMenu();
             return;
         }
-        $this->clearOutputBuffers();
+        if (!$this->_doNotStream) {
+            $this->clearOutputBuffers();
+        }
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         if (empty($config)) {
             throw new InvalidConfigException("The '{$this->pdfLibrary}' was not found or installed at path '{$path}'.");
@@ -587,7 +643,39 @@ class ExportMenu extends GridView
         }
         $this->raiseEvent('onRenderSheet', [$sheet, $this]);
         if (!$this->stream) {
-            $writer->save($this->filename . '.' . $config['extension']);
+            $this->folder = trim(Yii::getAlias($this->folder));
+            if (!file_exists($this->folder)) {
+                $this->folder = Yii::getAlias('@webroot');
+            }
+            $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
+            $writer->save($file);
+            if ($this->streamAfterSave) {
+                $this->clearOutputBuffers();
+                $this->setHttpHeaders();
+                readfile($file);
+                if ($this->deleteAfterSave) {
+                    @unlink($file);
+                }
+                $this->destroyPHPExcel();
+                exit();
+            } else {
+                $this->registerAssets();
+                echo $this->renderExportMenu();
+                if ($this->_triggerDownload && $this->_doNotStream && $this->afterSaveView !== false) {
+                    $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
+                    if (!empty($config)) {
+                        $file = $this->filename . '.' . $config['extension'];
+                        echo $this->render($this->afterSaveView, [
+                            'file' => $file,
+                            'icon' => ($this->fontAwesome ? 'fa fa-' : 'glyphicon glyphicon-') . $config['icon'],
+                            'href' =>  Url::to([self::slash($this->linkPath, '/') . $file])
+                        ]);
+                    }
+                }
+            }
+            if ($this->deleteAfterSave) {
+                @unlink($file);
+            }
         } else {
             $this->clearOutputBuffers();
             $this->setHttpHeaders();
@@ -597,6 +685,20 @@ class ExportMenu extends GridView
         }
     }
 
+    /**
+     * Appends slash to path if it does not exist
+     * @param string $path
+     * @param string $s the path separator
+     * @return string
+     */
+    public static function slash($path, $s = DIRECTORY_SEPARATOR) {
+        $path = trim($path);
+        if (substr($path, -1) !== $s) {
+            $path .= $s;
+        }
+        return $path;
+    }
+ 
     /**
      * Clear output buffers
      */

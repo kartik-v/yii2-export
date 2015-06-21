@@ -102,8 +102,7 @@
         },
         listen: function () {
             var self = this;
-            self.$form.attr('action', window.location.href);
-            self.$form.appendTo('body');
+            self.$form.attr('action', window.location.href).appendTo('body');
             self.$element.off('click').on('click', function (e) {
                 if (self.notify(e)) {
                     var fmt = $(this).data('format');

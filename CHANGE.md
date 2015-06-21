@@ -1,6 +1,6 @@
 version 1.2.3
 =============
-**Date:** 24-Mar-2015
+**Date:** 21-Jun-2015
 
 - (enh #43): Added new `clearBuffers` property for better fix of #40.
 - (enh #44): Improve validation to retrieve the right translation messages folder.
@@ -11,6 +11,9 @@ version 1.2.3
 - (enh #50): Better exit and resetting of memory after output generation.
 - (enh #51): Fix to correct right filtering of exported data via pjax.
 - (enh #52): Bind export elements better on jQuery events.
+- (bug #62): Correct export request param for allowing multiple export menus on the same page.
+- (bug #64): Alternative buffer emulation by setting `stream` to `false` and `streamAfterSave` to `true`.
+- (enh #69): Various enhancements to export functionality.
 
 version 1.2.2
 =============

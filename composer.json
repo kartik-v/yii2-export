@@ -4,7 +4,7 @@
     "keywords": ["yii2", "extension", "widget", "export", "spreadsheet", "html", "csv", "text", "pdf", "json", "xls", "xlsx", "OpenXML"],
     "homepage": "https://github.com/kartik-v/yii2-export",
     "type": "yii2-extension",
-    "license": "BSD 3-Clause",
+    "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Kartik Visweswaran",
@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "kartik-v/yii2-grid": "*",
+        "kartik-v/yii2-grid": "~3.0",
         "phpoffice/phpexcel": "~1.8.0"
     },
     "minimum-stability": "stable",
