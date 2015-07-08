@@ -991,7 +991,7 @@ class ExportMenu extends GridView
                     'options' => $options
                 ];
             } else {
-                $tag = ArrayHelper::remove($options, 'tag', 'div');
+                $tag = ArrayHelper::remove($options, 'tag', 'li');
                 if ($tag !== false) {
                     $items .= Html::tag($tag, Html::a($label, '#', $linkOptions), $options);
                 } else {
