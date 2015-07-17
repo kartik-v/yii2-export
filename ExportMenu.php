@@ -26,6 +26,7 @@ use yii\helpers\Inflector;
 use yii\helpers\ArrayHelper;
 use yii\data\DataProvider;
 use yii\data\ActiveDataProvider;
+use yii\data\Pagination;
 use yii\db\ActiveQueryInterface;
 use yii\web\View;
 use yii\web\JsExpression;
@@ -312,6 +313,13 @@ class ExportMenu extends GridView
      * is useful only if `streamAfterSave` is `true`.
      */
     public $deleteAfterSave = false;
+    
+    /**
+     * @var integer Fetch models from the dataprovider using batches of this size. Set to 0
+     * (the default) to disable. If `$dataProvider` does not have a pagination object, this
+     * parameter is ignored.
+     */
+    public $batchSize = 0;
 
     /**
      * @var string|bool the view file to show details of exported file link. This property will 
@@ -805,7 +813,12 @@ class ExportMenu extends GridView
     public function initExport()
     {
         $this->_provider = clone($this->dataProvider);
-        $this->_provider->pagination = false;
+        if ($this->batchSize && $this->_provider->pagination) {
+            $this->_provider->pagination->pageSize = $this->batchSize;
+        }
+        else {
+            $this->_provider->pagination = false;
+        }
         if ($this->initProvider) {
             $this->_provider->prepare(true);
         }
@@ -1237,6 +1250,7 @@ class ExportMenu extends GridView
      */
     public function generateBody()
     {
+        $this->_endRow = 0;
         $columns = $this->getVisibleColumns();
         $models = array_values($this->_provider->getModels());
         if (count($columns) == 0) {
@@ -1245,12 +1259,21 @@ class ExportMenu extends GridView
             $this->raiseEvent('onRenderDataCell', [$cell, $this->emptyText, $model, null, 0, $this]);
             return 0;
         }
-        $keys = $this->_provider->getKeys();
-        $this->_endRow = 0;
-        foreach ($models as $index => $model) {
-            $key = $keys[$index];
-            $this->generateRow($model, $key, $index);
-            $this->_endRow++;
+        while(count($models) > 0) {
+            $keys = $this->_provider->getKeys();
+            foreach ($models as $index => $model) {
+                $key = $keys[$index];
+                $this->generateRow($model, $key, $this->_endRow);
+                $this->_endRow++;
+            }
+            if ($this->_provider->pagination) {
+                $this->_provider->pagination->page = $this->_provider->pagination->page+1;
+                $this->_provider->refresh();
+                $models = $this->_provider->getModels();
+            }
+            else {
+                $models = [];
+            }
         }
 
         // Set autofilter on
