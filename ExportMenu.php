@@ -991,7 +991,12 @@ class ExportMenu extends GridView
                     'options' => $options
                 ];
             } else {
-                $items .= Html::tag('li', Html::a($label, '#', $linkOptions), $options);
+                $tag = ArrayHelper::remove($options, 'tag', 'li');
+                if ($tag !== false) {
+                    $items .= Html::tag($tag, Html::a($label, '#', $linkOptions), $options);
+                } else {
+                    $items .= Html::a($label, '#', $linkOptions);
+                }
             }
         }
         $form = $this->render($this->exportFormView, [
