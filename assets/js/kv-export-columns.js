@@ -12,6 +12,8 @@
  * For more Yii related demos visit http://demos.krajee.com
  */
 (function ($) {
+    "use strict";
+
     var ExportColumns = function (element, options) {
         var self = this;
         self.$element = $(element);

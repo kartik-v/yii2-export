@@ -9,6 +9,17 @@
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 
+/**
+ * @var array $options
+ * @var array $batchToggle
+ * @var array $columnSelector
+ * @var array $hiddenColumns
+ * @var array $selectedColumns
+ * @var array $disabledColumns
+ * @var array $noExportColumns
+ * @var array $menuOptions
+ */
+
 $label = ArrayHelper::remove($options, 'label');
 $icon = ArrayHelper::remove($options, 'icon');
 $showToggle = ArrayHelper::remove($batchToggle, 'show', true);
@@ -20,8 +31,7 @@ echo Html::button($label . ' <span class="caret"></span>', $options);
 foreach ($columnSelector as $value => $label) {
     if (in_array($value, $hiddenColumns)) {
         $checked = in_array($value, $selectedColumns);
-        echo Html::checkbox('export_columns_selector[]', $checked,
-                ['data-key' => $value, 'style' => 'display:none']) . "\n";
+        echo Html::checkbox('export_columns_selector[]', $checked, ['data-key' => $value, 'style' => 'display:none']);
         unset($columnSelector[$value]);
     }
     if (in_array($value, $noExportColumns)) {

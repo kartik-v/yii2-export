@@ -14,9 +14,8 @@
     ],
     "require": {
         "kartik-v/yii2-grid": "~3.0",
-        "phpoffice/phpexcel": "~1.8.0"
+        "phpoffice/phpexcel": "~1.8"
     },
-    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "kartik\\export\\": ""

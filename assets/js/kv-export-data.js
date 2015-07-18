@@ -12,9 +12,10 @@
  * For more Yii related demos visit http://demos.krajee.com
  */
 (function ($) {
+    "use strict";
+
     var isEmpty = function (value, trim) {
-            return value === null || value === undefined || value == []
-            || value === '' || trim && $.trim(value) === '';
+            return value === null || value === undefined || value === [] || value === '' || trim && $.trim(value) === '';
         },
         popupDialog = function (url, name, w, h) {
             var left = (screen.width / 2) - (w / 2), top = 60,
@@ -34,7 +35,7 @@
                 return true;
             }
             try {
-                return confirm(msg);
+                return window.confirm(msg);
             }
             catch (err) {
                 return true;
@@ -44,9 +45,9 @@
     var ExportData = function (element, options) {
         var self = this;
         self.$element = $(element);
-        for (var key in options) {
-            self[key] = options[key];
-        }
+        $.each(options, function (key, val) {
+            self[key] = val;
+        });
         var settings = options.settings;
         self.$form = $("#" + settings.formId);
         self.messages = settings.messages;
@@ -57,23 +58,22 @@
     ExportData.prototype = {
         constructor: ExportData,
         notify: function (e) {
-            var self = this;
+            var self = this, msgs, msg = '', msg1, msg2, msg3;
             if (!self.showConfirmAlert) {
                 e.preventDefault();
                 return true;
             }
-            var msgs = self.messages,
-                msg1 = isEmpty(self.alertMsg) ? '' : self.alertMsg,
-                msg2 = isEmpty(msgs.allowPopups) ? '' : msgs.allowPopups,
-                msg3 = isEmpty(msgs.confirmDownload) ? '' : msgs.confirmDownload,
-                msg = '', out;
+            msgs = self.messages;
+            msg1 = isEmpty(self.alertMsg) ? '' : self.alertMsg;
+            msg2 = isEmpty(msgs.allowPopups) ? '' : msgs.allowPopups;
+            msg3 = isEmpty(msgs.confirmDownload) ? '' : msgs.confirmDownload;
             if (msg1.length && msg2.length) {
                 msg = msg1 + '\n\n' + msg2;
             } else {
                 if (!msg1.length && msg2.length) {
                     msg = msg2;
                 } else {
-                    msg = (msg1.length && !msg2.length) ? msg1 : ''
+                    msg = (msg1.length && !msg2.length) ? msg1 : '';
                 }
             }
             if (msg3.length) {
@@ -87,7 +87,7 @@
         },
         setPopupAlert: function (msg) {
             var self = this;
-            if (self.popup.document == undefined) {
+            if (!self.popup.document) {
                 return;
             }
             if (arguments.length && arguments[1]) {
@@ -104,17 +104,17 @@
             var self = this;
             self.$form.attr('action', window.location.href).appendTo('body');
             self.$element.off('click').on('click', function (e) {
+                var $selected, cols = [];
                 if (self.notify(e)) {
                     var fmt = $(this).data('format');
                     self.$form.find('[name="export_type"]').val(fmt);
-                    if (self.target == '_popup') {
+                    if (self.target === '_popup') {
                         self.popup = popupDialog('', 'kvExportFullDialog', 350, 120);
                         self.popup.focus();
                         self.setPopupAlert(self.messages.downloadProgress);
                     }
                     if (!isEmpty(self.columnSelectorId)) {
-                        var $selected = $('#' + self.columnSelectorId).parent().find('input[name="export_columns_selector[]"]'),
-                            cols = [];
+                        $selected = $('#' + self.columnSelectorId).parent().find('input[name="export_columns_selector[]"]');
                         $selected.each(function () {
                             var $el = $(this);
                             if ($el.is(':checked')) {
@@ -126,7 +126,7 @@
                     self.$form.trigger('submit');
                 }
             });
-            if (self.target == '_popup') {
+            if (self.target === '_popup') {
                 self.$form.off('submit').on('submit', function () {
                     setTimeout(function () {
                         self.setPopupAlert(self.messages.downloadComplete, true);
