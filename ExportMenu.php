@@ -319,19 +319,19 @@ class ExportMenu extends GridView
     public $deleteAfterSave = false;
 
     /**
+     * @var string|bool the view file to show details of exported file link. This property will
+     * be validated only when `$stream` is `false` and `streamAfterSave` is `false`. You can
+     * set this to `false` to not display any file link details for view.
+     */
+    public $afterSaveView = '_view';
+
+    /**
      * @var int fetch models from the dataprovider using batches of this size. Set this to `0`
      * (the default) to disable. If `$dataProvider` does not have a pagination object, this
      * parameter is ignored. Setting this property helps reduce memory overflow issues by
      * allowing parsing of models in batches, rather than fetching all models in one go.
      */
     public $batchSize = 0;
-
-    /**
-     * @var string|bool the view file to show details of exported file link. This property will
-     * be validated only when `$stream` is `false` and `streamAfterSave` is `false`. You can
-     * set this to `false` to not display any file link details for view.
-     */
-    public $afterSaveView = '_view';
 
     /**
      * @var array, the configuration of various messages that will be displayed at runtime:
