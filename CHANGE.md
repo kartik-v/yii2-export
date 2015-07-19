@@ -21,7 +21,6 @@ Change Log: `yii2-export`
 - (enh #75): Add Spanish translations.
 - (enh #76): Allow fetching models in batches. Fixes #70.
 
-
 ## version 1.2.2
 
 **Date:** 14-Feb-2015
