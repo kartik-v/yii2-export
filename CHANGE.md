@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.2.4
+
+**Date:** 05-Sep-2015
+
+- (enh #78): Add Portugese Brazilian transactions.
+
 ## version 1.2.3
 
 **Date:** 19-Jul-2015

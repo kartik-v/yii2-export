@@ -1,4 +1,18 @@
 <?php
+/**
+ * @package   yii2-export
+ * @author    Kartik Visweswaran <kartikv2@gmail.com>
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015
+ * @version   1.2.4
+ *
+ * Export Submission View
+ *
+ * Author: Kartik Visweswaran
+ * Copyright: 2015, Kartik Visweswaran, Krajee.com
+ * For more JQuery plugins visit http://plugins.krajee.com
+ * For more Yii related demos visit http://demos.krajee.com
+ */
+ 
 use \Yii;
 use yii\helpers\Html;
 
