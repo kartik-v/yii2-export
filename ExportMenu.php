@@ -1306,6 +1306,8 @@ class ExportMenu extends GridView
             $this->raiseEvent('onRenderDataCell', [$cell, $this->emptyText, $model, null, 0, $this]);
             return 0;
         }
+        // do not execute multiple COUNT(*) queries
+        $totalCount = $this->_provider->getTotalCount();
         while (count($models) > 0) {
             $keys = $this->_provider->getKeys();
             foreach ($models as $index => $model) {
@@ -1316,6 +1318,7 @@ class ExportMenu extends GridView
             if ($this->_provider->pagination) {
                 $this->_provider->pagination->page++;
                 $this->_provider->refresh();
+                $this->_provider->setTotalCount($totalCount);
                 $models = $this->_provider->getModels();
             } else {
                 $models = [];
