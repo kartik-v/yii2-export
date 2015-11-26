@@ -1333,7 +1333,7 @@ class ExportMenu extends GridView
             self::columnName($this->_endCol) .
             $this->_endRow
         );
-        return ($this->_endRow > 0) ? count($models) : 0;
+        return $this->_endRow;
     }
 
     /**
