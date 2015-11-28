@@ -3,9 +3,14 @@ Change Log: `yii2-export`
 
 ## version 1.2.4
 
-**Date:** 05-Sep-2015
+**Date:** 28-Nov-2015
 
 - (enh #78): Add Portugese Brazilian transactions.
+- (enh #87): Cache dataProvider total count (for performance).
+- (enh #89): New property `onInitExcel` as an event for `initPHPExcel` method.
+- (enh #98): More correct models count for `generateBody` method.
+- (enh #99):New setter methods `setPHPExcel`, `setPHPExcelWriter`, `setPHPExcelSheet`
+- PHP comment formatting and PHPDoc updates.
 
 ## version 1.2.3
 

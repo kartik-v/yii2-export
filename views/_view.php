@@ -12,8 +12,7 @@
  * For more JQuery plugins visit http://plugins.krajee.com
  * For more Yii related demos visit http://demos.krajee.com
  */
- 
-use \Yii;
+
 use yii\helpers\Html;
 
 /**

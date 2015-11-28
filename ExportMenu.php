@@ -14,11 +14,11 @@ use \PHPExcel;
 use \PHPExcel_IOFactory;
 use \PHPExcel_Settings;
 use \PHPExcel_Style_Fill;
-use \PHPExcel_Writer_IWriter;
+use \PHPExcel_Writer_Abstract;
+use \PHPExcel_Writer_CSV;
 use \PHPExcel_Worksheet;
 use \Closure;
 use yii\base\InvalidConfigException;
-use yii\base\InvalidValueException;
 use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\helpers\Json;
@@ -36,17 +36,18 @@ use yii\web\View;
 use yii\web\JsExpression;
 use yii\bootstrap\ButtonDropdown;
 use kartik\grid\GridView;
+use kartik\base\TranslationTrait;
 
 /**
- * Export menu widget. Export tabular data to various formats using the PHPExcel library
- * by reading data from a dataProvider - with configuration very similar to a GridView.
+ * Export menu widget. Export tabular data to various formats using the PHPExcel library by reading data from a
+ * dataProvider - with configuration very similar to a GridView.
  *
  * @author Kartik Visweswaran <kartikv2@gmail.com>
  * @since  1.0
  */
 class ExportMenu extends GridView
 {
-    use \kartik\base\TranslationTrait;
+    use TranslationTrait;
 
     /**
      * Export formats
@@ -73,45 +74,39 @@ class ExportMenu extends GridView
     const PARAM_COLSEL_FLAG = 'column_selector_enabled';
 
     /**
-     * @var string the target for submitting the export form, which will trigger
-     * the download of the exported file. Must be one of the `TARGET_` constants.
-     * Defaults to `ExportMenu::TARGET_POPUP`. Note if you set `stream` and
-     * `streamAfterSave` to `false`, then this will be overridden to `_self`.
+     * @var string the target for submitting the export form, which will trigger the download of the exported file.
+     *     Must be one of the `TARGET_` constants. Defaults to `ExportMenu::TARGET_POPUP`. Note if you set `stream` and
+     *     `streamAfterSave` to `false`, then this will be overridden to `_self`.
      */
     public $target = self::TARGET_POPUP;
 
     /**
-     * @var bool whether to show a confirmation alert dialog before download. This
-     * confirmation dialog will notify user about the type of exported file for download
-     * and to disable popup blockers. Defaults to `true`.
+     * @var bool whether to show a confirmation alert dialog before download. This confirmation dialog will notify user
+     *     about the type of exported file for download and to disable popup blockers. Defaults to `true`.
      */
     public $showConfirmAlert = true;
 
     /**
-     * @var bool whether to enable the yii gridview formatter component.
-     * Defaults to `true`. If set to `false`, this will render content
-     * as `raw` format.
+     * @var bool whether to enable the yii gridview formatter component. Defaults to `true`. If set to `false`, this
+     *     will render content as `raw` format.
      */
     public $enableFormatter = true;
 
     /**
-     * @var bool whether to render the export menu as bootstrap button dropdown
-     * widget. Defaults to `true`. If set to `false`, this will generate a simple
-     * HTML list of links.
+     * @var bool whether to render the export menu as bootstrap button dropdown widget. Defaults to `true`. If set to
+     *     `false`, this will generate a simple HTML list of links.
      */
     public $asDropdown = true;
 
     /**
-     * @var string the pjax container identifier inside which this menu is being
-     * rendered. If set the jQuery export menu plugin will get auto initialized
-     * on pjax request completion.
+     * @var string the pjax container identifier inside which this menu is being rendered. If set the jQuery export
+     *     menu plugin will get auto initialized on pjax request completion.
      */
     public $pjaxContainerId;
 
     /**
-     * @var array the HTML attributes for the export button menu. Applicable only
-     * if `asDropdown` is set to `true`. The following special options are
-     * available:
+     * @var array the HTML attributes for the export button menu. Applicable only if `asDropdown` is set to `true`. The
+     *     following special options are available:
      * - label: string, defaults to empty string
      * - icon: string, defaults to `<i class="glyphicon glyphicon-export"></i>`
      * - title: string, defaults to `Export data in selected format`.
@@ -131,29 +126,27 @@ class ExportMenu extends GridView
     public $clearBuffers = false;
 
     /**
-     * @var bool whether to initialize data provider and clear models before rendering.
-     * Defaults to `false`.
+     * @var bool whether to initialize data provider and clear models before rendering. Defaults to `false`.
      */
     public $initProvider = false;
 
     /**
-     * @var bool whether to show a column selector to select columns for export.
-     * Defaults to `true`.
+     * @var bool whether to show a column selector to select columns for export. Defaults to `true`.
      */
     public $showColumnSelector = true;
 
     /**
-     * @var array the configuration of the column names in the column selector. Note: column names will be
-     * auto-generated anyway. Any setting in this property will override the auto-generated column names.
-     * This list should be setup as `$key => $value` where:
+     * @var array the configuration of the column names in the column selector. Note: column names will be generated
+     *     automatically by default. Any setting in this property will override the auto-generated column names. This
+     *     list should be setup as `$key => $value` where:
      * $key: int, is the zero based index of the column as set in `$columns`.
      * $value: string, is the column name/label you wish to display in the column selector.
      */
     public $columnSelector = [];
 
     /**
-     * @var array the HTML attributes for the column selector dropdown button.
-     * The following special options are recognized:
+     * @var array the HTML attributes for the column selector dropdown button. The following special options are
+     *     recognized:
      * - label: string, defaults to empty string.
      * - icon: string, defaults to `<i class="glyphicon glyphicon-list"></i>`
      * - title: string, defaults to `Select columns for export`.
@@ -166,27 +159,23 @@ class ExportMenu extends GridView
     public $columnSelectorMenuOptions = [];
 
     /**
-     * @var array the settings for the toggle all checkbox to check/uncheck
-     * the columns as a batch. Should be setup as an associative array which
-     * can have the following keys:
-     * - `show`: bool, whether the batch toggle checkbox is to be shown. Defaults
-     *    to `true`.
-     * - `label`: string, the label to be displayed for toggle all. Defaults to
-     *    `Toggle All`.
-     * - `options`: array, the HTML attributes for the toggle label text. Defaults
-     *   to `['class'=>'kv-toggle-all']`
+     * @var array the settings for the toggle all checkbox to check / uncheck the columns as a batch. Should be setup as
+     *     an associative array which can have the following keys:
+     * - `show`: bool, whether the batch toggle checkbox is to be shown. Defaults to `true`.
+     * - `label`: string, the label to be displayed for toggle all. Defaults to `Toggle All`.
+     * - `options`: array, the HTML attributes for the toggle label text. Defaults to `['class'=>'kv-toggle-all']`
      */
     public $columnBatchToggleSettings = [];
 
     /**
-     * @var array, HTML attributes for the container to wrap the widget.
-     * Defaults to ['class'=>'btn-group', 'role'=>'group']
+     * @var array, HTML attributes for the container to wrap the widget. Defaults to ['class'=>'btn-group',
+     *     'role'=>'group']
      */
     public $container = ['class' => 'btn-group', 'role' => 'group'];
 
     /**
-     * @var string, the template for rendering the content in the container. This will
-     * be parsed only if `asDropdown` is `true`. The following tags will be replaced:
+     * @var string, the template for rendering the content in the container. This will be parsed only if `asDropdown`
+     *     is `true`. The following tags will be replaced:
      * - {columns}: will be replaced with the column selector dropdown
      * - {menu}: will be replaced with export menu dropdown
      */
@@ -198,26 +187,24 @@ class ExportMenu extends GridView
     public $exportFormOptions = [];
 
     /**
-     * @var array the selected column indexes for export. If not set this will default to
-     * all columns.
+     * @var array the selected column indexes for export. If not set this will default to all columns.
      */
     public $selectedColumns;
 
     /**
-     * @var array the column indexes for export that will be disabled for selection
-     * in the column selector.
+     * @var array the column indexes for export that will be disabled for selection in the column selector.
      */
     public $disabledColumns = [];
 
     /**
-     * @var array the column indexes for export that will be hidden for selection
-     * in the column selector, but will still be displayed in export output.
+     * @var array the column indexes for export that will be hidden for selection in the column selector, but will
+     *     still be displayed in export output.
      */
     public $hiddenColumns = [];
 
     /**
-     * @var array the column indexes for export that will not be exported at all nor
-     * will they be shown in the column selector
+     * @var array the column indexes for export that will not be exported at all nor will they be shown in the column
+     *     selector
      */
     public $noExportColumns = [];
 
@@ -232,18 +219,17 @@ class ExportMenu extends GridView
     public $exportColumnsView = '_columns';
 
     /**
-     * @var boolean whether to use font awesome icons for rendering the icons
-     * as defined in `exportConfig`. If set to `true`, you must load the FontAwesome
-     * CSS separately in your application.
+     * @var boolean whether to use font awesome icons for rendering the icons as defined in `exportConfig`. If set to
+     *     `true`, you must load the FontAwesome CSS separately in your application.
      */
     public $fontAwesome = false;
 
     /**
-     * @var array the export configuration. The array keys must be the one of the `format` constants
-     * (CSV, HTML, TEXT, EXCEL, PDF) and the array value is a configuration array consisiting of these settings:
-     * - label: string,the label for the export format menu item displayed
-     * - icon: string,the glyphicon or font-awesome name suffix to be displayed before the export menu item label.
-     *   If set to an empty string, this will not be displayed.
+     * @var array the export configuration. The array keys must be the one of the `format` constants (CSV, HTML, TEXT,
+     *     EXCEL, PDF) and the array value is a configuration array consisting of these settings:
+     * - label: string, the label for the export format menu item displayed
+     * - icon: string, the glyphicon or font-awesome name suffix to be displayed before the export menu item label. If
+     *     set to an empty string, this will not be displayed.
      * - iconOptions: array, HTML attributes for export menu icon.
      * - linkOptions: array, HTML attributes for each export item link.
      * - filename: the base file name for the generated file. Defaults to 'grid-export'. This will be used to generate
@@ -258,21 +244,20 @@ class ExportMenu extends GridView
     public $exportConfig = [];
 
     /**
-     * @var string the request parameter ($_GET or $_POST) that will be submitted
-     * during export. If not set this will be auto generated. This should be unique
-     * for each export menu widget (for multiple export menu widgets on same page).
+     * @var string the request parameter ($_GET or $_POST) that will be submitted during export. If not set this will
+     *     be auto generated. This should be unique for each export menu widget (for multiple export menu widgets on
+     *     same page).
      */
     public $exportRequestParam;
 
     /**
-     * @var array the output style configuration options. It must be the style
-     * configuration array as required by PHPExcel.
+     * @var array the output style configuration options. It must be the style configuration array as required by
+     *     PHPExcel.
      */
     public $styleOptions = [];
 
     /**
-     * @var bool whether to auto-size the excel output column widths.
-     * Defaults to `true`.
+     * @var bool whether to auto-size the excel output column widths. Defaults to `true`.
      */
     public $autoWidth = true;
 
@@ -287,16 +272,14 @@ class ExportMenu extends GridView
     public $filename;
 
     /**
-     * @var string the folder to save the exported file. Defaults to '@webroot/tmp/'.
-     * This property will be parsed only if `stream` is false. If the specified folder
-     * does not exist, files will be saved to `@webroot`.
+     * @var string the folder to save the exported file. Defaults to '@webroot/tmp/'. This property will be parsed only
+     *     if `stream` is false. If the specified folder does not exist, files will be saved to `@webroot`.
      */
     public $folder = '@webroot/tmp';
 
     /**
-     * @var string the web accessible path for the saved file location. This property will be
-     * parsed only if `stream` is false. Note the `afterSaveView` property that will render
-     * the displayed file link.
+     * @var string the web accessible path for the saved file location. This property will be parsed only if `stream`
+     *     is false. Note the `afterSaveView` property that will render the displayed file link.
      */
     public $linkPath = '/tmp';
 
@@ -306,122 +289,133 @@ class ExportMenu extends GridView
     public $stream = true;
 
     /**
-     * @var bool whether to stream after saving file to `$folder` and when `$stream` is
-     *`false`. This property will be validated only when `$stream` is `false`.
+     * @var bool whether to stream after saving file to `$folder` and when `$stream` is `false`. This property will be
+     *     validated only when `$stream` is `false`.
      */
     public $streamAfterSave = false;
 
     /**
-     * @var bool whether to delete file after saving file to `$folder` and when `$stream` is
-     *`false`. This property will be validated only when `$stream` is `false`. This property
-     * is useful only if `streamAfterSave` is `true`.
+     * @var bool whether to delete file after saving file to `$folder` and when `$stream` is `false`. This property
+     *     will be validated only when `$stream` is `false`. This property is useful only if `streamAfterSave` is
+     *     `true`.
      */
     public $deleteAfterSave = false;
 
     /**
-     * @var string|bool the view file to show details of exported file link. This property will
-     * be validated only when `$stream` is `false` and `streamAfterSave` is `false`. You can
-     * set this to `false` to not display any file link details for view.
+     * @var string|bool the view file to show details of exported file link. This property will be validated only when
+     *     `$stream` is `false` and `streamAfterSave` is `false`. You can set this to `false` to not display any file
+     *     link details for view.
      */
     public $afterSaveView = '_view';
 
     /**
-     * @var int fetch models from the dataprovider using batches of this size. Set this to `0`
-     * (the default) to disable. If `$dataProvider` does not have a pagination object, this
-     * parameter is ignored. Setting this property helps reduce memory overflow issues by
-     * allowing parsing of models in batches, rather than fetching all models in one go.
+     * @var int fetch models from the dataprovider using batches of this size. Set this to `0` (the default) to
+     *     disable. If `$dataProvider` does not have a pagination object, this parameter is ignored. Setting this
+     *     property helps reduce memory overflow issues by allowing parsing of models in batches, rather than fetching
+     *     all models in one go.
      */
     public $batchSize = 0;
 
     /**
      * @var array, the configuration of various messages that will be displayed at runtime:
-     * - allowPopups: string, the message to be shown to disable browser popups for download.
-     *   Defaults to `Disable any popup blockers in your browser to ensure proper download.`.
-     * - confirmDownload: string, the message to be shown for confirming to proceed with the
-     *   download. Defaults to `Ok to proceed?`.
-     * - downloadProgress: string, the message to be shown in a popup dialog when download request.
-     *   is executed. Defaults to `Generating file. Please wait...`.
-     * - downloadComplete: string, the message to be shown in a popup dialog when download request
-     *   is completed. Defaults to `All done! Click anywhere here to close this window, once you have
-     *   downloaded the file.`.
+     * - allowPopups: string, the message to be shown to disable browser popups for download. Defaults to `Disable any
+     *     popup blockers in your browser to ensure proper download.`.
+     * - confirmDownload: string, the message to be shown for confirming to proceed with the download. Defaults to `Ok
+     *     to proceed?`.
+     * - downloadProgress: string, the message to be shown in a popup dialog when download request is executed.
+     *     Defaults to `Generating file. Please wait...`.
+     * - downloadComplete: string, the message to be shown in a popup dialog when download request is completed.
+     *     Defaults to `All done! Click anywhere here to close this window, once you have downloaded the file.`.
      */
     public $messages = [];
 
     /**
-     * @var Closure the callback function on initializing the writer.
-     * The anonymous function should have the following signature:
+     * @var Closure the callback function on initializing the PHP Excel library. The anonymous function should have the
+     *     following signature:
+     * ```php
+     * function ($excel, $grid)
+     * ```
+     * where:
+     * - `$excel`: the PHPExcel object instance
+     * - `$grid`: the GridView object
+     */
+    public $onInitExcel = null;
+
+    /**
+     * @var Closure the callback function on initializing the writer. The anonymous function should have the following
+     *     signature:
      * ```php
      * function ($writer, $grid)
      * ```
      * where:
-     * - `$writer`: the PHPExcel_Writer_IWriter object instance
-     * - `$grid`: the GridView object
+     * - `$writer`: PHPExcel_Writer_Abstract, the PHPExcel_Writer_Abstract object instance
+     * - `$grid`: GridView, the current GridView object
      */
     public $onInitWriter = null;
 
     /**
-     * @var Closure the callback function to be executed on initializing the active sheet.
-     * The anonymous function should have the following signature:
+     * @var Closure the callback function to be executed on initializing the active sheet. The anonymous function
+     *     should have the following signature:
      * ```php
      * function ($sheet, $grid)
      * ```
      * where:
-     * - `$sheet`: the PHPExcel_Worksheet object instance
-     * - `$grid`: the GridView object
+     * - `$sheet`: PHPExcel_Worksheet, the PHPExcel_Worksheet object instance
+     * - `$grid`: GridView, the current GridView object
      */
     public $onInitSheet = null;
 
     /**
-     * @var Closure the callback function to be executed on rendering the header cell output
-     * content. The anonymous function should have the following signature:
+     * @var Closure the callback function to be executed on rendering the header cell output content. The anonymous
+     *     function should have the following signature:
      * ```php
      * function ($cell, $content, $grid)
      * ```
      * where:
      * - `$cell`: PHPExcel_Cell, is the current PHPExcel cell being rendered
      * - `$content`: string, is the header cell content being rendered
-     * - `$grid`: GridView, is the current GridView object
+     * - `$grid`: GridView, the current GridView object
      */
     public $onRenderHeaderCell = null;
 
     /**
-     * @var Closure the callback function to be executed on rendering each body data cell
-     * content. The anonymous function should have the following signature:
+     * @var Closure the callback function to be executed on rendering each body data cell content. The anonymous
+     *     function should have the following signature:
      * ```php
      * function ($cell, $content, $model, $key, $index, $grid)
      * ```
      * where:
-     * - `$cell`: the current PHPExcel cell being rendered
-     * - `$content`: the data cell content being rendered
-     * - `$model`: the data model to be rendered
-     * - `$key`: the key associated with the data model
-     * - `$index`: the zero-based index of the data model among the model array returned by [[dataProvider]].
-     * - `$grid`: the GridView object
+     * - `$cell`: PHPExcel_Cell, the current PHPExcel cell being rendered
+     * - `$content`: string, the data cell content being rendered
+     * - `$model`: Model, the data model to be rendered
+     * - `$key`: mixed, the key associated with the data model
+     * - `$index`: int, the zero-based index of the data model among the model array returned by [[dataProvider]].
+     * - `$grid`: GridView, the current GridView object
      */
     public $onRenderDataCell = null;
 
     /**
-     * @var Closure the callback function to be executed on rendering the footer cell output
-     * content. The anonymous function should have the following signature:
+     * @var Closure the callback function to be executed on rendering the footer cell output content. The anonymous
+     *     function should have the following signature:
      * ```php
      * function ($cell, $content, $grid)
      * ```
      * where:
-     * - `$cell`: the current PHPExcel cell being rendered
-     * - `$content`: the footer cell content being rendered
-     * - `$grid`: the GridView object
+     * - `$sheet`: PHPExcel_Worksheet, the PHPExcel_Worksheet object instance
+     * - `$content`: string, the footer cell content being rendered
+     * - `$grid`: GridView, the current GridView object
      */
     public $onRenderFooterCell = null;
 
     /**
-     * @var Closure the callback function to be executed on rendering the sheet. The anonymous function
-     * should have the following signature:
+     * @var Closure the callback function to be executed on rendering the sheet. The anonymous function should have the
+     *     following signature:
      * ```php
      * function ($sheet, $grid)
      * ```
      * where:
-     * - `$sheet`: the current PHPExcel sheet being rendered
-     * - `$grid`: the GridView object
+     * - `$sheet`: PHPExcel_Worksheet, the PHPExcel_Worksheet object instance
+     * - `$grid`: GridView, the current GridView object
      */
     public $onRenderSheet = null;
 
@@ -431,8 +425,7 @@ class ExportMenu extends GridView
     public $docProperties = [];
 
     /**
-     * @var string the library used to render the PDF. Defaults to `'mPDF'`.
-     * Must be one of:
+     * @var string the library used to render the PDF. Defaults to `'mPDF'`. Must be one of:
      * - `PHPExcel_Settings::PDF_RENDERER_TCPDF` or `'tcPDF'`
      * - `PHPExcel_Settings::PDF_RENDERER_DOMPDF` or `'DomPDF'`
      * - `PHPExcel_Settings::PDF_RENDERER_MPDF` or `'mPDF'`
@@ -460,8 +453,7 @@ class ExportMenu extends GridView
     protected $_provider;
 
     /**
-     * @var string the data output format type. Defaults to
-     * `ExportMenu::FORMAT_EXCEL_X`.
+     * @var string the data output format type. Defaults to `ExportMenu::FORMAT_EXCEL_X`.
      */
     protected $_exportType = self::FORMAT_EXCEL_X;
 
@@ -477,7 +469,7 @@ class ExportMenu extends GridView
     protected $_objPHPExcel;
 
     /**
-     * @var PHPExcel_Writer_IWriter object instance
+     * @var PHPExcel_Writer_Abstract object instance
      */
     protected $_objPHPExcelWriter;
 
@@ -628,8 +620,14 @@ class ExportMenu extends GridView
         $this->generateFooter($row);
         $writer = $this->_objPHPExcelWriter;
         $sheet = $this->_objPHPExcelSheet;
-        if ($this->_exportType === self::FORMAT_TEXT) {
-            $writer->setDelimiter("\t");
+        if ($this->_exportType === self::FORMAT_CSV || $this->_exportType === self::FORMAT_TEXT) {
+            /**
+             * @var PHPExcel_Writer_CSV $writer
+             */
+            $writer->setExcelCompatibility(true);
+            if ($this->_exportType === self::FORMAT_TEXT) {
+                $writer->setDelimiter("\t");
+            }
         }
         if ($this->autoWidth) {
             foreach ($this->getVisibleColumns() as $n => $column) {
@@ -663,7 +661,7 @@ class ExportMenu extends GridView
                         echo $this->render($this->afterSaveView, [
                             'file' => $file,
                             'icon' => ($this->fontAwesome ? 'fa fa-' : 'glyphicon glyphicon-') . $config['icon'],
-                            'href' => Url::to([self::slash($this->linkPath, '/') . $file])
+                            'href' => Url::to([self::slash($this->linkPath, '/') . $file]),
                         ]);
                     }
                 }
@@ -774,8 +772,8 @@ class ExportMenu extends GridView
     /**
      * Fetches the column label
      *
-     * @param int              $key
-     * @param \yii\grid\Column $column
+     * @param int    $key
+     * @param Column $column
      *
      * @return string
      */
@@ -849,7 +847,7 @@ class ExportMenu extends GridView
         Html::addCssClass($this->exportFormOptions, 'kv-export-full-form');
         $this->exportFormOptions += [
             'id' => $id,
-            'target' => $target
+            'target' => $target,
         ];
     }
 
@@ -871,7 +869,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The HTML export file will be generated for download.'),
                 'mime' => 'text/html',
                 'extension' => 'html',
-                'writer' => 'HTML'
+                'writer' => 'HTML',
             ],
             self::FORMAT_CSV => [
                 'label' => Yii::t('kvexport', 'CSV'),
@@ -882,7 +880,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The CSV export file will be generated for download.'),
                 'mime' => 'application/csv',
                 'extension' => 'csv',
-                'writer' => 'CSV'
+                'writer' => 'CSV',
             ],
             self::FORMAT_TEXT => [
                 'label' => Yii::t('kvexport', 'Text'),
@@ -893,7 +891,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The TEXT export file will be generated for download.'),
                 'mime' => 'text/plain',
                 'extension' => 'txt',
-                'writer' => 'CSV'
+                'writer' => 'CSV',
             ],
             self::FORMAT_PDF => [
                 'label' => Yii::t('kvexport', 'PDF'),
@@ -904,7 +902,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The PDF export file will be generated for download.'),
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
-                'writer' => 'PDF'
+                'writer' => 'PDF',
             ],
             self::FORMAT_EXCEL => [
                 'label' => Yii::t('kvexport', 'Excel 95 +'),
@@ -915,7 +913,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The EXCEL 95+ (xls) export file will be generated for download.'),
                 'mime' => 'application/vnd.ms-excel',
                 'extension' => 'xls',
-                'writer' => 'Excel5'
+                'writer' => 'Excel5',
             ],
             self::FORMAT_EXCEL_X => [
                 'label' => Yii::t('kvexport', 'Excel 2007+'),
@@ -926,7 +924,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The EXCEL 2007+ (xlsx) export file will be generated for download.'),
                 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'extension' => 'xlsx',
-                'writer' => 'Excel2007'
+                'writer' => 'Excel2007',
             ],
         ];
     }
@@ -955,7 +953,7 @@ class ExportMenu extends GridView
         $formId = $this->exportFormOptions['id'];
         $options = Json::encode([
             'formId' => $formId,
-            'messages' => $this->messages
+            'messages' => $this->messages,
         ]);
         $menu = 'kvexpmenu_' . hash('crc32', $options);
         $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);
@@ -969,7 +967,7 @@ class ExportMenu extends GridView
                 'settings' => new JsExpression($menu),
                 'alertMsg' => $setting['alertMsg'],
                 'target' => $this->target,
-                'showConfirmAlert' => $this->showConfirmAlert
+                'showConfirmAlert' => $this->showConfirmAlert,
             ];
             if ($this->_columnSelectorEnabled) {
                 $options['columnSelectorId'] = $this->columnSelectorOptions['id'];
@@ -1023,7 +1021,7 @@ class ExportMenu extends GridView
                     'label' => $label,
                     'url' => '#',
                     'linkOptions' => $linkOptions,
-                    'options' => $options
+                    'options' => $options,
                 ];
             } else {
                 $tag = ArrayHelper::remove($options, 'tag', 'li');
@@ -1059,9 +1057,9 @@ class ExportMenu extends GridView
                         'label' => $label,
                         'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions],
                         'options' => $this->dropdownOptions,
-                        'encodeLabel' => false
+                        'encodeLabel' => false,
                     ]),
-                    '{columns}' => $this->renderColumnSelector()
+                    '{columns}' => $this->renderColumnSelector(),
                 ]) . "\n" . $form;
             return Html::tag('div', $content, $this->container);
         } else {
@@ -1087,8 +1085,23 @@ class ExportMenu extends GridView
             'selectedColumns' => $this->selectedColumns,
             'disabledColumns' => $this->disabledColumns,
             'hiddenColumns' => $this->hiddenColumns,
-            'noExportColumns' => $this->noExportColumns
+            'noExportColumns' => $this->noExportColumns,
         ]);
+    }
+
+    /**
+     * Raises a callable event
+     *
+     * @param string $event the event name
+     * @param array  $params the parameters to the callable function
+     *
+     * @return void
+     */
+    protected function raiseEvent($event, $params)
+    {
+        if (isset($this->$event) && is_callable($this->$event)) {
+            call_user_func_array($this->$event, $params);
+        }
     }
 
     /**
@@ -1121,12 +1134,13 @@ class ExportMenu extends GridView
             ->setCompany($company)
             ->setCreated($created)
             ->setLastModifiedBy($lastModifiedBy);
+        $this->raiseEvent('onInitExcel', [$this->_objPHPExcel, $this]);
     }
 
     /**
      * Initializes PHP Excel Writer Object Instance
      *
-     * @param string the writer type as set in export config
+     * @param string $writer the writer type as set in export config
      *
      * @return void
      */
@@ -1137,21 +1151,6 @@ class ExportMenu extends GridView
             $writer
         );
         $this->raiseEvent('onInitWriter', [$this->_objPHPExcelWriter, $this]);
-    }
-
-    /**
-     * Raises a callable event
-     *
-     * @param string $event  the event name
-     * @param array  $params the parameters to the callable function
-     *
-     * @return void
-     */
-    protected function raiseEvent($event, $params)
-    {
-        if (isset($this->$event) && is_callable($this->$event)) {
-            call_user_func_array($this->$event, $params);
-        }
     }
 
     /**
@@ -1187,7 +1186,7 @@ class ExportMenu extends GridView
         foreach ($this->getVisibleColumns() as $column) {
             $this->_endCol++;
             /**
-             * @var Column $column
+             * @var DataColumn $column
              */
             $head = ($column instanceof DataColumn) ? $this->getColumnHeader($column) : $column->header;
             $id = self::columnName($this->_endCol) . $this->_beginRow;
@@ -1246,7 +1245,7 @@ class ExportMenu extends GridView
      */
     public static function columnName($index)
     {
-        $i = $index - 1;
+        $i = intval($index) - 1;
         if ($i >= 0 && $i < 26) {
             return chr(ord('A') + $i);
         }
@@ -1340,7 +1339,7 @@ class ExportMenu extends GridView
      * Generates an output data row with the given data model and key.
      *
      * @param mixed   $model the data model to be rendered
-     * @param mixed   $key   the key associated with the data model
+     * @param mixed   $key the key associated with the data model
      * @param integer $index the zero-based index of the data model among the model array returned by [[dataProvider]].
      *
      * @return void
@@ -1441,7 +1440,7 @@ class ExportMenu extends GridView
     /**
      * Gets the PHP Excel writer object
      *
-     * @return PHPExcel_Writer_IWriter the current PHPExcel_Writer_IWriter object instance
+     * @return PHPExcel_Writer_Abstract the current PHPExcel_Writer_Abstract object instance
      */
     public function getPHPExcelWriter()
     {
@@ -1456,6 +1455,36 @@ class ExportMenu extends GridView
     public function getPHPExcelSheet()
     {
         return $this->_objPHPExcelSheet;
+    }
+
+    /**
+     * Sets the PHP Excel object
+     *
+     * @param $obj PHPExcel the PHPExcel object instance
+     */
+    public function setPHPExcel($obj)
+    {
+        $this->_objPHPExcel = $obj;
+    }
+
+    /**
+     * Sets the PHP Excel writer object
+     *
+     * @param $obj PHPExcel_Writer_Abstract the PHPExcel_Writer_Abstract object instance
+     */
+    public function setPHPExcelWriter($obj)
+    {
+        $this->_objPHPExcelWriter = $obj;
+    }
+
+    /**
+     * Sets the PHP Excel sheet object
+     *
+     * @param $obj PHPExcel_Worksheet the PHPExcel_Worksheet object instance
+     */
+    public function setPHPExcelSheet($obj)
+    {
+        $this->_objPHPExcelSheet = $obj;
     }
 
     /**
