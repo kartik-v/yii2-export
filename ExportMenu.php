@@ -182,7 +182,7 @@ class ExportMenu extends GridView
     public $template = "{columns}\n{menu}";
 
     /**
-     * @var int, timeout for the export function, is -1 it uses default PHP timeout
+     * @var int, timeout for the export function (in seconds), if timeout = -1 it doesn't set any timeout so default PHP timeout will be used
      */
     public $timeout = -1;
 
