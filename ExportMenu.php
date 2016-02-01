@@ -182,6 +182,11 @@ class ExportMenu extends GridView
     public $template = "{columns}\n{menu}";
 
     /**
+     * @var int, timeout for the export function, is -1 it uses default PHP timeout
+     */
+    public $timeout = -1;
+
+    /**
      * @var array the HTML attributes for the export form.
      */
     public $exportFormOptions = [];
@@ -590,6 +595,9 @@ class ExportMenu extends GridView
      */
     public function run()
     {
+        if ($this->timeout>=0)
+            set_time_limit($this->timeout);
+
         $this->initI18N(__DIR__);
         $this->initColumnSelector();
         $this->setVisibleColumns();
