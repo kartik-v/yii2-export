@@ -182,6 +182,12 @@ class ExportMenu extends GridView
     public $template = "{columns}\n{menu}";
 
     /**
+     * @var int timeout for the export function (in seconds), if timeout = -1 it doesn't set any timeout so default PHP
+     *     timeout will be used
+     */
+    public $timeout = -1;
+
+    /**
      * @var array the HTML attributes for the export form.
      */
     public $exportFormOptions = [];
@@ -599,6 +605,9 @@ class ExportMenu extends GridView
             echo $this->renderExportMenu();
             return;
         }
+        if ($this->timeout >= 0) {
+            set_time_limit($this->timeout);
+        }
         if (!$this->_doNotStream) {
             $this->clearOutputBuffers();
         }
@@ -620,15 +629,6 @@ class ExportMenu extends GridView
         $this->generateFooter($row);
         $writer = $this->_objPHPExcelWriter;
         $sheet = $this->_objPHPExcelSheet;
-        if ($this->_exportType === self::FORMAT_CSV || $this->_exportType === self::FORMAT_TEXT) {
-            /**
-             * @var PHPExcel_Writer_CSV $writer
-             */
-            $writer->setExcelCompatibility(true);
-            if ($this->_exportType === self::FORMAT_TEXT) {
-                $writer->setDelimiter("\t");
-            }
-        }
         if ($this->autoWidth) {
             foreach ($this->getVisibleColumns() as $n => $column) {
                 $sheet->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
@@ -1140,16 +1140,19 @@ class ExportMenu extends GridView
     /**
      * Initializes PHP Excel Writer Object Instance
      *
-     * @param string $writer the writer type as set in export config
+     * @param string $type the writer type as set in export config
      *
      * @return void
      */
-    public function initPHPExcelWriter($writer)
+    public function initPHPExcelWriter($type)
     {
-        $this->_objPHPExcelWriter = PHPExcel_IOFactory::createWriter(
-            $this->_objPHPExcel,
-            $writer
-        );
+        /**
+         * @var PHPExcel_Writer_CSV $writer
+         */
+        $writer = $this->_objPHPExcelWriter = PHPExcel_IOFactory::createWriter($this->_objPHPExcel, $type);
+        if ($this->_exportType === self::FORMAT_TEXT) {
+            $writer->setDelimiter("\t");
+        }
         $this->raiseEvent('onInitWriter', [$this->_objPHPExcelWriter, $this]);
     }
 
