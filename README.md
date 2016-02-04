@@ -1,7 +1,8 @@
 yii2-export
 ===========
 
-[![Latest Stable Version](https://poser.pugx.org/kartik-v/yii2-export/v/stable)](https://packagist.org/packages/kartik-v/yii2-export)
+[![Stable Version](https://poser.pugx.org/kartik-v/yii2-export/v/stable)](https://packagist.org/packages/kartik-v/yii2-export)
+[![Unstable Version](https://poser.pugx.org/kartik-v/yii2-export/v/unstable)](https://packagist.org/packages/kartik-v/yii2-export)
 [![License](https://poser.pugx.org/kartik-v/yii2-export/license)](https://packagist.org/packages/kartik-v/yii2-export)
 [![Total Downloads](https://poser.pugx.org/kartik-v/yii2-export/downloads)](https://packagist.org/packages/kartik-v/yii2-export)
 [![Monthly Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/monthly)](https://packagist.org/packages/kartik-v/yii2-export)
