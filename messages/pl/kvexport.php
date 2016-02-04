@@ -46,6 +46,6 @@ return [
     'The HTML export file will be generated for download.' => 'Plik HTML zostanie wygenerowany do pobrania.',
     'The PDF export file will be generated for download.' => 'Plik PDF zostanie wygenerowany do pobrania.',
     'The TEXT export file will be generated for download.' => 'Plik tekstowy zostanie wygenerowany do pobrania.',
-    'grid-export' => '',
+    'grid-export' => 'eksport',
     'Toggle All' => 'Przełącz wszystkie',
 ];
