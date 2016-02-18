@@ -1,5 +1,5 @@
 {
-    "name": "kartik-v/yii2-export",
+    "name": "frmaxm/yii2-export",
     "description": "A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.)",
     "keywords": [
         "yii2",
