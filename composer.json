@@ -16,7 +16,7 @@
         "xlsx",
         "OpenXML"
     ],
-    "homepage": "https://github.com/kartik-v/yii2-export",
+    "homepage": "https://github.com/frmaxm/yii2-export",
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
     "authors": [
