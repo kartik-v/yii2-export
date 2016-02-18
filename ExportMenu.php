@@ -1369,11 +1369,13 @@ class ExportMenu extends GridView
                 $value = ArrayHelper::getValue($model, $column->attribute, '');
             }
             $this->_endCol++;
-            $cell = $this->_objPHPExcelSheet->setCellValue(
-                self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
-                strip_tags($value),
-                true
-            );
+            if($value){
+                $cell = $this->_objPHPExcelSheet->setCellValue(
+                    self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
+                    strip_tags($value),
+                    true
+                );
+            }
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
         }
     }
