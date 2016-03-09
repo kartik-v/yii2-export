@@ -1426,7 +1426,7 @@ class ExportMenu extends GridView
         if (!empty($mime)) {
             header("Content-Type: {$mime}; charset={$this->encoding}");
         }
-        header("Content-Disposition: attachment; filename={$this->filename}.{$extension}");
+        header("Content-Disposition: attachment; filename=\"{$this->filename}.{$extension}\"");
         header("Cache-Control: max-age=0");
     }
 
