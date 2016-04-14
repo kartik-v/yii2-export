@@ -10,6 +10,7 @@
 namespace kartik\export;
 
 use \Yii;
+use \mPDF;
 use \PHPExcel;
 use \PHPExcel_IOFactory;
 use \PHPExcel_Settings;
