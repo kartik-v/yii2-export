@@ -1,7 +1,7 @@
 Change Log: `yii2-export`
 =========================
 
-## version 1.2.5 (under development)
+## version 1.2.5
 
 **Date:** 18-Apr-2016
 
