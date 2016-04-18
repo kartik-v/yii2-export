@@ -1,11 +1,24 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.2.5 (under development)
+
+**Date:** 18-Apr-2016
+
+- (enh #115): Add Polish translations.
+- (enh #118): Validation for empty value.
+- (enh #117): Add German translations.
+- (enh #119): Add Hungarian translations.
+- (enh #121): Add Dutch translations.
+- (enh #123): Allow the exported filename to have spaces.
+- (enh #124): Add Italian translations.
+- (enh #133): Modify default `pdfLibrary` setting for mPDF.
+
 ## version 1.2.4
 
 **Date:** 04-Feb-2016
 
-- (enh #78): Add Portugese Brazilian transactions.
+- (enh #78): Add Portugese Brazilian translations.
 - (enh #87): Cache dataProvider total count (for performance).
 - (enh #89): New property `onInitExcel` as an event for `initPHPExcel` method.
 - (enh #98): More correct models count for generateBody.
