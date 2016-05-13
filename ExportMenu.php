@@ -447,7 +447,16 @@ class ExportMenu extends GridView
      * @var array the internalization configuration for this widget
      */
     public $i18n = [];
+    /**
+     * @var enable column select with dynagrid
+     */
+    public $dynagrid = false;
 
+    /**
+     * @var dynagrid options
+     */
+    public $dynagridOptions = ['id' => 'dynagrid-1',];
+    
     /**
      * @var string translation message file category name for i18n
      */
@@ -587,6 +596,19 @@ class ExportMenu extends GridView
             $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
             $this->_columnSelectorEnabled = $_POST[self::PARAM_COLSEL_FLAG];
             $this->initSelectedColumns();
+        }
+                if ($this->dynagrid) {
+            $this->_columnSelectorEnabled = false;
+            $dynagrid = new \kartik\dynagrid\DynaGrid(
+                [
+                'options' => $this->dynagridOptions,
+                'columns' => $this->columns,
+                'storage' => 'db',
+                'gridOptions' => [
+                    'dataProvider' => $this->dataProvider
+                ]
+            ]);
+            $this->columns = $dynagrid->getColumns();
         }
         parent::init();
     }
