@@ -550,7 +550,36 @@ class ExportMenu extends GridView
             ],
         ],
     ];
+    /**
+     *
+     * @var array columns what need to grouping
+     */
+    private $_groupedColumn = [];
 
+    /**
+     *
+     * @var array grouped row values
+     */
+    private $_groupedRow = null;
+
+    /**
+     *
+     * @var array  the default style configuration
+     */
+    public $groupedRowStyle = [
+        'font' => [
+            'bold' => false,
+            'color' => [
+                'argb' => '000000',
+            ],
+        ],
+        'fill' => [
+            'type' => PHPExcel_Style_Fill::FILL_SOLID,
+            'color' => [
+                'argb' => 'C9C9C9',
+            ],
+        ],
+    ];
     /**
      * @var bool flag to identify if download is triggered
      */
@@ -1316,6 +1345,18 @@ class ExportMenu extends GridView
                 $key = $keys[$index];
                 $this->generateRow($model, $key, $this->_endRow);
                 $this->_endRow++;
+                if ($index < $totalCount - 1) {
+                    $this->checkGroupedRow($model, $models[$index + 1], $key, $this->_endRow);
+                } else {
+                    $this->checkGroupedRow($model, $models[0], $key, $this->_endRow); //a little hack to generate last grouped footer
+                }
+
+                if (!(is_null($this->_groupedRow))) {
+                    $this->_endRow++;
+                    $this->_objPHPExcelSheet->fromArray($this->_groupedRow, NULL, "A" . ($this->_endRow + 1 ), true);
+                    $this->_objPHPExcelSheet->getStyle("A" . ($this->_endRow + 1 ) . ":" . ExportMenu::columnName(count($columns)) . ($this->_endRow + 1 ))->applyFromArray($this->groupedRowStyle);
+                    $this->_groupedRow = NULL;
+                }                
             }
             if ($this->_provider->pagination) {
                 $this->_provider->pagination->page++;
@@ -1375,6 +1416,107 @@ class ExportMenu extends GridView
                 true
             );
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
+        }
+    }
+    /**
+     * search all groupable columns
+     */
+    private function findGruopedColumn()
+    {
+        foreach ($this->getVisibleColumns() as $key => $column) {
+            if (isset($column->group) && $column->group == true) {
+                $this->_groupedColumn[$key] = ['firstline' => -1, 'value' => NULL];
+            } else {
+                $this->_groupedColumn[$key] = null;
+            }
+        }
+        $this->_groupedColumn[] = null; //prevent the overflow
+        $this->_groupedColumn[] = null; //prevent the overflow
+    }
+
+    /**
+     *
+     * @param object|array $model the data model
+     * @param object|array $nextmodel the next data model
+     * @param integer $key the key associated with the data model
+     * @param integer $index the zero-based index of the data model among the model array returned by [[dataProvider]].
+     *
+     * @return void
+     */
+    private function checkGroupedRow($model, $nextmodel, $key, $index)
+    {
+        $endCol = 0;
+        foreach ($this->getVisibleColumns() as $column) {
+            $value = ($column->content === null) ? (method_exists($column, 'getDataCellValue') ?
+                    $this->formatter->format($column->getDataCellValue($model, $key, $index), 'raw') :
+                    $column->renderDataCell($model, $key, $index)) :
+                call_user_func($column->content, $model, $key, $index, $column);
+            $nextvalue = ($column->content === null) ? (method_exists($column, 'getDataCellValue') ?
+                    $this->formatter->format($column->getDataCellValue($nextmodel, $key, $index), 'raw') :
+                    $column->renderDataCell($nextmodel, $key, $index)) :
+                call_user_func($column->content, $nextmodel, $key, $index, $column);
+            if ((isset($this->_groupedColumn[$endCol])) && (!is_null($this->_groupedColumn[$endCol]))) {
+                if (is_null($this->_groupedColumn[$endCol]['value'])) {
+                    $this->_groupedColumn[$endCol]['value'] = $value;
+                    $this->_groupedColumn[$endCol]['firstline'] = $index;
+                }
+                if ($this->_groupedColumn[$endCol]['value'] != $nextvalue) {
+                    if ($column->groupFooter) {
+                        $groupFooter = $column->groupFooter instanceof \Closure ? call_user_func($column->groupFooter, $model, $key, $index, $this)['content'] : $column->groupFooter['content'];
+                        $this->generateGroupedRow($groupFooter, $endCol);
+                    }
+                    $this->_groupedColumn[$endCol]['firstline'] = $index;
+                }
+
+                $this->_groupedColumn[$endCol]['value'] = $nextvalue;
+            }
+            $endCol++;
+        }
+    }
+
+    /**
+     *
+     * @param array $groupFooter footer row
+     * @param integer $groupedCol the zero-based index of grouped column
+     */
+    private function generateGroupedRow($groupFooter, $groupedCol)
+    {
+        $endgroupedCol = 0;
+        $this->_groupedRow = [];
+        $firstLine = ($this->_groupedColumn[$groupedCol]['firstline'] == $this->_beginRow) ? $this->_beginRow + 1 : ($this->_groupedColumn[$groupedCol]['firstline'] + 3);
+        $firstLine = ($this->_endRow == (3 + $this->_beginRow) && $firstLine == 2 ) ? 3 + $this->_beginRow : $firstLine;
+        $endLine = ($this->_endRow + 1);
+        list($endLine, $firstLine) = ($endLine > $firstLine) ? [$endLine, $firstLine] : [$firstLine, $endLine];
+
+        foreach ($this->getVisibleColumns() as $key => $column) {
+            $value = isset($groupFooter[$key]) ? $groupFooter[$key] : '';
+            $endgroupedCol++;
+            $groupedRange = self::columnName($key + 1) . $firstLine . ":" . self::columnName($key + 1) . $endLine;
+            $lastCell = self::columnName($key + 1) . $endLine - 1;
+            if (isset($column->group) && $column->group) {
+                $this->_objPHPExcelSheet->mergeCells($groupedRange);
+            }
+            switch ($value) {
+                case GridView::F_SUM:
+                    $value = "=sum($groupedRange)";
+                    break;
+                case GridView::F_COUNT:
+                    $value = '=countif(' . $groupedRange . ',"*")';
+                    break;
+                case GridView::F_AVG:
+                    $value = "=AVERAGE($groupedRange)";
+                    break;
+                case GridView::F_MAX:
+                    $value = "=max($groupedRange)";
+                    break;
+                case GridView::F_MIN:
+                    $value = "=min($groupedRange)";
+                    break;
+            }
+            if ($value instanceof \Closure) {
+                $value = call_user_func($value, $groupedRange, $this);
+            }
+            $this->_groupedRow[] = empty($value) ? '' : strip_tags($value);
         }
     }
 
