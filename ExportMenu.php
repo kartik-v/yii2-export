@@ -1339,6 +1339,7 @@ class ExportMenu extends GridView
         }
         // do not execute multiple COUNT(*) queries
         $totalCount = $this->_provider->getTotalCount();
+        $this->findGruopedColumn();
         while (count($models) > 0) {
             $keys = $this->_provider->getKeys();
             foreach ($models as $index => $model) {
