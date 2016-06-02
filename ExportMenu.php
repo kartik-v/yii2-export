@@ -564,6 +564,7 @@ class ExportMenu extends GridView
      * @var array columns what need to grouping
      */
     private $_groupedColumn = [];
+<<<<<<< HEAD
 
     /**
      *
@@ -573,6 +574,17 @@ class ExportMenu extends GridView
 
     /**
      *
+=======
+
+    /**
+     *
+     * @var array grouped row values
+     */
+    private $_groupedRow = null;
+
+    /**
+     *
+>>>>>>> d57e43ef5b452c876854721b191ae4b24750d52e
      * @var array  the default style configuration
      */
     public $groupedRowStyle = [
@@ -1361,6 +1373,7 @@ class ExportMenu extends GridView
         }
         // do not execute multiple COUNT(*) queries
         $totalCount = $this->_provider->getTotalCount();
+        $this->findGruopedColumn();
         while (count($models) > 0) {
             $keys = $this->_provider->getKeys();
             foreach ($models as $index => $model) {
