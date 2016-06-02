@@ -1,6 +1,15 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.2.6
+
+**Date:** 02-Jun-2016
+
+- (enh #135): Add Indonesian translations.
+- (enh #137): Add Estonian translations.
+- (enh #138): Add dynagrid selection support.
+- (enh #141): Add grouping option in export column.
+
 ## version 1.2.5
 
 **Date:** 18-Apr-2016
