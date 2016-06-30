@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.2.7
+
+**Date:** 30-Jun-2016
+
+- Created beforeContent and afterContent settings
+
 ## version 1.2.6
 
 **Date:** 02-Jun-2016
