@@ -262,6 +262,22 @@ class ExportMenu extends GridView
      */
     public $styleOptions = [];
 
+    /**     
+     * @var array an array of rows to prepend in front of the grid used to create things like a title. Each array 
+     * should be set with the following settings:
+     * - value: string, the value of the merged row
+     * - styleOptions: array, array of configuration options to set the style. See $styleOptions on how to configure.
+     */
+    public $contentBefore = [];
+
+     /**     
+     * @var array an array of rows to append after the footer row. Each array
+     * should be set with the following settings:
+     * - value: string, the value of the merged row
+     * - styleOptions: array, array of configuration options to set the style. See $styleOptions on how to configure.
+     */
+    public $contentAfter = [];
+
     /**
      * @var bool whether to auto-size the excel output column widths. Defaults to `true`.
      */
@@ -673,9 +689,11 @@ class ExportMenu extends GridView
         $this->initPHPExcel();
         $this->initPHPExcelWriter($config['writer']);
         $this->initPHPExcelSheet();
+        $this->generateBeforeContent();
         $this->generateHeader();
-        $row = $this->generateBody();
-        $this->generateFooter($row);
+        $this->generateBody();
+        $row = $this->generateFooter();
+        $this->generateAfterContent($row);
         $writer = $this->_objPHPExcelWriter;
         $sheet = $this->_objPHPExcelSheet;
         if ($this->autoWidth) {
@@ -1217,6 +1235,22 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Generates the before content at the top of the exported sheet
+     * 
+     * @return void
+     */
+    public function generateBeforeContent()
+    {
+        $colFirst = self::columnName(1);
+        $sheet = $this->_objPHPExcelSheet;
+        foreach ($this->contentBefore as $contentBefore){            
+            $sheet->setCellValue($colFirst . $this->_beginRow, $contentBefore['value'], true);
+            $sheet->getStyle($colFirst . $this->_beginRow)->applyFromArray(ArrayHelper::merge($this->_defaultStyleOptions, (isset($contentBefore['styleOptions']) ? ArrayHelper::getValue($contentBefore['styleOptions'], $this->_exportType, []) : [])));
+            $this->_beginRow += 1;
+        }
+    }
+
+    /**
      * Generates the output data header content.
      *
      * @return void
@@ -1230,10 +1264,7 @@ class ExportMenu extends GridView
         $sheet = $this->_objPHPExcelSheet;
         $style = ArrayHelper::getValue($this->styleOptions, $this->_exportType, []);
         $colFirst = self::columnName(1);
-        if (!empty($this->caption)) {
-            $sheet->setCellValue($colFirst . $this->_beginRow, $this->caption, true);
-            $this->_beginRow += 2;
-        }
+        
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $column) {
             $this->_endCol++;
@@ -1247,10 +1278,10 @@ class ExportMenu extends GridView
             $sheet->getStyle($id)->applyFromArray($style);
             $this->raiseEvent('onRenderHeaderCell', [$cell, $head, $this]);
         }
-        for ($i = $this->_headerBeginRow; $i < ($this->_beginRow - 1); $i++) {
-            $sheet->mergeCells($colFirst . $i . ":" . self::columnName($this->_endCol) . $i);
-            $sheet->getStyle($colFirst . $i)->applyFromArray($style);
+        for ($i = $this->_headerBeginRow; $i < ($this->_beginRow); $i++) {
+            $sheet->mergeCells($colFirst . $i . ":" . self::columnName($this->_endCol) . $i);            
         }
+        
         // Freeze the top row
         $sheet->freezePane($colFirst . ($this->_beginRow + 1));
     }
@@ -1555,24 +1586,50 @@ class ExportMenu extends GridView
      *
      * @param int $row the row number after which the footer is to be generated
      */
-    public function generateFooter($row)
-    {
+    public function generateFooter()
+    {   
+        $row = $this->_endRow + $this->_beginRow;
+        $footerExists = false;
         $columns = $this->getVisibleColumns();
         if (count($columns) == 0) {
             return;
-        }
+        }        
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $n => $column) {
             $this->_endCol = $this->_endCol + 1;
-            if ($column->footer) {
-                $footer = trim($column->footer) !== '' ? $column->footer : $column->grid->blankDisplay;
+            if ($column->footer) {                
+                $footerExists = true;
+                $footer = trim($column->footer) !== '' ? $column->footer : $column->grid->blankDisplay;                
                 $cell = $this->_objPHPExcel->getActiveSheet()->setCellValue(
-                    self::columnName($this->_endCol) . ($row + 2),
+                    self::columnName($this->_endCol) . ($row + 1),
                     $footer,
                     true
                 );
-                $this->raiseEvent('onRenderFooterCell', [$cell, $footer, $this]);
+                $this->raiseEvent('onRenderFooterCell', [$cell, $footer, $this]);                
             }
+        }
+        if ($footerExists) $row++;
+        return $row;
+    }
+
+    /**
+     * Generates the after content at the bottom of the exported sheet
+     * 
+     * @return void
+     */
+    public function generateAfterContent($row)
+    {
+        $colFirst = self::columnName(1);        
+        $row++;
+        $afterContentBeginRow = $row;
+        $sheet = $this->_objPHPExcelSheet;
+        foreach ($this->contentAfter as $contentAfter){
+            $sheet->setCellValue($colFirst . $row, $contentAfter['value'], true);
+            $sheet->getStyle($colFirst . $row)->applyFromArray(ArrayHelper::merge($this->_defaultStyleOptions, (isset($contentBefore['styleOptions']) ? ArrayHelper::getValue($contentBefore['styleOptions'], $this->_exportType, []) : [])));
+            $row += 1; 
+        }                    
+        for ($i = $afterContentBeginRow; $i < $row; $i++) {
+            $sheet->mergeCells($colFirst . $i . ":" . self::columnName($this->_endCol) . $i);            
         }
     }
 
