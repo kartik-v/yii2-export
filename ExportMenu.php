@@ -1625,7 +1625,7 @@ class ExportMenu extends GridView
         $sheet = $this->_objPHPExcelSheet;
         foreach ($this->contentAfter as $contentAfter){
             $sheet->setCellValue($colFirst . $row, $contentAfter['value'], true);
-            $sheet->getStyle($colFirst . $row)->applyFromArray(ArrayHelper::merge($this->_defaultStyleOptions, (isset($contentBefore['styleOptions']) ? ArrayHelper::getValue($contentBefore['styleOptions'], $this->_exportType, []) : [])));
+            $sheet->getStyle($colFirst . $row)->applyFromArray(ArrayHelper::merge($this->_defaultStyleOptions, (isset($contentAfter['styleOptions']) ? ArrayHelper::getValue($contentAfter['styleOptions'], $this->_exportType, []) : [])));
             $row += 1; 
         }                    
         for ($i = $afterContentBeginRow; $i < $row; $i++) {
