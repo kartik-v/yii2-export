@@ -1434,7 +1434,7 @@ class ExportMenu extends GridView
             $this->_endCol++;
             $cell = $this->_objPHPExcelSheet->setCellValue(
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
-                empty($value) ? '' : strip_tags($value),
+                empty($value) && !strlen($value) ? '' : strip_tags($value),
                 true
             );
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
