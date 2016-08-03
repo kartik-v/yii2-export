@@ -1397,11 +1397,12 @@ class ExportMenu extends GridView
                 $key = $keys[$index];
                 $this->generateRow($model, $key, $this->_endRow);
                 $this->_endRow++;
-                if ($index < $totalCount - 1) {
-                    $this->checkGroupedRow($model, $models[$index + 1], $key, $this->_endRow);
-                } else {
+                if($index === $totalCount){
                     //a little hack to generate last grouped footer
                     $this->checkGroupedRow($model, $models[0], $key, $this->_endRow);
+                }
+                elseif (isset($models[$index + 1])) {
+                    $this->checkGroupedRow($model, $models[$index + 1], $key, $this->_endRow);
                 }
                 if (!is_null($this->_groupedRow)) {
                     $this->_endRow++;
