@@ -3,9 +3,15 @@ Change Log: `yii2-export`
 
 ## version 1.2.7
 
-**Date:** 30-Jun-2016
+**Date:** 03-Aug-2016
 
-- Created beforeContent and afterContent settings
+- (enh #149): Add Turkish translations.
+- (enh #150): Created beforeContent and afterContent settings.
+- (bug #151): Correct "undefined offset" when `batchSize` is set.
+- (bug #155): Fix '0' value being wrongly parsed in empty check.
+- (enh #156): Add Lithuanian translations.
+- (enh #159): Fix export to exel columns with comma in headers.
+- Add contribution templates.
 
 ## version 1.2.6
 

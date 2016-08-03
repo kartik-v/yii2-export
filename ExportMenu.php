@@ -759,7 +759,7 @@ class ExportMenu extends GridView
         if (empty($_POST[self::PARAM_EXPORT_COLS])) {
             return;
         }
-        $this->selectedColumns = json_decode($_POST[self::PARAM_EXPORT_COLS]);
+        $this->selectedColumns = Json::decode($_POST[self::PARAM_EXPORT_COLS]);
     }
 
     /**
