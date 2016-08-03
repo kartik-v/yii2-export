@@ -121,7 +121,7 @@
                                 cols.push($el.attr('data-key'));
                             }
                         });
-                        self.$form.find('input[name="export_columns"]').val(cols.join(','));
+                        self.$form.find('input[name="export_columns"]').val(JSON.stringify(cols));
                     }
                     self.$form.trigger('submit');
                 }
