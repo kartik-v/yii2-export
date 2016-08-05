@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2016
- * @version   1.2.7
+ * @version   1.2.6
  */
 
 namespace kartik\export;
@@ -38,6 +38,7 @@ use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\web\JsExpression;
 use yii\web\View;
+use kartik\dialog\Dialog;
 
 /**
  * Export menu widget. Export tabular data to various formats using the PHPExcel library by reading data from a
@@ -80,6 +81,13 @@ class ExportMenu extends GridView
      *     `streamAfterSave` to `false`, then this will be overridden to `_self`.
      */
     public $target = self::TARGET_POPUP;
+
+    /**
+     * @var array configuration settings for the Krajee dialog widget that will be used to render alerts and
+     *     confirmation dialog prompts
+     * @see http://demos.krajee.com/dialog
+     */
+    public $krajeeDialogSettings = [];
 
     /**
      * @var bool whether to show a confirmation alert dialog before download. This confirmation dialog will notify user
@@ -1005,6 +1013,7 @@ class ExportMenu extends GridView
     protected function registerAssets()
     {
         $view = $this->getView();
+        Dialog::widget($this->krajeeDialogSettings);
         ExportMenuAsset::register($view);
         $this->messages += [
             'allowPopups' => Yii::t(
@@ -1022,6 +1031,7 @@ class ExportMenu extends GridView
         $options = Json::encode([
             'formId' => $formId,
             'messages' => $this->messages,
+            'dialogLib' => new JsExpression(ArrayHelper::getValue($this->krajeeDialogSettings, 'libName', 'krajeeDialog'))
         ]);
         $menu = 'kvexpmenu_' . hash('crc32', $options);
         $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);

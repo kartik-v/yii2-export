@@ -2,7 +2,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2016
- * @version   1.2.7
+ * @version   1.2.6
  *
  * Export Data Validation Module.
  *
@@ -29,18 +29,7 @@
             '<body style="display:table-cell;font-family:Helvetica,Arial,sans-serif;color:#888;font-weight:bold;line-height:1.4em;text-align:center;vertical-align:middle;width:100%;height:100%;padding:0 10px;">' +
             '{msg}' +
             '</body>' +
-            '</html>',
-        kvConfirm = function (msg) {
-            if (isEmpty(msg)) {
-                return true;
-            }
-            try {
-                return window.confirm(msg);
-            }
-            catch (err) {
-                return true;
-            }
-        };
+            '</html>';
 
     var ExportData = function (element, options) {
         var self = this;
@@ -57,34 +46,6 @@
 
     ExportData.prototype = {
         constructor: ExportData,
-        notify: function (e) {
-            var self = this, msgs, msg = '', msg1, msg2, msg3;
-            if (!self.showConfirmAlert) {
-                e.preventDefault();
-                return true;
-            }
-            msgs = self.messages;
-            msg1 = isEmpty(self.alertMsg) ? '' : self.alertMsg;
-            msg2 = isEmpty(msgs.allowPopups) ? '' : msgs.allowPopups;
-            msg3 = isEmpty(msgs.confirmDownload) ? '' : msgs.confirmDownload;
-            if (msg1.length && msg2.length) {
-                msg = msg1 + '\n\n' + msg2;
-            } else {
-                if (!msg1.length && msg2.length) {
-                    msg = msg2;
-                } else {
-                    msg = (msg1.length && !msg2.length) ? msg1 : '';
-                }
-            }
-            if (msg3.length) {
-                msg = msg + '\n\n' + msg3;
-            }
-            e.preventDefault();
-            if (isEmpty(msg)) {
-                return true;
-            }
-            return kvConfirm(msg);
-        },
         setPopupAlert: function (msg) {
             var self = this;
             if (!self.popup.document) {
@@ -103,10 +64,49 @@
         listen: function () {
             var self = this;
             self.$form.attr('action', window.location.href).appendTo('body');
-            self.$element.off('click').on('click', function (e) {
-                var $selected, cols = [];
-                if (self.notify(e)) {
-                    var fmt = $(this).data('format');
+            self.listenClick();
+            if (self.target === '_popup') {
+                self.$form.off('submit.exportmenu').on('submit.exportmenu', function () {
+                    setTimeout(function () {
+                        self.setPopupAlert(self.messages.downloadComplete, true);
+                    }, 1000);
+                });
+            }
+        },
+        listenClick: function() {
+            var self = this;
+            self.$element.off('click.exportmenu').on('click.exportmenu', function (e) {
+                var fmt, msgs, msg = '', msg1, msg2, msg3, lib = window[self.dialogLib];
+                e.preventDefault();
+                e.stopPropagation();
+                if (!self.showConfirmAlert) {
+                    return;
+                }
+                msgs = self.messages;
+                msg1 = isEmpty(self.alertMsg) ? '' : self.alertMsg;
+                msg2 = isEmpty(msgs.allowPopups) ? '' : msgs.allowPopups;
+                msg3 = isEmpty(msgs.confirmDownload) ? '' : msgs.confirmDownload;
+                if (msg1.length && msg2.length) {
+                    msg = msg1 + '\n\n' + msg2;
+                } else {
+                    if (!msg1.length && msg2.length) {
+                        msg = msg2;
+                    } else {
+                        msg = (msg1.length && !msg2.length) ? msg1 : '';
+                    }
+                }
+                if (msg3.length) {
+                    msg = msg + '\n\n' + msg3;
+                }
+                if (isEmpty(msg)) {
+                    return;
+                }
+                fmt = $(this).data('format');
+                lib.confirm(msg, function(result) {
+                    var $selected, cols = [];
+                    if (!result) {
+                        return;
+                    }
                     self.$form.find('[name="export_type"]').val(fmt);
                     if (self.target === '_popup') {
                         self.popup = popupDialog('', 'kvExportFullDialog', 350, 120);
@@ -124,15 +124,8 @@
                         self.$form.find('input[name="export_columns"]').val(JSON.stringify(cols));
                     }
                     self.$form.trigger('submit');
-                }
-            });
-            if (self.target === '_popup') {
-                self.$form.off('submit').on('submit', function () {
-                    setTimeout(function () {
-                        self.setPopupAlert(self.messages.downloadComplete, true);
-                    }, 1000);
                 });
-            }
+            });
         }
     };
 
@@ -162,6 +155,7 @@
         showConfirmAlert: true,
         columnSelectorId: null,
         alertMsg: '',
+        dialogLib: 'krajeeDialog',
         settings: {
             formId: '',
             messages: {

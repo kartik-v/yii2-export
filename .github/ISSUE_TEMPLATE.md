@@ -4,7 +4,6 @@
 - [ ] The issue still exists against the latest `master` branch of yii2-export.
 - [ ] This is not an usage question. I confirm having gone through and read the [documentation](https://demos.krajee.com/export) and [demos](https://demos.krajee.com/export-demo).
 - [ ] This is not a general programming / coding question. (Those should be directed to the [webtips Q & A forum](http://webtips.krajee.com/questions)).
-- [ ] This is not a source plugin (select2) issue. (Those should be directed to the [plugin issues repo](https://github.com/select2/select2/search?q=&type=Issues)).
 - [ ] I have attempted to find the simplest possible steps to reproduce the issue.
 - [ ] I have included a failing test as a pull request (Optional).
 
