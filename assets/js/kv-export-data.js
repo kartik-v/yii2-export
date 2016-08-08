@@ -80,6 +80,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 if (!self.showConfirmAlert) {
+                    self.$form.trigger('submit');
                     return;
                 }
                 msgs = self.messages;
@@ -99,6 +100,7 @@
                     msg = msg + '\n\n' + msg3;
                 }
                 if (isEmpty(msg)) {
+                    self.$form.trigger('submit');
                     return;
                 }
                 fmt = $(this).data('format');
