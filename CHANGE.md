@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.2.7 (under development)
+
+**Date:** 09-Aug-2016
+
+- (enh #163): Add dependency for kartik-v/yii2-dialog.
+
 ## version 1.2.6
 
 **Date:** 05-Aug-2016
