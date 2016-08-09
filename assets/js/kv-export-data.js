@@ -73,13 +73,35 @@
                 });
             }
         },
+        processExport: function(fmt) {
+            var self = this, $selected, cols = [];
+            self.$form.find('[name="export_type"]').val(fmt);
+            if (self.target === '_popup') {
+                self.popup = popupDialog('', 'kvExportFullDialog', 350, 120);
+                self.popup.focus();
+                self.setPopupAlert(self.messages.downloadProgress);
+            }
+            if (!isEmpty(self.columnSelectorId)) {
+                $selected = $('#' + self.columnSelectorId).parent().find('input[name="export_columns_selector[]"]');
+                $selected.each(function () {
+                    var $el = $(this);
+                    if ($el.is(':checked')) {
+                        cols.push($el.attr('data-key'));
+                    }
+                });
+                self.$form.find('input[name="export_columns"]').val(JSON.stringify(cols));
+            }
+            self.$form.trigger('submit');  
+        },
         listenClick: function() {
             var self = this;
             self.$element.off('click.exportmenu').on('click.exportmenu', function (e) {
                 var fmt, msgs, msg = '', msg1, msg2, msg3, lib = window[self.dialogLib];
+                fmt = $(this).data('format');
                 e.preventDefault();
                 e.stopPropagation();
                 if (!self.showConfirmAlert) {
+                    self.processExport(fmt);
                     return;
                 }
                 msgs = self.messages;
@@ -99,31 +121,13 @@
                     msg = msg + '\n\n' + msg3;
                 }
                 if (isEmpty(msg)) {
+                    self.processExport(fmt);
                     return;
                 }
-                fmt = $(this).data('format');
                 lib.confirm(msg, function(result) {
-                    var $selected, cols = [];
-                    if (!result) {
-                        return;
+                    if (result) {
+                        self.processExport(fmt);
                     }
-                    self.$form.find('[name="export_type"]').val(fmt);
-                    if (self.target === '_popup') {
-                        self.popup = popupDialog('', 'kvExportFullDialog', 350, 120);
-                        self.popup.focus();
-                        self.setPopupAlert(self.messages.downloadProgress);
-                    }
-                    if (!isEmpty(self.columnSelectorId)) {
-                        $selected = $('#' + self.columnSelectorId).parent().find('input[name="export_columns_selector[]"]');
-                        $selected.each(function () {
-                            var $el = $(this);
-                            if ($el.is(':checked')) {
-                                cols.push($el.attr('data-key'));
-                            }
-                        });
-                        self.$form.find('input[name="export_columns"]').val(JSON.stringify(cols));
-                    }
-                    self.$form.trigger('submit');
                 });
             });
         }

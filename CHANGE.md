@@ -6,6 +6,7 @@ Change Log: `yii2-export`
 **Date:** 09-Aug-2016
 
 - (enh #163): Add dependency for kartik-v/yii2-dialog.
+- (bug #164): Process export correctly when confirmation alert is not set.
 
 ## version 1.2.6
 
