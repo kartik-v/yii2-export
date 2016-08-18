@@ -3,10 +3,11 @@ Change Log: `yii2-export`
 
 ## version 1.2.7 (under development)
 
-**Date:** 09-Aug-2016
+**Date:** 18-Aug-2016
 
 - (enh #163): Add dependency for kartik-v/yii2-dialog.
 - (bug #164): Process export correctly when confirmation alert is not set.
+- (bug #165): Empty export result when only first column is selected.
 
 ## version 1.2.6
 
