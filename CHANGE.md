@@ -1,6 +1,13 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.2.8
+
+**Date:** 27-Mar-2017
+
+- (enh #185): Add Vietnamese Translations.
+- (enh #188): Better validation of empty data using `isset`.
+
 ## version 1.2.7
 
 **Date:** 13-Mar-2017

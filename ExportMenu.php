@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
- * @version   1.2.7
+ * @version   1.2.8
  */
 
 namespace kartik\export;
@@ -764,7 +764,7 @@ class ExportMenu extends GridView
             return;
         }
         $this->selectedColumns = array_keys($this->columnSelector);
-        if (!isset($_POST[self::PARAM_EXPORT_COLS]) or !strlen($_POST[self::PARAM_EXPORT_COLS])) {
+        if (!isset($_POST[self::PARAM_EXPORT_COLS]) or $_POST[self::PARAM_EXPORT_COLS] === '') {
             return;
         }
         $this->selectedColumns = Json::decode($_POST[self::PARAM_EXPORT_COLS]);
@@ -816,7 +816,7 @@ class ExportMenu extends GridView
         $selector = [];
         Html::addCssClass($this->columnSelectorOptions, 'btn btn-default dropdown-toggle');
         $header = ArrayHelper::getValue($this->columnSelectorOptions, 'header', Yii::t('kvexport', 'Select Columns'));
-        $this->columnSelectorOptions['header'] = (empty($header) || $header === false) ? '' :
+        $this->columnSelectorOptions['header'] = (!isset($header) || $header === false) ? '' :
             '<li class="dropdown-header">' . $header . '</li><li class="kv-divider"></li>';
         $id = $this->options['id'] . '-cols';
         Html::addCssClass($this->columnSelectorMenuOptions, 'dropdown-menu kv-checkbox-list');
@@ -855,11 +855,11 @@ class ExportMenu extends GridView
     protected function getColumnLabel($key, $column)
     {
         $label = Yii::t('kvexport', 'Column') . ' ' . $key++;
-        if (!empty($column->label)) {
+        if (isset($column->label)) {
             $label = $column->label;
-        } elseif (!empty($column->header)) {
+        } elseif (isset($column->header)) {
             $label = $column->header;
-        } elseif (!empty($column->attribute)) {
+        } elseif (isset($column->attribute)) {
             $label = $this->getAttributeLabel($column->attribute);
         } elseif (!$column instanceof DataColumn) {
             $class = explode("\\", $column::classname());
@@ -915,7 +915,7 @@ class ExportMenu extends GridView
         $this->filterModel = null;
         $this->setDefaultExportConfig();
         $this->exportConfig = ArrayHelper::merge($this->_defaultExportConfig, $this->exportConfig);
-        if (empty($this->filename)) {
+        if (!isset($this->filename)) {
             $this->filename = Yii::t('kvexport', 'grid-export');
         }
         $target = $this->target == self::TARGET_POPUP ? 'kvExportFullDialog' : $this->target;
@@ -1037,7 +1037,7 @@ class ExportMenu extends GridView
         $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);
         $script = "";
         foreach ($this->exportConfig as $format => $setting) {
-            if (empty($setting) || $setting === false) {
+            if (!isset($setting) || $setting === false) {
                 continue;
             }
             $id = $this->options['id'] . '-' . strtolower($format);
@@ -1075,17 +1075,17 @@ class ExportMenu extends GridView
     {
         $items = $this->asDropdown ? [] : '';
         foreach ($this->exportConfig as $format => $settings) {
-            if (empty($settings) || $settings === false) {
+            if (!isset($settings) || $settings === false) {
                 continue;
             }
             $label = '';
-            if (!empty($settings['icon'])) {
+            if (isset($settings['icon'])) {
                 $css = $this->fontAwesome ? 'fa fa-' : 'glyphicon glyphicon-';
                 $iconOptions = ArrayHelper::getValue($settings, 'iconOptions', []);
                 Html::addCssClass($iconOptions, $css . $settings['icon']);
                 $label = Html::tag('i', '', $iconOptions) . ' ';
             }
-            if (!empty($settings['label'])) {
+            if (isset($settings['label'])) {
                 $label .= $settings['label'];
             }
             $fmt = strtolower($format);
@@ -1121,9 +1121,9 @@ class ExportMenu extends GridView
         ]);
         if ($this->asDropdown) {
             $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="glyphicon glyphicon-export"></i>');
-            $label = ArrayHelper::remove($this->dropdownOptions, 'label', '');
-            $label = empty($label) ? $icon : $icon . ' ' . $label;
-            if (empty($this->dropdownOptions['title'])) {
+            $label = ArrayHelper::remove($this->dropdownOptions, 'label', null);
+            $label = $label === null ? $icon : $icon . ' ' . $label;
+            if (!isset($this->dropdownOptions['title'])) {
                 $this->dropdownOptions['title'] = Yii::t('kvexport', 'Export data in selected format');
             }
             $menuOptions = ArrayHelper::remove($this->dropdownOptions, 'menuOptions', []);
@@ -1471,13 +1471,13 @@ class ExportMenu extends GridView
                     $column->renderDataCell($model, $key, $index)) :
                     call_user_func($column->content, $model, $key, $index, $column);
             }
-            if (empty($value) && !empty($column->attribute) && $column->attribute !== null) {
+            if (!isset($value) && isset($column->attribute)) {
                 $value = ArrayHelper::getValue($model, $column->attribute, '');
             }
             $this->_endCol++;
             $cell = $this->_objPHPExcelSheet->setCellValue(
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
-                empty($value) && !strlen($value) ? '' : strip_tags($value),
+                !isset($value) || $value === '' ? '' : strip_tags($value),
                 true
             );
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
@@ -1589,7 +1589,7 @@ class ExportMenu extends GridView
             if ($value instanceof \Closure) {
                 $value = call_user_func($value, $groupedRange, $this);
             }
-            $this->_groupedRow[] = empty($value) ? '' : strip_tags($value);
+            $this->_groupedRow[] = !isset($value) || $value === '' ? '' : strip_tags($value);
         }
     }
 
@@ -1654,7 +1654,7 @@ class ExportMenu extends GridView
     {
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         $extension = ArrayHelper::getValue($config, 'extension', 'xlsx');
-        $mime = ArrayHelper::getValue($config, 'mime', '');
+        $mime = ArrayHelper::getValue($config, 'mime', null);
         if (strstr($_SERVER["HTTP_USER_AGENT"], "MSIE") == false) {
             header("Cache-Control: no-cache");
             header("Pragma: no-cache");
@@ -1664,7 +1664,7 @@ class ExportMenu extends GridView
         }
         header("Expires: Sat, 26 Jul 1979 05:00:00 GMT");
         header("Content-Encoding: {$this->encoding}");
-        if (!empty($mime)) {
+        if (isset($mime) && $mime !== '') {
             header("Content-Type: {$mime}; charset={$this->encoding}");
         }
         header("Content-Disposition: attachment; filename=\"{$this->filename}.{$extension}\"");
