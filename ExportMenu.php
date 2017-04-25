@@ -216,7 +216,7 @@ class ExportMenu extends GridView
     public $template = "{columns}\n{menu}";
 
     /**
-     * @var integer  timeout for the export function (in seconds), if timeout is < 0, the default PHP timeout will be used.
+     * @var integer timeout for the export function (in seconds), if timeout is < 0, the default PHP timeout will be used.
      */
     public $timeout = -1;
 
@@ -499,17 +499,18 @@ class ExportMenu extends GridView
 
     /**
      * @var boolean enable dynagrid for column selection. If set to `true` the inbuilt export menu column selector
-     * functionality will be disabled and not rendered.
+     * functionality will be disabled and not rendered and column settings for dynagrid will be used as per settings
+     * configured in [[dynagridOptions]].
      */
     public $dynagrid = false;
 
     /**
-     * @var array dynagrid widget options
+     * @var array dynagrid widget options. Applicable only if [[dynagrid]] is set to `true`.
      */
-    public $dynagridOptions = ['options' => ['id' => 'dyangrid-export-menu']];
+    public $dynagridOptions = ['options' => ['id' => 'dynagrid-export-menu']];
 
     /**
-     * @var array  the default style configuration
+     * @var array the PHP Excel style configuration for a grouped grid row
      */
     public $groupedRowStyle = [
         'font' => [
