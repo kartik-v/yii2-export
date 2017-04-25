@@ -1082,7 +1082,7 @@ class ExportMenu extends GridView
     /**
      * Sets visible columns for export
      */
-    protected function setVisibleColumns()
+    public function setVisibleColumns()
     {
         if (!$this->_columnSelectorEnabled) {
             $this->_visibleColumns = $this->columns;
@@ -1280,6 +1280,16 @@ class ExportMenu extends GridView
         for ($i = $afterContentBeginRow; $i < $row; $i++) {
             $sheet->mergeCells($colFirst . $i . ":" . self::columnName($this->_endCol) . $i);
         }
+    }
+
+    /**
+     * Gets the currently selected export type
+     *
+     * @return string
+     */
+    public function getExportType()
+    {
+        return $this->_exportType;
     }
 
     /**

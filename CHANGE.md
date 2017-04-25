@@ -9,6 +9,7 @@ Change Log: `yii2-export`
 - (enh #188): Better validation of empty data using `isset`.
 - Code documentation enhancements.
 - (enh #196): More correct `styleOptions` parsing for `contentBefore` and `contentAfter`. 
+- (enh #197): Add public method `getExportType` to access through `onRender` callbacks. 
 
 ## version 1.2.7
 
