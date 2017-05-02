@@ -343,6 +343,16 @@ class ExportMenu extends GridView
      */
     public $stream = true;
 
+	/**
+     * @var string temporary directory path
+     */
+    public $tmpFolderPath = '@webroot/tmp/';
+
+	/**
+     * @var bool whether to stream output to the browser using temp file
+     */
+    public $emulateBuffer = false;
+
     /**
      * @var boolean whether to stream after saving file to `$folder` and when `$stream` is `false`. This property will be
      * validated only when `$stream` is `false`.
@@ -496,6 +506,7 @@ class ExportMenu extends GridView
      * @var array the internalization configuration for this widget
      */
     public $i18n = [];
+	
 
     /**
      * @var boolean enable dynagrid for column selection. If set to `true` the inbuilt export menu column selector
@@ -813,7 +824,16 @@ class ExportMenu extends GridView
         } else {
             $this->clearOutputBuffers();
             $this->setHttpHeaders();
-            $writer->save('php://output');
+
+            if($this->emulateBuffer && ($tpmFolderPath = \Yii::getAlias($this->tmpFolderPath)) && file_exists($tpmFolderPath) && is_writable($tpmFolderPath)) {
+                $filePath = $tpmFolderPath . $this->filename . '.' . $config['extension'];
+                $writer->save($filePath);
+                readfile($filePath);
+                @unlink($filePath);
+            } else {
+                $writer->save('php://output');
+            }
+
             $this->destroyPHPExcel();
             exit();
         }
