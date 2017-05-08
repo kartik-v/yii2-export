@@ -2,7 +2,7 @@
 
 - [ ] I have searched for similar issues in both open and closed tickets and cannot find a duplicate.
 - [ ] The issue still exists against the latest `master` branch of yii2-export.
-- [ ] This is not an usage question. I confirm having gone through and read the [documentation](https://demos.krajee.com/export) and [demos](https://demos.krajee.com/export-demo).
+- [ ] This is not an usage question. I confirm having gone through and read the [documentation](http://demos.krajee.com/export) and [demos](http://demos.krajee.com/export-demo).
 - [ ] This is not a general programming / coding question. (Those should be directed to the [webtips Q & A forum](http://webtips.krajee.com/questions)).
 - [ ] I have attempted to find the simplest possible steps to reproduce the issue.
 - [ ] I have included a failing test as a pull request (Optional).
