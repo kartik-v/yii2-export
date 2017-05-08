@@ -1778,7 +1778,7 @@ class ExportMenu extends GridView
         }
         header("Expires: Sat, 26 Jul 1979 05:00:00 GMT");
         header("Content-Encoding: {$this->encoding}");
-        if ($mime === null || $mime === '') {
+        if (!empty($mime)) {
             header("Content-Type: {$mime}; charset={$this->encoding}");
         }
         header("Content-Disposition: attachment; filename=\"{$this->filename}.{$extension}\"");
