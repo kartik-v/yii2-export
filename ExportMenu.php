@@ -14,15 +14,14 @@ use kartik\base\TranslationTrait;
 use kartik\dialog\Dialog;
 use kartik\dynagrid\Dynagrid;
 use kartik\grid\GridView;
+use kartik\mpdf\Pdf;
 use PHPExcel;
 use PHPExcel_IOFactory;
-use PHPExcel_Settings;
 use PHPExcel_Style_Fill;
 use PHPExcel_Worksheet;
 use PHPExcel_Worksheet_PageSetup;
 use PHPExcel_Writer_Abstract;
 use PHPExcel_Writer_CSV;
-use PHPExcel_Writer_PDF_mPDF;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\base\Model;
@@ -41,7 +40,6 @@ use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\web\JsExpression;
 use yii\web\View;
-use kartik\mpdf\Pdf;
 
 /**
  * Export menu widget. Export tabular data to various formats using the PHPExcel library by reading data from a
@@ -483,19 +481,6 @@ class ExportMenu extends GridView
     public $docProperties = [];
 
     /**
-     * @var string the library used to render the PDF. Defaults to `'mPDF'`. Must be one of:
-     * - `PHPExcel_Settings::PDF_RENDERER_TCPDF` or `'tcPDF'`
-     * - `PHPExcel_Settings::PDF_RENDERER_DOMPDF` or `'DomPDF'`
-     * - `PHPExcel_Settings::PDF_RENDERER_MPDF` or `'mPDF'`
-     */
-    public $pdfLibrary = PHPExcel_Settings::PDF_RENDERER_MPDF;
-
-    /**
-     * @var string the alias for the pdf library path to export to PDF
-     */
-    public $pdfLibraryPath;
-
-    /**
      * @var array the internalization configuration for this widget
      */
     public $i18n = [];
@@ -674,7 +659,7 @@ class ExportMenu extends GridView
     /**
      * Returns an excel column name.
      *
-     * @param int $index the column index number
+     * @param integer $index the column index number
      *
      * @return string
      */
@@ -750,14 +735,6 @@ class ExportMenu extends GridView
             $this->clearOutputBuffers();
         }
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
-        if ($this->_exportType === self::FORMAT_PDF) {
-            $path = isset($this->pdfLibraryPath) ? Yii::getAlias($this->pdfLibraryPath) : __DIR__;
-            if (!PHPExcel_Settings::setPdfRenderer($this->pdfLibrary, $path)) {
-                throw new InvalidConfigException(
-                    "The pdf rendering library '{$this->pdfLibrary}' was not found or installed at path '{$path}'."
-                );
-            }
-        }
         if (empty($config['writer'])) {
             throw new InvalidConfigException("The 'writer' setting for PHPExcel must be setup in 'exportConfig'.");
         }
@@ -779,7 +756,9 @@ class ExportMenu extends GridView
         $this->raiseEvent('onRenderSheet', [$sheet, $this]);
         $this->folder = trim(Yii::getAlias($this->folder));
         if (!file_exists($this->folder) && !mkdir($this->folder)) {
-            throw new InvalidConfigException("Invalid permissions to write to '{$this->folder}' as set in `ExportMenu::folder` property.");
+            throw new InvalidConfigException(
+                "Invalid permissions to write to '{$this->folder}' as set in `ExportMenu::folder` property."
+            );
         }
         $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
         $writer->save($file);
@@ -821,47 +800,6 @@ class ExportMenu extends GridView
             @unlink($file);
         }
     }
-
-    /**
-     * Parse PDF
-     */
-    protected function renderPDF($file) {
-        //  Default PDF paper size
-        $excel = $this->_objPHPExcel;
-        $sheet = $this->_objPHPExcelSheet;
-        /**
-         * @var \PHPExcel_Writer_HTML $writer
-         */
-        $writer = $this->_objPHPExcelWriter;
-        $page = $sheet->getPageSetup();
-        $orientation = $page->getOrientation() == PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE ? 'L' : 'P';
-        $properties = $excel->getProperties();
-        $writer->setUseInlineCss(true);
-        $config = [
-            'orientation' => strtoupper($orientation),
-            'methods' => [
-                'SetTitle' => $properties->getTitle(),
-                'SetAuthor' => $properties->getCreator(),
-                'SetCreator' => $properties->getCreator(),
-                'SetSubject' => $properties->getSubject(),
-                'SetKeywords' => $properties->getKeywords(),
-            ],
-            'cssFile' => '',
-            'content' => $writer->generateHTMLHeader(false) . $writer->generateSheetData() . $writer->generateHTMLFooter()
-        ];
-        if (!$this->stream && !$this->streamAfterSave) {
-            $config['destination'] = Pdf::DEST_FILE;
-            $config['filename'] = $file;
-        } else {
-            $config['destination'] = Pdf::DEST_DOWNLOAD;
-            $cfg = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
-            $extension = ArrayHelper::getValue($cfg, 'extension', 'pdf');
-            $config['filename'] = $this->filename . '.' . $extension;
-        }
-        $pdf = new Pdf($config);
-        echo $pdf->render();
-    }
-
 
     /**
      * Initializes export settings
@@ -940,15 +878,16 @@ class ExportMenu extends GridView
             }
         }
         $form = $this->render(
-            $this->exportFormView, [
-            'options' => $this->exportFormOptions,
-            'exportType' => $this->_exportType,
-            'columnSelectorEnabled' => $this->_columnSelectorEnabled,
-            'exportRequestParam' => $this->exportRequestParam,
-            'exportTypeParam' => self::PARAM_EXPORT_TYPE,
-            'exportColsParam' => self::PARAM_EXPORT_COLS,
-            'colselFlagParam' => self::PARAM_COLSEL_FLAG,
-        ]
+            $this->exportFormView,
+            [
+                'options' => $this->exportFormOptions,
+                'exportType' => $this->_exportType,
+                'columnSelectorEnabled' => $this->_columnSelectorEnabled,
+                'exportRequestParam' => $this->exportRequestParam,
+                'exportTypeParam' => self::PARAM_EXPORT_TYPE,
+                'exportColsParam' => self::PARAM_EXPORT_COLS,
+                'colselFlagParam' => self::PARAM_COLSEL_FLAG,
+            ]
         );
         if ($this->asDropdown) {
             $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="glyphicon glyphicon-export"></i>');
@@ -961,19 +900,22 @@ class ExportMenu extends GridView
             $itemsBefore = ArrayHelper::remove($this->dropdownOptions, 'itemsBefore', []);
             $itemsAfter = ArrayHelper::remove($this->dropdownOptions, 'itemsAfter', []);
             $items = ArrayHelper::merge($itemsBefore, $items, $itemsAfter);
-            $content = strtr(
-                    $this->template, [
-                    '{menu}' => ButtonDropdown::widget(
-                        [
-                            'label' => $label,
-                            'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions],
-                            'options' => $this->dropdownOptions,
-                            'encodeLabel' => false,
-                        ]
-                    ),
-                    '{columns}' => $this->renderColumnSelector(),
-                ]
-                ) . "\n" . $form;
+            $replacePairs = [
+                '{menu}' => ButtonDropdown::widget(
+                    [
+                        'label' => $label,
+                        'dropdown' => [
+                            'items' => $items,
+                            'encodeLabels' => false,
+                            'options' => $menuOptions,
+                        ],
+                        'options' => $this->dropdownOptions,
+                        'encodeLabel' => false,
+                    ]
+                ),
+                '{columns}' => $this->renderColumnSelector(),
+            ];
+            $content = strtr($this->template, $replacePairs) . "\n" . $form;
             return Html::tag('div', $content, $this->container);
         } else {
             return $items . "\n" . $form;
@@ -991,16 +933,17 @@ class ExportMenu extends GridView
             return '';
         }
         return $this->render(
-            $this->exportColumnsView, [
-            'options' => $this->columnSelectorOptions,
-            'menuOptions' => $this->columnSelectorMenuOptions,
-            'columnSelector' => $this->columnSelector,
-            'batchToggle' => $this->columnBatchToggleSettings,
-            'selectedColumns' => $this->selectedColumns,
-            'disabledColumns' => $this->disabledColumns,
-            'hiddenColumns' => $this->hiddenColumns,
-            'noExportColumns' => $this->noExportColumns,
-        ]
+            $this->exportColumnsView,
+            [
+                'options' => $this->columnSelectorOptions,
+                'menuOptions' => $this->columnSelectorMenuOptions,
+                'columnSelector' => $this->columnSelector,
+                'batchToggle' => $this->columnBatchToggleSettings,
+                'selectedColumns' => $this->selectedColumns,
+                'disabledColumns' => $this->disabledColumns,
+                'hiddenColumns' => $this->hiddenColumns,
+                'noExportColumns' => $this->noExportColumns,
+            ]
         );
     }
 
@@ -1018,7 +961,7 @@ class ExportMenu extends GridView
         $keywords = '';
         $manager = '';
         $company = 'Krajee Solutions';
-        $created = date("Y-m-d H:i:s");
+        $created = date('Y-m-d H:i:s');
         $lastModifiedBy = 'krajee';
         extract($this->docProperties);
         $this->_objPHPExcel->getProperties()
@@ -1103,7 +1046,7 @@ class ExportMenu extends GridView
             $this->raiseEvent('onRenderHeaderCell', [$cell, $head, $this]);
         }
         for ($i = $this->_headerBeginRow; $i < ($this->_beginRow); $i++) {
-            $sheet->mergeCells($colFirst . $i . ":" . self::columnName($this->_endCol) . $i);
+            $sheet->mergeCells($colFirst . $i . ':' . self::columnName($this->_endCol) . $i);
         }
 
         // Freeze the top row
@@ -1208,8 +1151,8 @@ class ExportMenu extends GridView
                 }
                 if (!is_null($this->_groupedRow)) {
                     $this->_endRow++;
-                    $this->_objPHPExcelSheet->fromArray($this->_groupedRow, null, "A" . ($this->_endRow + 1), true);
-                    $cell = "A" . ($this->_endRow + 1) . ":" . self::columnName(count($columns)) . ($this->_endRow + 1);
+                    $this->_objPHPExcelSheet->fromArray($this->_groupedRow, null, 'A' . ($this->_endRow + 1), true);
+                    $cell = 'A' . ($this->_endRow + 1) . ':' . self::columnName(count($columns)) . ($this->_endRow + 1);
                     $this->_objPHPExcelSheet->getStyle($cell)->applyFromArray($this->groupedRowStyle);
                     $this->_groupedRow = null;
                 }
@@ -1226,7 +1169,7 @@ class ExportMenu extends GridView
 
         // Set autofilter on
         $this->_objPHPExcelSheet->setAutoFilter(
-            self::columnName(1) . $this->_beginRow . ":" . self::columnName($this->_endCol) . $this->_endRow
+            self::columnName(1) . $this->_beginRow . ':' . self::columnName($this->_endCol) . $this->_endRow
         );
         return $this->_endRow;
     }
@@ -1322,7 +1265,7 @@ class ExportMenu extends GridView
             $row += 1;
         }
         for ($i = $afterContentBeginRow; $i < $row; $i++) {
-            $sheet->mergeCells($colFirst . $i . ":" . self::columnName($this->_endCol) . $i);
+            $sheet->mergeCells($colFirst . $i . ':' . self::columnName($this->_endCol) . $i);
         }
     }
 
@@ -1408,6 +1351,54 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Parse PDF
+     *
+     * @param string $file the output filename on server with path
+     */
+    protected function renderPDF($file)
+    {
+        //  Default PDF paper size
+        $excel = $this->_objPHPExcel;
+        $sheet = $this->_objPHPExcelSheet;
+        /**
+         * @var \PHPExcel_Writer_HTML $w
+         */
+        $w = $this->_objPHPExcelWriter;
+        $page = $sheet->getPageSetup();
+        $orientation = $page->getOrientation() == PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE ? 'L' : 'P';
+        $properties = $excel->getProperties();
+        $settings = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
+        $useInlineCss = ArrayHelper::getValue($settings, 'useInlineCss', false);
+        $config = ArrayHelper::getValue($settings, 'pdfConfig', []);
+        $w->setUseInlineCss($useInlineCss);
+        $config = array_replace_recursive(
+            [
+                'orientation' => strtoupper($orientation),
+                'methods' => [
+                    'SetTitle' => $properties->getTitle(),
+                    'SetAuthor' => $properties->getCreator(),
+                    'SetCreator' => $properties->getCreator(),
+                    'SetSubject' => $properties->getSubject(),
+                    'SetKeywords' => $properties->getKeywords(),
+                ],
+                'cssFile' => '',
+                'content' => $w->generateHTMLHeader(false) . $w->generateSheetData() . $w->generateHTMLFooter(),
+            ],
+            $config
+        );
+        if (!$this->stream && !$this->streamAfterSave) {
+            $config['destination'] = Pdf::DEST_FILE;
+            $config['filename'] = $file;
+        } else {
+            $config['destination'] = Pdf::DEST_DOWNLOAD;
+            $extension = ArrayHelper::getValue($settings, 'extension', 'pdf');
+            $config['filename'] = $this->filename . '.' . $extension;
+        }
+        $pdf = new Pdf($config);
+        echo $pdf->render();
+    }
+
+    /**
      * Initialize columns selected for export
      */
     protected function initSelectedColumns()
@@ -1456,7 +1447,8 @@ class ExportMenu extends GridView
                 'id' => $id . '-list',
                 'role' => 'menu',
                 'aria-labelledby' => $id,
-            ], $this->columnSelectorMenuOptions
+            ],
+            $this->columnSelectorMenuOptions
         );
         $this->columnSelectorOptions = array_replace_recursive(
             [
@@ -1467,7 +1459,8 @@ class ExportMenu extends GridView
                 'data-toggle' => 'dropdown',
                 'aria-haspopup' => 'true',
                 'aria-expanded' => 'false',
-            ], $this->columnSelectorOptions
+            ],
+            $this->columnSelectorOptions
         );
         foreach ($this->columns as $key => $column) {
             $selector[$key] = $this->getColumnLabel($key, $column);
@@ -1482,8 +1475,8 @@ class ExportMenu extends GridView
     /**
      * Fetches the column label
      *
-     * @param int    $key
-     * @param Column $column
+     * @param integer $key
+     * @param Column  $column
      *
      * @return string
      */
@@ -1498,7 +1491,7 @@ class ExportMenu extends GridView
         } elseif (isset($column->attribute)) {
             $label = $this->getAttributeLabel($column->attribute);
         } elseif (!$column instanceof DataColumn) {
-            $class = explode("\\", $column::classname());
+            $class = explode('\\', $column::classname());
             $label = Inflector::camel2words(end($class));
         }
         return trim(strip_tags(str_replace(['<br>', '<br/>'], ' ', $label)));
@@ -1580,6 +1573,8 @@ class ExportMenu extends GridView
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
                 'writer' => 'HTML',
+                'useInlineCss' => false,
+                'pdfConfig' => []
             ],
             self::FORMAT_EXCEL => [
                 'label' => Yii::t('kvexport', 'Excel 95 +'),
@@ -1638,7 +1633,7 @@ class ExportMenu extends GridView
         );
         $menu = 'kvexpmenu_' . hash('crc32', $options);
         $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);
-        $script = "";
+        $script = '';
         foreach ($this->exportConfig as $format => $setting) {
             if (!isset($setting) || $setting === false) {
                 continue;
@@ -1776,7 +1771,7 @@ class ExportMenu extends GridView
         foreach ($this->getVisibleColumns() as $key => $column) {
             $value = isset($groupFooter[$key]) ? $groupFooter[$key] : '';
             $endGroupedCol++;
-            $groupedRange = self::columnName($key + 1) . $firstLine . ":" . self::columnName($key + 1) . $endLine;
+            $groupedRange = self::columnName($key + 1) . $firstLine . ':' . self::columnName($key + 1) . $endLine;
             //$lastCell = self::columnName($key + 1) . $endLine - 1;
             if (isset($column->group) && $column->group) {
                 $this->_objPHPExcelSheet->mergeCells($groupedRange);
@@ -1813,19 +1808,19 @@ class ExportMenu extends GridView
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         $extension = ArrayHelper::getValue($config, 'extension', 'xlsx');
         $mime = ArrayHelper::getValue($config, 'mime', null);
-        if (strstr($_SERVER["HTTP_USER_AGENT"], "MSIE") == false) {
-            header("Cache-Control: no-cache");
-            header("Pragma: no-cache");
+        if (strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') == false) {
+            header('Cache-Control: no-cache');
+            header('Pragma: no-cache');
         } else {
-            header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-            header("Pragma: public");
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Pragma: public');
         }
-        header("Expires: Sat, 26 Jul 1979 05:00:00 GMT");
+        header('Expires: Sat, 26 Jul 1979 05:00:00 GMT');
         header("Content-Encoding: {$this->encoding}");
         if (!empty($mime)) {
             header("Content-Type: {$mime}; charset={$this->encoding}");
         }
         header("Content-Disposition: attachment; filename=\"{$this->filename}.{$extension}\"");
-        header("Cache-Control: max-age=0");
+        header('Cache-Control: max-age=0');
     }
 }
