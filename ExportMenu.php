@@ -19,8 +19,10 @@ use PHPExcel_IOFactory;
 use PHPExcel_Settings;
 use PHPExcel_Style_Fill;
 use PHPExcel_Worksheet;
+use PHPExcel_Worksheet_PageSetup;
 use PHPExcel_Writer_Abstract;
 use PHPExcel_Writer_CSV;
+use PHPExcel_Writer_PDF_mPDF;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\base\Model;
@@ -39,6 +41,7 @@ use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\web\JsExpression;
 use yii\web\View;
+use kartik\mpdf\Pdf;
 
 /**
  * Export menu widget. Export tabular data to various formats using the PHPExcel library by reading data from a
@@ -327,16 +330,16 @@ class ExportMenu extends GridView
     public $filename;
 
     /**
-     * @var string the folder to save the exported file. Defaults to '@webroot/tmp/'. This property will be parsed only
-     * if `stream` is false. If the specified folder does not exist, files will be saved to `@webroot`.
+     * @var string the folder to save the exported file. Defaults to '@webroot/runtime/tmp/'. If the specified folder
+     * does not exist, it will be attempted to be created or an exception will be thrown.
      */
-    public $folder = '@webroot/tmp';
+    public $folder = '@webroot/runtime/export';
 
     /**
      * @var string the web accessible path for the saved file location. This property will be parsed only if `stream`
      * is false. Note the `afterSaveView` property that will render the displayed file link.
      */
-    public $linkPath = '/tmp';
+    public $linkPath = '/runtime/export';
 
     /**
      * @var boolean whether to stream output to the browser.
@@ -490,7 +493,7 @@ class ExportMenu extends GridView
     /**
      * @var string the alias for the pdf library path to export to PDF
      */
-    public $pdfLibraryPath = '@vendor/mpdf/mpdf';
+    public $pdfLibraryPath;
 
     /**
      * @var array the internalization configuration for this widget
@@ -748,7 +751,7 @@ class ExportMenu extends GridView
         }
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         if ($this->_exportType === self::FORMAT_PDF) {
-            $path = Yii::getAlias($this->pdfLibraryPath);
+            $path = isset($this->pdfLibraryPath) ? Yii::getAlias($this->pdfLibraryPath) : __DIR__;
             if (!PHPExcel_Settings::setPdfRenderer($this->pdfLibrary, $path)) {
                 throw new InvalidConfigException(
                     "The pdf rendering library '{$this->pdfLibrary}' was not found or installed at path '{$path}'."
@@ -774,50 +777,91 @@ class ExportMenu extends GridView
             }
         }
         $this->raiseEvent('onRenderSheet', [$sheet, $this]);
-        if (!$this->stream) {
-            $this->folder = trim(Yii::getAlias($this->folder));
-            if (!file_exists($this->folder)) {
-                $this->folder = Yii::getAlias('@webroot');
-            }
-            $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
-            $writer->save($file);
-            if ($this->streamAfterSave) {
-                $this->clearOutputBuffers();
+        $this->folder = trim(Yii::getAlias($this->folder));
+        if (!file_exists($this->folder) && !mkdir($this->folder)) {
+            throw new InvalidConfigException("Invalid permissions to write to '{$this->folder}' as set in `ExportMenu::folder` property.");
+        }
+        $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
+        $writer->save($file);
+        if ($this->stream || $this->streamAfterSave) {
+            $this->clearOutputBuffers();
+            if ($this->_exportType === self::FORMAT_PDF) {
+                $this->renderPDF($file);
+            } else {
                 $this->setHttpHeaders();
                 readfile($file);
-                if ($this->deleteAfterSave) {
-                    @unlink($file);
-                }
-                $this->destroyPHPExcel();
-                exit();
-            } else {
-                $this->registerAssets();
-                echo $this->renderExportMenu();
-                if ($this->_triggerDownload && $this->_doNotStream && $this->afterSaveView !== false) {
-                    $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
-                    if (!empty($config)) {
-                        $file = $this->filename . '.' . $config['extension'];
-                        echo $this->render(
-                            $this->afterSaveView, [
-                            'file' => $file,
-                            'icon' => ($this->fontAwesome ? 'fa fa-' : 'glyphicon glyphicon-') . $config['icon'],
-                            'href' => Url::to([self::slash($this->linkPath, '/') . $file]),
-                        ]
-                        );
-                    }
-                }
             }
             if ($this->deleteAfterSave) {
                 @unlink($file);
             }
-        } else {
-            $this->clearOutputBuffers();
-            $this->setHttpHeaders();
-            $writer->save('php://output');
             $this->destroyPHPExcel();
             exit();
+        } else {
+            $this->registerAssets();
+            echo $this->renderExportMenu();
+            if ($this->_triggerDownload && $this->_doNotStream && $this->afterSaveView !== false) {
+                if ($this->_exportType === self::FORMAT_PDF) {
+                    $this->renderPDF($file);
+                }
+                $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
+                if (!empty($config)) {
+                    $file = $this->filename . '.' . $config['extension'];
+                    echo $this->render(
+                        $this->afterSaveView,
+                        [
+                            'file' => $file,
+                            'icon' => ($this->fontAwesome ? 'fa fa-' : 'glyphicon glyphicon-') . $config['icon'],
+                            'href' => Url::to([self::slash($this->linkPath, '/') . $file]),
+                        ]
+                    );
+                }
+            }
+        }
+        if ($this->deleteAfterSave) {
+            @unlink($file);
         }
     }
+
+    /**
+     * Parse PDF
+     */
+    protected function renderPDF($file) {
+        //  Default PDF paper size
+        $excel = $this->_objPHPExcel;
+        $sheet = $this->_objPHPExcelSheet;
+        /**
+         * @var \PHPExcel_Writer_HTML $writer
+         */
+        $writer = $this->_objPHPExcelWriter;
+        $page = $sheet->getPageSetup();
+        $orientation = $page->getOrientation() == PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE ? 'L' : 'P';
+        $properties = $excel->getProperties();
+        $writer->setUseInlineCss(true);
+        $config = [
+            'orientation' => strtoupper($orientation),
+            'methods' => [
+                'SetTitle' => $properties->getTitle(),
+                'SetAuthor' => $properties->getCreator(),
+                'SetCreator' => $properties->getCreator(),
+                'SetSubject' => $properties->getSubject(),
+                'SetKeywords' => $properties->getKeywords(),
+            ],
+            'cssFile' => '',
+            'content' => $writer->generateHTMLHeader(false) . $writer->generateSheetData() . $writer->generateHTMLFooter()
+        ];
+        if (!$this->stream && !$this->streamAfterSave) {
+            $config['destination'] = Pdf::DEST_FILE;
+            $config['filename'] = $file;
+        } else {
+            $config['destination'] = Pdf::DEST_DOWNLOAD;
+            $cfg = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
+            $extension = ArrayHelper::getValue($cfg, 'extension', 'pdf');
+            $config['filename'] = $this->filename . '.' . $extension;
+        }
+        $pdf = new Pdf($config);
+        echo $pdf->render();
+    }
+
 
     /**
      * Initializes export settings
@@ -1535,7 +1579,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The PDF export file will be generated for download.'),
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
-                'writer' => 'PDF',
+                'writer' => 'HTML',
             ],
             self::FORMAT_EXCEL => [
                 'label' => Yii::t('kvexport', 'Excel 95 +'),

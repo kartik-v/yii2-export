@@ -3,8 +3,9 @@ Change Log: `yii2-export`
 
 ## version 1.2.8
 
-**Date:** 08-May-2017
+**Date:** 18-Jun-2017
 
+- (enh #205): Updates for mpdf 7.0. Changes to PDF rendering.
 - Chronological ordering of issues for change log.
 - (enh #197): Add public method `getExportType` to access through `onRender` callbacks. 
 - (enh #196): More correct `styleOptions` parsing for `contentBefore` and `contentAfter`. 
