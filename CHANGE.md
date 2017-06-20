@@ -3,8 +3,10 @@ Change Log: `yii2-export`
 
 ## version 1.2.8
 
-**Date:** 18-Jun-2017
+**Date:** 20-Jun-2017
 
+- (enh #209): New event property `onGenerateFile`.
+- (enh #208): Optimize code and eliminate redundant properties.
 - (enh #205): Updates for mpdf 7.0. Changes to PDF rendering.
 - Chronological ordering of issues for change log.
 - (enh #197): Add public method `getExportType` to access through `onRender` callbacks. 

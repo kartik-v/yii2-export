@@ -345,22 +345,15 @@ class ExportMenu extends GridView
     public $stream = true;
 
     /**
-     * @var boolean whether to stream after saving file to `$folder` and when `$stream` is `false`. This property will be
-     * validated only when `$stream` is `false`.
-     */
-    public $streamAfterSave = false;
-
-    /**
      * @var boolean whether to delete file after saving file to `$folder` and when `$stream` is `false`. This property
-     * will be validated only when `$stream` is `false`. This property is useful only if `streamAfterSave` is
-     * `true`.
+     * will be validated only when `$stream` is `false`.
      */
     public $deleteAfterSave = false;
 
     /**
      * @var string|bool the view file to show details of exported file link. This property will be validated only when
-     * `$stream` is `false` and `streamAfterSave` is `false`. You can set this to `false` to not display any file
-     * link details for view. This defaults to the `_view` PHP file in the `views` folder of the extension.
+     * `$stream` is `false`. You can set this to `false` to not display any file link details for view. This defaults
+     * to the `_view` PHP file in the `views` folder of the extension.
      */
     public $afterSaveView = '_view';
 
@@ -445,7 +438,7 @@ class ExportMenu extends GridView
      * - `$content`: string, the data cell content being rendered
      * - `$model`: Model, the data model to be rendered
      * - `$key`: mixed, the key associated with the data model
-     * - `$index`: int, the zero-based index of the data model among the model array returned by [[dataProvider]].
+     * - `$index`: integer, the zero-based index of the data model among the model array returned by [[dataProvider]].
      * - `$grid`: GridView, the current GridView object
      */
     public $onRenderDataCell = null;
@@ -474,6 +467,19 @@ class ExportMenu extends GridView
      * - `$grid`: GridView, the current GridView object
      */
     public $onRenderSheet = null;
+
+    /**
+     * @var Closure the callback function to be executed after the output file is generated. This function must return
+     * a boolean status of `true` or `false`. A `false` status will abort the post file generation activities. The
+     * anonymous function should have the following signature:
+     * ```php
+     * function ($file, $grid)
+     * ```
+     * where:
+     * - `$file`: _string_, is the generated file object and name
+     * - `$grid`: GridView, the current GridView object
+     */
+    public $onGenerateFile = null;
 
     /**
      * @var array the PHPExcel document properties
@@ -690,8 +696,7 @@ class ExportMenu extends GridView
         $this->_triggerDownload = !empty($_POST) &&
             !empty($_POST[$this->exportRequestParam]) &&
             $_POST[$this->exportRequestParam];
-        $this->_doNotStream = (!$this->stream && !$this->streamAfterSave);
-        if ($this->_doNotStream) {
+        if ($this->stream) {
             $this->target = self::TARGET_SELF;
         }
         if ($this->_triggerDownload) {
@@ -761,8 +766,18 @@ class ExportMenu extends GridView
             );
         }
         $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
+        $cleanup = function () use ($file) {
+            if ($this->deleteAfterSave) {
+                @unlink($file);
+            }
+            $this->destroyPHPExcel();
+        };
         $writer->save($file);
-        if ($this->stream || $this->streamAfterSave) {
+        if ($this->raiseEvent('onGenerateFile', [$file, $this]) === false) {
+            $cleanup();
+            return;
+        }
+        if ($this->stream) {
             $this->clearOutputBuffers();
             if ($this->_exportType === self::FORMAT_PDF) {
                 $this->renderPDF($file);
@@ -770,35 +785,30 @@ class ExportMenu extends GridView
                 $this->setHttpHeaders();
                 readfile($file);
             }
-            if ($this->deleteAfterSave) {
-                @unlink($file);
-            }
-            $this->destroyPHPExcel();
+            $cleanup();
             exit();
         } else {
             $this->registerAssets();
             echo $this->renderExportMenu();
-            if ($this->_triggerDownload && $this->_doNotStream && $this->afterSaveView !== false) {
+            if ($this->_triggerDownload && $this->afterSaveView !== false) {
                 if ($this->_exportType === self::FORMAT_PDF) {
                     $this->renderPDF($file);
                 }
                 $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
                 if (!empty($config)) {
-                    $file = $this->filename . '.' . $config['extension'];
+                    $fileName = $this->filename . '.' . $config['extension'];
                     echo $this->render(
                         $this->afterSaveView,
                         [
-                            'file' => $file,
+                            'file' => $fileName,
                             'icon' => ($this->fontAwesome ? 'fa fa-' : 'glyphicon glyphicon-') . $config['icon'],
-                            'href' => Url::to([self::slash($this->linkPath, '/') . $file]),
+                            'href' => Url::to([self::slash($this->linkPath, '/') . $fileName]),
                         ]
                     );
                 }
             }
         }
-        if ($this->deleteAfterSave) {
-            @unlink($file);
-        }
+        $cleanup();
     }
 
     /**
@@ -990,7 +1000,8 @@ class ExportMenu extends GridView
          */
         $writer = $this->_objPHPExcelWriter = PHPExcel_IOFactory::createWriter($this->_objPHPExcel, $type);
         if ($this->_exportType === self::FORMAT_TEXT) {
-            $writer->setDelimiter("\t");
+            $delimiter = $this->getSetting('delimiter', "\t");
+            $writer->setDelimiter($delimiter);
         }
         $this->raiseEvent('onInitWriter', [$this->_objPHPExcelWriter, $this]);
     }
@@ -1351,6 +1362,20 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Gets the setting property value for the current export format
+     *
+     * @param string $key the setting property key for the current export format
+     * @param string $default the default value for the property
+     *
+     * @return mixed
+     */
+    protected function getSetting($key, $default = null)
+    {
+        $settings = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
+        return ArrayHelper::getValue($settings, $key, $default);
+    }
+
+    /**
      * Parse PDF
      *
      * @param string $file the output filename on server with path
@@ -1386,7 +1411,7 @@ class ExportMenu extends GridView
             ],
             $config
         );
-        if (!$this->stream && !$this->streamAfterSave) {
+        if (!$this->stream) {
             $config['destination'] = Pdf::DEST_FILE;
             $config['filename'] = $file;
         } else {
@@ -1562,6 +1587,7 @@ class ExportMenu extends GridView
                 'mime' => 'text/plain',
                 'extension' => 'txt',
                 'writer' => 'CSV',
+                'delimiter' => "\t",
             ],
             self::FORMAT_PDF => [
                 'label' => Yii::t('kvexport', 'PDF'),
@@ -1574,7 +1600,7 @@ class ExportMenu extends GridView
                 'extension' => 'pdf',
                 'writer' => 'HTML',
                 'useInlineCss' => false,
-                'pdfConfig' => []
+                'pdfConfig' => [],
             ],
             self::FORMAT_EXCEL => [
                 'label' => Yii::t('kvexport', 'Excel 95 +'),
@@ -1669,12 +1695,15 @@ class ExportMenu extends GridView
      *
      * @param string $event the event name
      * @param array  $params the parameters to the callable function
+     *
+     * @return mixed
      */
     protected function raiseEvent($event, $params)
     {
         if (isset($this->$event) && is_callable($this->$event)) {
-            call_user_func_array($this->$event, $params);
+            return call_user_func_array($this->$event, $params);
         }
+        return true;
     }
 
     /**
