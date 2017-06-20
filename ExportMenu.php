@@ -775,10 +775,6 @@ class ExportMenu extends GridView
             $this->destroyPHPExcel();
         };
         $writer->save($file);
-        if ($this->raiseEvent('onGenerateFile', [$file, $this]) === false) {
-            $cleanup();
-            return;
-        }
         if ($this->stream) {
             $this->clearOutputBuffers();
             if ($this->_exportType === self::FORMAT_PDF) {
