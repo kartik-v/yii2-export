@@ -3,8 +3,9 @@ Change Log: `yii2-export`
 
 ## version 1.2.8
 
-**Date:** 20-Jun-2017
+**Date:** 21-Jun-2017
 
+- (bug #211): Correct directory creation to be recursive.
 - (enh #209): New event property `onGenerateFile`.
 - (enh #208): Optimize code and eliminate redundant properties.
 - (enh #205): Updates for mpdf 7.0. Changes to PDF rendering.

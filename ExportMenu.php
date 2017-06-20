@@ -103,8 +103,8 @@ class ExportMenu extends GridView
 
     /**
      * @var string the target for submitting the export form, which will trigger the download of the exported file.
-     * Must be one of the `TARGET_` constants. Defaults to [[TARGET_POPUP]]. Note if you set [[stream]] and
-     * [[streamAfterSave]] to `false`, then this will be overridden to [[TARGET_SELF]].
+     * Must be one of the `TARGET_` constants. Defaults to [[TARGET_POPUP]]. Note if you set [[stream]] to `false`,
+     * then this will be overridden to [[TARGET_SELF]].
      */
     public $target = self::TARGET_POPUP;
 
@@ -334,10 +334,16 @@ class ExportMenu extends GridView
     public $folder = '@webroot/runtime/export';
 
     /**
-     * @var string the web accessible path for the saved file location. This property will be parsed only if `stream`
-     * is false. Note the `afterSaveView` property that will render the displayed file link.
+     * @var string the web accessible path for the saved file location. This property will be parsed only if [[stream]]
+     * is false. Note the [[afterSaveView]] property that will render the displayed file link.
      */
     public $linkPath = '/runtime/export';
+
+    /**
+     * @var string the name of the file to be appended to [[linkPath]] to generate the complete link. If not set, this
+     * will default to the [[filename]].
+     */
+    public $linkFileName;
 
     /**
      * @var boolean whether to stream output to the browser.
@@ -345,14 +351,14 @@ class ExportMenu extends GridView
     public $stream = true;
 
     /**
-     * @var boolean whether to delete file after saving file to `$folder` and when `$stream` is `false`. This property
-     * will be validated only when `$stream` is `false`.
+     * @var boolean whether to delete file after saving file to [[folder]] and when [[stream]] is `false`. This property
+     * will be validated only when [[stream]] is `false`.
      */
     public $deleteAfterSave = false;
 
     /**
      * @var string|bool the view file to show details of exported file link. This property will be validated only when
-     * `$stream` is `false`. You can set this to `false` to not display any file link details for view. This defaults
+     * [[stream]] is `false`. You can set this to `false` to not display any file link details for view. This defaults
      * to the `_view` PHP file in the `views` folder of the extension.
      */
     public $afterSaveView = '_view';
@@ -473,10 +479,10 @@ class ExportMenu extends GridView
      * a boolean status of `true` or `false`. A `false` status will abort the post file generation activities. The
      * anonymous function should have the following signature:
      * ```php
-     * function ($file, $grid)
+     * function ($fileExt, $grid)
      * ```
      * where:
-     * - `$file`: _string_, is the generated file object and name
+     * - `$fileExt`: _string_, is the generated file extension.
      * - `$grid`: GridView, the current GridView object
      */
     public $onGenerateFile = null;
@@ -641,11 +647,6 @@ class ExportMenu extends GridView
     protected $_triggerDownload = false;
 
     /**
-     * @var boolean flag to identify if no streaming of file is desired
-     */
-    protected $_doNotStream = false;
-
-    /**
      * Appends slash to path if it does not exist
      *
      * @param string $path
@@ -693,14 +694,12 @@ class ExportMenu extends GridView
             $this->exportRequestParam = 'exportFull_' . $this->options['id'];
         }
         $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
-        $this->_triggerDownload = !empty($_POST) &&
-            !empty($_POST[$this->exportRequestParam]) &&
-            $_POST[$this->exportRequestParam];
-        if ($this->stream) {
+        $this->_triggerDownload = Yii::$app->request->post($this->exportRequestParam, false);
+        if (!$this->stream) {
             $this->target = self::TARGET_SELF;
         }
         if ($this->_triggerDownload) {
-            if (!$this->_doNotStream) {
+            if ($this->stream) {
                 Yii::$app->controller->layout = false;
             }
             $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
@@ -736,7 +735,7 @@ class ExportMenu extends GridView
         if ($this->timeout >= 0) {
             set_time_limit($this->timeout);
         }
-        if (!$this->_doNotStream) {
+        if ($this->stream) {
             $this->clearOutputBuffers();
         }
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
@@ -760,13 +759,16 @@ class ExportMenu extends GridView
         }
         $this->raiseEvent('onRenderSheet', [$sheet, $this]);
         $this->folder = trim(Yii::getAlias($this->folder));
-        if (!file_exists($this->folder) && !mkdir($this->folder)) {
+        if (!file_exists($this->folder) && !mkdir($this->folder, 0777, true)) {
             throw new InvalidConfigException(
                 "Invalid permissions to write to '{$this->folder}' as set in `ExportMenu::folder` property."
             );
         }
         $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
-        $cleanup = function () use ($file) {
+        $cleanup = function () use ($file, $config) {
+            if ($this->raiseEvent('onGenerateFile', [$config['extension'], $this]) !== false) {
+                return;
+            }
             if ($this->deleteAfterSave) {
                 @unlink($file);
             }
@@ -796,7 +798,8 @@ class ExportMenu extends GridView
                 }
                 $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
                 if (!empty($config)) {
-                    $fileName = $this->filename . '.' . $config['extension'];
+                    $l = $this->linkFileName;
+                    $fileName = (!isset($l) || $l === '' ? $this->filename : $l) . '.' . $config['extension'];
                     echo $this->render(
                         $this->afterSaveView,
                         [
@@ -963,28 +966,23 @@ class ExportMenu extends GridView
     public function initPHPExcel()
     {
         $this->_objPHPExcel = new PHPExcel();
-        $creator = '';
-        $title = '';
-        $subject = '';
+        $creator = $title = $subject = $category = $keywords = $manager = '';
         $description = Yii::t('kvexport', 'Grid export generated by Krajee ExportMenu widget (yii2-export)');
-        $category = '';
-        $keywords = '';
-        $manager = '';
         $company = 'Krajee Solutions';
         $created = date('Y-m-d H:i:s');
         $lastModifiedBy = 'krajee';
         extract($this->docProperties);
-        $this->_objPHPExcel->getProperties()
-                           ->setCreator($creator)
-                           ->setTitle($title)
-                           ->setSubject($subject)
-                           ->setDescription($description)
-                           ->setCategory($category)
-                           ->setKeywords($keywords)
-                           ->setManager($manager)
-                           ->setCompany($company)
-                           ->setCreated($created)
-                           ->setLastModifiedBy($lastModifiedBy);
+        $properties = $this->_objPHPExcel->getProperties();
+        $properties->setCreator($creator)
+                   ->setTitle($title)
+                   ->setSubject($subject)
+                   ->setDescription($description)
+                   ->setCategory($category)
+                   ->setKeywords($keywords)
+                   ->setManager($manager)
+                   ->setCompany($company)
+                   ->setCreated($created)
+                   ->setLastModifiedBy($lastModifiedBy);
         $this->raiseEvent('onInitExcel', [$this->_objPHPExcel, $this]);
     }
 
@@ -1599,7 +1597,7 @@ class ExportMenu extends GridView
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
                 'writer' => 'HTML',
-                'useInlineCss' => false,
+                'useInlineCss' => true,
                 'pdfConfig' => [],
             ],
             self::FORMAT_EXCEL => [
