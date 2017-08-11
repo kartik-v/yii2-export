@@ -1174,7 +1174,7 @@ class ExportMenu extends GridView
 
         // Set autofilter on
         $this->_objPHPExcelSheet->setAutoFilter(
-            self::columnName(1) . $this->_beginRow . ':' . self::columnName($this->_endCol) . $this->_endRow
+            self::columnName(1) . $this->_beginRow . ':' . self::columnName($this->_endCol) . ($this->_beginRow + $this->_endRow)
         );
         return $this->_endRow;
     }
