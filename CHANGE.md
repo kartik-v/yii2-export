@@ -24,9 +24,8 @@ Change Log: `yii2-export`
 
 - Update message config to include all default standard translation files.
 - (enh #182, #183): Correct column label key increment.
-- (enh #177): Add Vietnamese Translations.
-- (enh #175): Add French Translations.
 - (enh #177): Update French Translations.
+- (enh #175): Add French Translations.
 - (bug #165): Empty export result when only first column is selected.
 - (bug #164): Process export correctly when confirmation alert is not set.
 - (enh #163): Add dependency for kartik-v/yii2-dialog.
