@@ -576,7 +576,7 @@ class ExportMenu extends GridView
     /**
      * @var integer  the current table end row
      */
-    protected $_endRow = 1;
+    protected $_endRow = 0;
 
     /**
      * @var integer  the current table end column
@@ -1173,12 +1173,12 @@ class ExportMenu extends GridView
         }
 
         // Set autofilter on
-        $this->_objPHPExcelSheet->setAutoFilter(
-            self::columnName(1) . $this->_beginRow . ':' . self::columnName($this->_endCol) . $this->_endRow
-        );
+        $from = self::columnName(1) . $this->_beginRow;
+        $to = self::columnName($this->_endCol) . ($this->_endRow + $this->_beginRow);
+        $this->_objPHPExcelSheet->setAutoFilter("{$from}:{$to}");
         return $this->_endRow;
     }
-
+    
     /**
      * Generates an output data row with the given data model and key.
      *
@@ -1193,12 +1193,12 @@ class ExportMenu extends GridView
          */
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $column) {
+            $format = $this->enableFormatter && isset($column->format) ? $column->format : 'raw';
             if ($column instanceof SerialColumn) {
                 $value = $column->renderDataCell($model, $key, $index);
             } elseif ($column instanceof ActionColumn) {
                 $value = null;
             } elseif (!isset($column->content)) {
-                $format = $this->enableFormatter && isset($column->format) ? $column->format : 'raw';
                 $value = method_exists($column, 'getDataCellValue') ?
                     $this->formatter->format($column->getDataCellValue($model, $key, $index), $format) :
                     $column->renderDataCell($model, $key, $index);
@@ -1210,9 +1210,18 @@ class ExportMenu extends GridView
                 $value = null;
             }
             $this->_endCol++;
+            if (isset($value) && $value !== '') {
+                $f = is_array($format) ? (isset($format[0]) ? $format[0] : 'raw') :
+                    ($format instanceof Closure ? 'raw' : $format);
+                if ($f !== 'raw' && $f !== 'html' && $f !== 'text') {
+                    $value = strip_tags($value);
+                }
+            } else {
+                $value = '';
+            }
             $cell = $this->_objPHPExcelSheet->setCellValue(
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
-                !isset($value) || $value === '' ? '' : strip_tags($value),
+                $value,
                 true
             );
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);

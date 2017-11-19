@@ -3,8 +3,9 @@ Change Log: `yii2-export`
 
 ## version 1.2.8
 
-**Date:** 21-Jun-2017
+**Date:** 19-Nov-2017
 
+- (bug #221, #222): Correct auto filter.
 - (bug #211): Correct directory creation to be recursive.
 - (enh #209): New event property `onGenerateFile`.
 - (enh #208): Optimize code and eliminate redundant properties.
@@ -15,6 +16,7 @@ Change Log: `yii2-export`
 - Code documentation enhancements.
 - (enh #188): Better validation of empty data using `isset`.
 - (enh #185): Add Vietnamese Translations.
+- (enh #126): Allow HTML tags in cell value based on data column format.
 
 ## version 1.2.7
 
