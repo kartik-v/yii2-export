@@ -55,27 +55,27 @@ class ExportMenu extends GridView
     /**
      * HTML (Hyper Text Markup Language) export format
      */
-    const FORMAT_HTML = 'HTML';
+    const FORMAT_HTML = 'Html';
     /**
      * CSV (comma separated values) export format
      */
-    const FORMAT_CSV = 'CSV';
+    const FORMAT_CSV = 'Csv';
     /**
      * Text export format
      */
-    const FORMAT_TEXT = 'TXT';
+    const FORMAT_TEXT = 'Txt';
     /**
      * PDF (Portable Document Format) export format
      */
-    const FORMAT_PDF = 'PDF';
+    const FORMAT_PDF = 'Pdf';
     /**
      * Microsoft Excel 95+ export format
      */
-    const FORMAT_EXCEL = 'Excel5';
+    const FORMAT_EXCEL = 'Xls';
     /**
      * Microsoft Excel 2007+ export format
      */
-    const FORMAT_EXCEL_X = 'Excel2007';
+    const FORMAT_EXCEL_X = 'Xlsx';
     /**
      * Set download target for grid export to a popup browser window
      */
@@ -1567,7 +1567,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The HTML export file will be generated for download.'),
                 'mime' => 'text/html',
                 'extension' => 'html',
-                'writer' => 'HTML',
+                'writer' => self::FORMAT_HTML,
             ],
             self::FORMAT_CSV => [
                 'label' => Yii::t('kvexport', 'CSV'),
@@ -1578,7 +1578,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The CSV export file will be generated for download.'),
                 'mime' => 'application/csv',
                 'extension' => 'csv',
-                'writer' => 'CSV',
+                'writer' => self::FORMAT_CSV,
             ],
             self::FORMAT_TEXT => [
                 'label' => Yii::t('kvexport', 'Text'),
@@ -1589,7 +1589,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The TEXT export file will be generated for download.'),
                 'mime' => 'text/plain',
                 'extension' => 'txt',
-                'writer' => 'CSV',
+                'writer' => self::FORMAT_CSV,
                 'delimiter' => "\t",
             ],
             self::FORMAT_PDF => [
@@ -1601,7 +1601,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The PDF export file will be generated for download.'),
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
-                'writer' => 'HTML',
+                'writer' => self::FORMAT_HTML,
                 'useInlineCss' => true,
                 'pdfConfig' => [],
             ],
@@ -1614,7 +1614,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The EXCEL 95+ (xls) export file will be generated for download.'),
                 'mime' => 'application/vnd.ms-excel',
                 'extension' => 'xls',
-                'writer' => 'Excel5',
+                'writer' => self::FORMAT_EXCEL,
             ],
             self::FORMAT_EXCEL_X => [
                 'label' => Yii::t('kvexport', 'Excel 2007+'),
@@ -1625,7 +1625,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The EXCEL 2007+ (xlsx) export file will be generated for download.'),
                 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'extension' => 'xlsx',
-                'writer' => 'Excel2007',
+                'writer' => self::FORMAT_EXCEL_X,
             ],
         ];
     }
