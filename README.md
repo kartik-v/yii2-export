@@ -8,7 +8,7 @@ yii2-export
 [![Monthly Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/monthly)](https://packagist.org/packages/kartik-v/yii2-export)
 [![Daily Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/daily)](https://packagist.org/packages/kartik-v/yii2-export)
 
-A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.) using the [\PhpOffice\PhpSpreadsheet\Spreadsheet library](https://phpexcel.codeplex.com/). The widget allows you to configure the dataProvider, columns just like a yii\grid\GridView. However, it just displays the export actions in form of a ButtonDropdown menu, for embedding into any of your GridView or other components.
+A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.) using the [PhpSpreadsheet](https://github.com/PHPOffice/phpspreadsheet) library. The widget allows you to configure the dataProvider, columns just like a yii\grid\GridView. However, it just displays the export actions in form of a ButtonDropdown menu, for embedding into any of your GridView or other components.
 
 In addition, with release v1.2.0, the extension also displays a handy grid columns selector for controlling the columns for export. The features available with the column selector are:
 
