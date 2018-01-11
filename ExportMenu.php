@@ -15,13 +15,13 @@ use kartik\dialog\Dialog;
 use kartik\dynagrid\Dynagrid;
 use kartik\grid\GridView;
 use kartik\mpdf\Pdf;
-use PHPExcel;
-use PHPExcel_IOFactory;
-use PHPExcel_Style_Fill;
-use PHPExcel_Worksheet;
-use PHPExcel_Worksheet_PageSetup;
-use PHPExcel_Writer_Abstract;
-use PHPExcel_Writer_CSV;
+use \PhpOffice\PhpSpreadsheet\Spreadsheet;
+use \PhpOffice\PhpSpreadsheet\IOFactory;
+use \PhpOffice\PhpSpreadsheet\Style\Fill;
+use \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+use \PhpOffice\PhpSpreadsheet\Writer\BaseWriter;
+use \PhpOffice\PhpSpreadsheet\Writer\Csv;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\base\Model;
@@ -42,7 +42,7 @@ use yii\web\JsExpression;
 use yii\web\View;
 
 /**
- * Export menu widget. Export tabular data to various formats using the PHPExcel library by reading data from a
+ * Export menu widget. Export tabular data to various formats using the \PhpOffice\PhpSpreadsheet\Spreadsheet library by reading data from a
  * dataProvider - with configuration very similar to a GridView.
  *
  * @author Kartik Visweswaran <kartikv2@gmail.com>
@@ -55,27 +55,27 @@ class ExportMenu extends GridView
     /**
      * HTML (Hyper Text Markup Language) export format
      */
-    const FORMAT_HTML = 'HTML';
+    const FORMAT_HTML = 'Html';
     /**
      * CSV (comma separated values) export format
      */
-    const FORMAT_CSV = 'CSV';
+    const FORMAT_CSV = 'Csv';
     /**
      * Text export format
      */
-    const FORMAT_TEXT = 'TXT';
+    const FORMAT_TEXT = 'Txt';
     /**
      * PDF (Portable Document Format) export format
      */
-    const FORMAT_PDF = 'PDF';
+    const FORMAT_PDF = 'Pdf';
     /**
      * Microsoft Excel 95+ export format
      */
-    const FORMAT_EXCEL = 'Excel5';
+    const FORMAT_EXCEL = 'Xls';
     /**
      * Microsoft Excel 2007+ export format
      */
-    const FORMAT_EXCEL_X = 'Excel2007';
+    const FORMAT_EXCEL_X = 'Xlsx';
     /**
      * Set download target for grid export to a popup browser window
      */
@@ -278,7 +278,7 @@ class ExportMenu extends GridView
      * - `alertMsg`: _string_, the message prompt to show before saving. If this is empty or not set it will not be
      *   displayed.
      * - `mime`: _string_, the mime type (for the file format) to be set before downloading.
-     * - `writer`: _string_, the PHP Excel writer type
+     * - `writer`: _string_, the PhpSpreadsheet writer type
      * - `options`: _array_, HTML attributes for the export menu item.
      */
     public $exportConfig = [];
@@ -292,7 +292,7 @@ class ExportMenu extends GridView
 
     /**
      * @var array the output style configuration options. It must be the style configuration array as required by
-     *  PHPExcel.
+     *  \PhpOffice\PhpSpreadsheet\Spreadsheet.
      */
     public $styleOptions = [];
 
@@ -385,13 +385,13 @@ class ExportMenu extends GridView
     public $messages = [];
 
     /**
-     * @var Closure the callback function on initializing the PHP Excel library. The anonymous function should have the
+     * @var Closure the callback function on initializing the PhpSpreadsheet library. The anonymous function should have the
      * following signature:
      * ```php
      * function ($excel, $grid)
      * ```
      * where:
-     * - `$excel`: the PHPExcel object instance
+     * - `$excel`: the \PhpOffice\PhpSpreadsheet\Spreadsheet object instance
      * - `$grid`: the GridView object
      */
     public $onInitExcel = null;
@@ -403,7 +403,7 @@ class ExportMenu extends GridView
      * function ($writer, $grid)
      * ```
      * where:
-     * - `$writer`: PHPExcel_Writer_Abstract, the PHPExcel_Writer_Abstract object instance
+     * - `$writer`: \PhpOffice\PhpSpreadsheet\Writer\BaseWriter, the \PhpOffice\PhpSpreadsheet\Writer\BaseWriter object instance
      * - `$grid`: GridView, the current GridView object
      */
     public $onInitWriter = null;
@@ -415,7 +415,7 @@ class ExportMenu extends GridView
      * function ($sheet, $grid)
      * ```
      * where:
-     * - `$sheet`: PHPExcel_Worksheet, the PHPExcel_Worksheet object instance
+     * - `$sheet`: \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet, the \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet object instance
      * - `$grid`: GridView, the current GridView object
      */
     public $onInitSheet = null;
@@ -427,7 +427,7 @@ class ExportMenu extends GridView
      * function ($cell, $content, $grid)
      * ```
      * where:
-     * - `$cell`: PHPExcel_Cell, is the current PHPExcel cell being rendered
+     * - `$cell`: \PhpOffice\PhpSpreadsheet\Cell\Cell, is the current \PhpOffice\PhpSpreadsheet\Spreadsheet cell being rendered
      * - `$content`: string, is the header cell content being rendered
      * - `$grid`: GridView, the current GridView object
      */
@@ -440,7 +440,7 @@ class ExportMenu extends GridView
      * function ($cell, $content, $model, $key, $index, $grid)
      * ```
      * where:
-     * - `$cell`: PHPExcel_Cell, the current PHPExcel cell being rendered
+     * - `$cell`: \PhpOffice\PhpSpreadsheet\Cell\Cell, the current \PhpOffice\PhpSpreadsheet\Spreadsheet cell being rendered
      * - `$content`: string, the data cell content being rendered
      * - `$model`: Model, the data model to be rendered
      * - `$key`: mixed, the key associated with the data model
@@ -456,7 +456,7 @@ class ExportMenu extends GridView
      * function ($cell, $content, $grid)
      * ```
      * where:
-     * - `$sheet`: PHPExcel_Worksheet, the PHPExcel_Worksheet object instance
+     * - `$sheet`: \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet, the \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet object instance
      * - `$content`: string, the footer cell content being rendered
      * - `$grid`: GridView, the current GridView object
      */
@@ -469,7 +469,7 @@ class ExportMenu extends GridView
      * function ($sheet, $grid)
      * ```
      * where:
-     * - `$sheet`: PHPExcel_Worksheet, the PHPExcel_Worksheet object instance
+     * - `$sheet`: \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet, the \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet object instance
      * - `$grid`: GridView, the current GridView object
      */
     public $onRenderSheet = null;
@@ -488,7 +488,7 @@ class ExportMenu extends GridView
     public $onGenerateFile = null;
 
     /**
-     * @var array the PHPExcel document properties
+     * @var array the \PhpOffice\PhpSpreadsheet\Spreadsheet document properties
      */
     public $docProperties = [];
 
@@ -510,7 +510,7 @@ class ExportMenu extends GridView
     public $dynagridOptions = ['options' => ['id' => 'dynagrid-export-menu']];
 
     /**
-     * @var array the PHP Excel style configuration for a grouped grid row
+     * @var array the PhpSpreadsheet style configuration for a grouped grid row
      */
     public $groupedRowStyle = [
         'font' => [
@@ -520,7 +520,7 @@ class ExportMenu extends GridView
             ],
         ],
         'fill' => [
-            'type' => PHPExcel_Style_Fill::FILL_SOLID,
+            'type' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
             'color' => [
                 'argb' => 'C9C9C9',
             ],
@@ -549,19 +549,19 @@ class ExportMenu extends GridView
     protected $_defaultExportConfig = [];
 
     /**
-     * @var PHPExcel object instance
+     * @var \PhpOffice\PhpSpreadsheet\Spreadsheet object instance
      */
-    protected $_objPHPExcel;
+    protected $_objPhpSpreadsheet;
 
     /**
-     * @var PHPExcel_Writer_Abstract object instance
+     * @var \PhpOffice\PhpSpreadsheet\Writer\BaseWriter object instance
      */
-    protected $_objPHPExcelWriter;
+    protected $_objPhpSpreadsheetWriter;
 
     /**
-     * @var PHPExcel_Worksheet object instance
+     * @var \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet object instance
      */
-    protected $_objPHPExcelSheet;
+    protected $_objPhpSpreadsheetWorksheet;
 
     /**
      * @var integer  the header beginning row
@@ -605,7 +605,7 @@ class ExportMenu extends GridView
                 ],
             ],
             'fill' => [
-                'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                'type' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                 'color' => [
                     'argb' => '00000000',
                 ],
@@ -619,7 +619,7 @@ class ExportMenu extends GridView
                 ],
             ],
             'fill' => [
-                'type' => PHPExcel_Style_Fill::FILL_GRADIENT_LINEAR,
+                'type' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
                 'startcolor' => [
                     'argb' => 'FFA0A0A0',
                 ],
@@ -740,18 +740,18 @@ class ExportMenu extends GridView
         }
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         if (empty($config['writer'])) {
-            throw new InvalidConfigException("The 'writer' setting for PHPExcel must be setup in 'exportConfig'.");
+            throw new InvalidConfigException("The 'writer' setting for \PhpOffice\PhpSpreadsheet\Spreadsheet must be setup in 'exportConfig'.");
         }
-        $this->initPHPExcel();
-        $this->initPHPExcelWriter($config['writer']);
-        $this->initPHPExcelSheet();
+        $this->initPhpSpreadsheet();
+        $this->initPhpSpreadsheetWriter($config['writer']);
+        $this->initPhpSpreadsheetWorksheet();
         $this->generateBeforeContent();
         $this->generateHeader();
         $this->generateBody();
         $row = $this->generateFooter();
         $this->generateAfterContent($row);
-        $writer = $this->_objPHPExcelWriter;
-        $sheet = $this->_objPHPExcelSheet;
+        $writer = $this->_objPhpSpreadsheetWriter;
+        $sheet = $this->_objPhpSpreadsheetWorksheet;
         if ($this->autoWidth) {
             foreach ($this->getVisibleColumns() as $n => $column) {
                 $sheet->getColumnDimension(self::columnName($n + 1))->setAutoSize(true);
@@ -772,7 +772,7 @@ class ExportMenu extends GridView
             if ($this->deleteAfterSave) {
                 @unlink($file);
             }
-            $this->destroyPHPExcel();
+            $this->destroyPhpSpreadsheet();
         };
         $writer->save($file);
         if ($this->stream) {
@@ -957,18 +957,18 @@ class ExportMenu extends GridView
     }
 
     /**
-     * Initializes PHP Excel Object Instance
+     * Initializes PhpSpreadsheet Object Instance
      */
-    public function initPHPExcel()
+    public function initPhpSpreadsheet()
     {
-        $this->_objPHPExcel = new PHPExcel();
+        $this->_objPhpSpreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $creator = $title = $subject = $category = $keywords = $manager = '';
         $description = Yii::t('kvexport', 'Grid export generated by Krajee ExportMenu widget (yii2-export)');
         $company = 'Krajee Solutions';
         $created = date('Y-m-d H:i:s');
         $lastModifiedBy = 'krajee';
         extract($this->docProperties);
-        $properties = $this->_objPHPExcel->getProperties();
+        $properties = $this->_objPhpSpreadsheet->getProperties();
         $properties->setCreator($creator)
                    ->setTitle($title)
                    ->setSubject($subject)
@@ -979,34 +979,34 @@ class ExportMenu extends GridView
                    ->setCompany($company)
                    ->setCreated($created)
                    ->setLastModifiedBy($lastModifiedBy);
-        $this->raiseEvent('onInitExcel', [$this->_objPHPExcel, $this]);
+        $this->raiseEvent('onInitExcel', [$this->_objPhpSpreadsheet, $this]);
     }
 
     /**
-     * Initializes PHP Excel Writer Object Instance
+     * Initializes PhpSpreadsheet Writer Object Instance
      *
      * @param string $type the writer type as set in export config
      */
-    public function initPHPExcelWriter($type)
+    public function initPhpSpreadsheetWriter($type)
     {
         /**
-         * @var PHPExcel_Writer_CSV $writer
+         * @var \PhpOffice\PhpSpreadsheet\Writer\Csv $writer
          */
-        $writer = $this->_objPHPExcelWriter = PHPExcel_IOFactory::createWriter($this->_objPHPExcel, $type);
+        $writer = $this->_objPhpSpreadsheetWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($this->_objPhpSpreadsheet, $type);
         if ($this->_exportType === self::FORMAT_TEXT) {
             $delimiter = $this->getSetting('delimiter', "\t");
             $writer->setDelimiter($delimiter);
         }
-        $this->raiseEvent('onInitWriter', [$this->_objPHPExcelWriter, $this]);
+        $this->raiseEvent('onInitWriter', [$this->_objPhpSpreadsheetWriter, $this]);
     }
 
     /**
-     * Initializes PHP Excel Worksheet Instance
+     * Initializes PhpSpreadsheet Worksheet Instance
      */
-    public function initPHPExcelSheet()
+    public function initPhpSpreadsheetWorksheet()
     {
-        $this->_objPHPExcelSheet = $this->_objPHPExcel->getActiveSheet();
-        $this->raiseEvent('onInitSheet', [$this->_objPHPExcelSheet, $this]);
+        $this->_objPhpSpreadsheetWorksheet = $this->_objPhpSpreadsheet->getActiveSheet();
+        $this->raiseEvent('onInitSheet', [$this->_objPhpSpreadsheetWorksheet, $this]);
     }
 
     /**
@@ -1015,7 +1015,7 @@ class ExportMenu extends GridView
     public function generateBeforeContent()
     {
         $colFirst = self::columnName(1);
-        $sheet = $this->_objPHPExcelSheet;
+        $sheet = $this->_objPhpSpreadsheetWorksheet;
         foreach ($this->contentBefore as $contentBefore) {
             $sheet->setCellValue($colFirst . $this->_beginRow, $contentBefore['value'], true);
             $opts = $this->getStyleOpts($contentBefore);
@@ -1033,7 +1033,7 @@ class ExportMenu extends GridView
         if (count($columns) == 0) {
             return;
         }
-        $sheet = $this->_objPHPExcelSheet;
+        $sheet = $this->_objPhpSpreadsheetWorksheet;
         $styleOpts = ArrayHelper::getValue($this->styleOptions, $this->_exportType, []);
         $colFirst = self::columnName(1);
 
@@ -1134,7 +1134,7 @@ class ExportMenu extends GridView
         $columns = $this->getVisibleColumns();
         $models = array_values($this->_provider->getModels());
         if (count($columns) == 0) {
-            $cell = $this->_objPHPExcelSheet->setCellValue('A1', $this->emptyText, true);
+            $cell = $this->_objPhpSpreadsheetWorksheet->setCellValue('A1', $this->emptyText, true);
             $model = reset($models);
             $this->raiseEvent('onRenderDataCell', [$cell, $this->emptyText, $model, null, 0, $this]);
             return 0;
@@ -1156,9 +1156,9 @@ class ExportMenu extends GridView
                 }
                 if (!is_null($this->_groupedRow)) {
                     $this->_endRow++;
-                    $this->_objPHPExcelSheet->fromArray($this->_groupedRow, null, 'A' . ($this->_endRow + 1), true);
+                    $this->_objPhpSpreadsheetWorksheet->fromArray($this->_groupedRow, null, 'A' . ($this->_endRow + 1), true);
                     $cell = 'A' . ($this->_endRow + 1) . ':' . self::columnName(count($columns)) . ($this->_endRow + 1);
-                    $this->_objPHPExcelSheet->getStyle($cell)->applyFromArray($this->groupedRowStyle);
+                    $this->_objPhpSpreadsheetWorksheet->getStyle($cell)->applyFromArray($this->groupedRowStyle);
                     $this->_groupedRow = null;
                 }
             }
@@ -1175,10 +1175,10 @@ class ExportMenu extends GridView
         // Set autofilter on
         $from = self::columnName(1) . $this->_beginRow;
         $to = self::columnName($this->_endCol) . ($this->_endRow + $this->_beginRow);
-        $this->_objPHPExcelSheet->setAutoFilter("{$from}:{$to}");
+        $this->_objPhpSpreadsheetWorksheet->setAutoFilter("{$from}:{$to}");
         return $this->_endRow;
     }
-    
+
     /**
      * Generates an output data row with the given data model and key.
      *
@@ -1219,7 +1219,7 @@ class ExportMenu extends GridView
             } else {
                 $value = '';
             }
-            $cell = $this->_objPHPExcelSheet->setCellValue(
+            $cell = $this->_objPhpSpreadsheetWorksheet->setCellValue(
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
                 $value,
                 true
@@ -1247,7 +1247,7 @@ class ExportMenu extends GridView
             if ($column->footer) {
                 $footerExists = true;
                 $footer = trim($column->footer) !== '' ? $column->footer : $column->grid->blankDisplay;
-                $cell = $this->_objPHPExcel->getActiveSheet()->setCellValue(
+                $cell = $this->_objPhpSpreadsheet->getActiveSheet()->setCellValue(
                     self::columnName($this->_endCol) . ($row + 1),
                     $footer,
                     true
@@ -1271,7 +1271,7 @@ class ExportMenu extends GridView
         $colFirst = self::columnName(1);
         $row++;
         $afterContentBeginRow = $row;
-        $sheet = $this->_objPHPExcelSheet;
+        $sheet = $this->_objPhpSpreadsheetWorksheet;
         foreach ($this->contentAfter as $contentAfter) {
             $sheet->setCellValue($colFirst . $row, $contentAfter['value'], true);
             $opts = $this->getStyleOpts($contentAfter);
@@ -1294,74 +1294,74 @@ class ExportMenu extends GridView
     }
 
     /**
-     * Gets the PHP Excel object
+     * Gets the PhpSpreadsheet object
      *
-     * @return PHPExcel the current PHPExcel object instance
+     * @return \PhpOffice\PhpSpreadsheet\Spreadsheet the current \PhpOffice\PhpSpreadsheet\Spreadsheet object instance
      */
-    public function getPHPExcel()
+    public function getPhpSpreadsheet()
     {
-        return $this->_objPHPExcel;
+        return $this->_objPhpSpreadsheet;
     }
 
     /**
-     * Gets the PHP Excel writer object
+     * Gets the PhpSpreadsheet writer object
      *
-     * @return PHPExcel_Writer_Abstract the current PHPExcel_Writer_Abstract object instance
+     * @return \PhpOffice\PhpSpreadsheet\Writer\BaseWriter the current \PhpOffice\PhpSpreadsheet\Writer\BaseWriter object instance
      */
-    public function getPHPExcelWriter()
+    public function getPhpSpreadsheetWriter()
     {
-        return $this->_objPHPExcelWriter;
+        return $this->_objPhpSpreadsheetWriter;
     }
 
     /**
-     * Gets the PHP Excel sheet object
+     * Gets the PhpSpreadsheet sheet object
      *
-     * @return PHPExcel_Worksheet the current PHPExcel_Worksheet object instance
+     * @return \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet the current \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet object instance
      */
-    public function getPHPExcelSheet()
+    public function getPhpSpreadsheetWorksheet()
     {
-        return $this->_objPHPExcelSheet;
+        return $this->_objPhpSpreadsheetWorksheet;
     }
 
     /**
-     * Sets the PHP Excel object
+     * Sets the PhpSpreadsheet object
      *
-     * @param $obj PHPExcel the PHPExcel object instance
+     * @param $obj \PhpOffice\PhpSpreadsheet\Spreadsheet the \PhpOffice\PhpSpreadsheet\Spreadsheet object instance
      */
-    public function setPHPExcel($obj)
+    public function setPhpSpreadsheet($obj)
     {
-        $this->_objPHPExcel = $obj;
+        $this->_objPhpSpreadsheet = $obj;
     }
 
     /**
-     * Sets the PHP Excel writer object
+     * Sets the PhpSpreadsheet writer object
      *
-     * @param $obj PHPExcel_Writer_Abstract the PHPExcel_Writer_Abstract object instance
+     * @param $obj \PhpOffice\PhpSpreadsheet\Writer\BaseWriter the \PhpOffice\PhpSpreadsheet\Writer\BaseWriter object instance
      */
-    public function setPHPExcelWriter($obj)
+    public function setPhpSpreadsheetWriter($obj)
     {
-        $this->_objPHPExcelWriter = $obj;
+        $this->_objPhpSpreadsheetWriter = $obj;
     }
 
     /**
-     * Sets the PHP Excel sheet object
+     * Sets the PhpSpreadsheet sheet object
      *
-     * @param $obj PHPExcel_Worksheet the PHPExcel_Worksheet object instance
+     * @param $obj \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet the \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet object instance
      */
-    public function setPHPExcelSheet($obj)
+    public function setPhpSpreadsheetWorksheet($obj)
     {
-        $this->_objPHPExcelSheet = $obj;
+        $this->_objPhpSpreadsheetWorksheet = $obj;
     }
 
     /**
-     * Destroys PHP Excel Object Instance
+     * Destroys PhpSpreadsheet Object Instance
      */
-    public function destroyPHPExcel()
+    public function destroyPhpSpreadsheet()
     {
-        if (isset($this->_objPHPExcel)) {
-            $this->_objPHPExcel->disconnectWorksheets();
+        if (isset($this->_objPhpSpreadsheet)) {
+            $this->_objPhpSpreadsheet->disconnectWorksheets();
         }
-        unset($this->_provider, $this->_objPHPExcelWriter, $this->_objPHPExcelSheet, $this->_objPHPExcel);
+        unset($this->_provider, $this->_objPhpSpreadsheetWriter, $this->_objPhpSpreadsheetWorksheet, $this->_objPhpSpreadsheet);
     }
 
     /**
@@ -1386,14 +1386,14 @@ class ExportMenu extends GridView
     protected function renderPDF($file)
     {
         //  Default PDF paper size
-        $excel = $this->_objPHPExcel;
-        $sheet = $this->_objPHPExcelSheet;
+        $excel = $this->_objPhpSpreadsheet;
+        $sheet = $this->_objPhpSpreadsheetWorksheet;
         /**
-         * @var \PHPExcel_Writer_HTML $w
+         * @var \PhpOffice\PhpSpreadsheet\Writer\Html $w
          */
-        $w = $this->_objPHPExcelWriter;
+        $w = $this->_objPhpSpreadsheetWriter;
         $page = $sheet->getPageSetup();
-        $orientation = $page->getOrientation() == PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE ? 'L' : 'P';
+        $orientation = $page->getOrientation() == \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE ? 'L' : 'P';
         $properties = $excel->getProperties();
         $settings = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         $useInlineCss = ArrayHelper::getValue($settings, 'useInlineCss', false);
@@ -1567,7 +1567,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The HTML export file will be generated for download.'),
                 'mime' => 'text/html',
                 'extension' => 'html',
-                'writer' => 'HTML',
+                'writer' => self::FORMAT_HTML,
             ],
             self::FORMAT_CSV => [
                 'label' => Yii::t('kvexport', 'CSV'),
@@ -1578,7 +1578,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The CSV export file will be generated for download.'),
                 'mime' => 'application/csv',
                 'extension' => 'csv',
-                'writer' => 'CSV',
+                'writer' => self::FORMAT_CSV,
             ],
             self::FORMAT_TEXT => [
                 'label' => Yii::t('kvexport', 'Text'),
@@ -1589,7 +1589,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The TEXT export file will be generated for download.'),
                 'mime' => 'text/plain',
                 'extension' => 'txt',
-                'writer' => 'CSV',
+                'writer' => self::FORMAT_CSV,
                 'delimiter' => "\t",
             ],
             self::FORMAT_PDF => [
@@ -1601,7 +1601,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The PDF export file will be generated for download.'),
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
-                'writer' => 'HTML',
+                'writer' => self::FORMAT_HTML,
                 'useInlineCss' => true,
                 'pdfConfig' => [],
             ],
@@ -1614,7 +1614,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The EXCEL 95+ (xls) export file will be generated for download.'),
                 'mime' => 'application/vnd.ms-excel',
                 'extension' => 'xls',
-                'writer' => 'Excel5',
+                'writer' => self::FORMAT_EXCEL,
             ],
             self::FORMAT_EXCEL_X => [
                 'label' => Yii::t('kvexport', 'Excel 2007+'),
@@ -1625,7 +1625,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The EXCEL 2007+ (xlsx) export file will be generated for download.'),
                 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'extension' => 'xlsx',
-                'writer' => 'Excel2007',
+                'writer' => self::FORMAT_EXCEL_X,
             ],
         ];
     }
@@ -1806,7 +1806,7 @@ class ExportMenu extends GridView
             $groupedRange = self::columnName($key + 1) . $firstLine . ':' . self::columnName($key + 1) . $endLine;
             //$lastCell = self::columnName($key + 1) . $endLine - 1;
             if (isset($column->group) && $column->group) {
-                $this->_objPHPExcelSheet->mergeCells($groupedRange);
+                $this->_objPhpSpreadsheetWorksheet->mergeCells($groupedRange);
             }
             switch ($value) {
                 case self::F_SUM:
