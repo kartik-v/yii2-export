@@ -766,7 +766,7 @@ class ExportMenu extends GridView
         }
         $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
         $cleanup = function () use ($file, $config) {
-            if ($this->raiseEvent('onGenerateFile', [$config['extension'], $this]) !== false) {
+            if ($this->raiseEvent('onGenerateFile', [$config['extension'], $this]) !== true) {
                 return;
             }
             if ($this->deleteAfterSave) {
