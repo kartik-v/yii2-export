@@ -769,7 +769,7 @@ class ExportMenu extends GridView
             if ($this->raiseEvent('onGenerateFile', [$config['extension'], $this]) !== true) {
                 return;
             }
-            if ($this->deleteAfterSave) {
+            if ($this->stream || $this->deleteAfterSave) {
                 @unlink($file);
             }
             $this->destroyPhpSpreadsheet();
