@@ -1,6 +1,13 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3 - to be released
+
+**Date:** 17-Jan-2018
+
+- Security: Do not use @webroot/runtime/export as default export directory because
+  this folder is available to the public! It was set to @app/runtime/export now.
+
 ## version 1.2.8
 
 **Date:** 19-Nov-2017
