@@ -20,6 +20,7 @@ use PhpOffice\PhpSpreadsheet\Helper\Html as HelperHtml;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\BaseWriter;
@@ -613,7 +614,7 @@ class ExportMenu extends GridView
                 ],
             ],
             'fill' => [
-                'type' => Fill::FILL_SOLID,
+                'fillType' => Fill::FILL_SOLID,
                 'color' => [
                     'argb' => '00000000',
                 ],
@@ -627,11 +628,11 @@ class ExportMenu extends GridView
                 ],
             ],
             'fill' => [
-                'type' => Fill::FILL_GRADIENT_LINEAR,
-                'startcolor' => [
+                'fillType' => Fill::FILL_GRADIENT_LINEAR,
+                'startColor' => [
                     'argb' => 'FFA0A0A0',
                 ],
-                'endcolor' => [
+                'endColor' => [
                     'argb' => 'FFFFFFFF',
                 ],
             ],
@@ -1042,15 +1043,22 @@ class ExportMenu extends GridView
 
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $column) {
+            $opts = $styleOpts;
             $this->_endCol++;
             /**
-             * @var DataColumn $column
+             * @var \kartik\grid\DataColumn $column
              */
             $head = ($column instanceof DataColumn) ? $this->getColumnHeader($column) : $column->header;
             $id = self::columnName($this->_endCol) . $this->_beginRow;
             $cell = $this->setOutCellValue($sheet, $id, $head);
+            if (isset($column->hAlign) && !isset($opts['alignment']['horizontal'])) {
+                $opts['alignment']['horizontal'] = $column->hAlign;
+            }
+            if (isset($column->vAlign) && !isset($opts['alignment']['vertical'])) {
+                $opts['alignment']['vertical'] = $column->vAlign;
+            }
             // Apply formatting to header cell
-            $sheet->getStyle($id)->applyFromArray($styleOpts);
+            $sheet->getStyle($id)->applyFromArray($opts);
             $this->raiseEvent('onRenderHeaderCell', [$cell, $head, $this]);
         }
         for ($i = $this->_headerBeginRow; $i < ($this->_beginRow); $i++) {
@@ -1224,6 +1232,7 @@ class ExportMenu extends GridView
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
                 $value
             );
+            $this->autoFormat($column, $cell);
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
         }
     }
@@ -1362,6 +1371,51 @@ class ExportMenu extends GridView
             $this->_objSpreadsheet->disconnectWorksheets();
         }
         unset($this->_provider, $this->_objWriter, $this->_objWorksheet, $this->_objSpreadsheet);
+    }
+
+    /**
+     * Autoformats a cell by auto detecting the grid column alignment and format
+     *
+     * @param Column $column
+     * @param Cell   $cell
+     */
+    protected function autoFormat($column, $cell)
+    {
+        $ord = $cell->getCoordinate();
+        $style = $this->_objWorksheet->getStyle($ord);
+        $opts = isset($column->exportMenuStyle) ? $column->exportMenuStyle : [];
+        if (isset($column->hAlign) && !isset($opts['alignment']['horizontal'])) {
+            $opts['alignment']['horizontal'] = $column->hAlign;
+        }
+        if (isset($column->vAlign) && !isset($opts['alignment']['vertical'])) {
+            $opts['alignment']['vertical'] = $column->vAlign;
+        }
+        if (isset($column->format) && !isset($opts['numberFormat']) && !($column->format instanceof Closure)) {
+            $fmt = (array)$column->format;
+            $f = $fmt[0];
+            $code = null;
+            if ($f === 'integer') {
+                $code = NumberFormat::FORMAT_NUMBER;
+            } elseif ($f === 'percent' || $f === 'decimal' || $f === 'currency') {
+                $code = '';
+                if ($f === 'currency') {
+                    $code = ArrayHelper::getValue($fmt, 1, $this->formatter->currencyCode) . ' ';
+                }
+                $decimals = ArrayHelper::getValue($fmt, 1, ($f === 'percent' ? 0 : 2));
+                $d = intval($decimals);
+                $code .= '#' . $this->formatter->thousandSeparator . '##0';
+                if ($d > 0) {
+                    $code .= $this->formatter->decimalSeparator . str_repeat('0', $d);
+                }
+                if ($f === 'percent') {
+                    $code .= '%';
+                }
+            }
+            if ($code !== null) {
+                $opts['numberFormat'] = ['formatCode' => $code];
+            }
+        }
+        $style->applyFromArray($opts);
     }
 
     /**
@@ -1870,6 +1924,9 @@ class ExportMenu extends GridView
     {
         if ($rich) {
             $val = $this->_wizard->toRichTextObject($val);
+        }
+        if ($this->_exportType === self::FORMAT_EXCEL) {
+            $val = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
         }
         $cell = $sheet->getCell($coord);
         $cell->setValue($val);

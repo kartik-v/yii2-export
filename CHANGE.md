@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _work in progress_
 
+- (enh #236): Autoformat cells via enhanced column configuration style properties.
 - (enh #235): Change default export path from `@webroot/runtime/export` to `@app/runtime/export`.
 - Refactor and optimize code.
 - (enh #232): Replace PHPExcel with updated PHPSpreadsheet library.
