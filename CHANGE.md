@@ -1,12 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
-## version 1.2.9
+## version 1.2.9 (_under development_)
 
-**Date:** _under development_
+**Date:** _work in progress_
 
+- (enh #232): Replace PHPExcel with updated PHPSpreadsheet library.
 - (enh #230): Export HTML content more correctly fixes #168, #126.
-- (enh #232): Replace PHPExcel with PHPSpreadsheet.
 
 ## version 1.2.8
 

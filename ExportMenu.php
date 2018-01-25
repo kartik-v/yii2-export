@@ -3,7 +3,7 @@
 /**
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
  * @version   1.2.8
  */
 
@@ -1275,7 +1275,7 @@ class ExportMenu extends GridView
         $afterContentBeginRow = $row;
         $sheet = $this->_objPhpSpreadsheetWorksheet;
         foreach ($this->contentAfter as $contentAfter) {
-            $this->setOutCellValue($sheet, $colFirst . $row, $contentAfter['value'], true);
+            $this->setOutCellValue($sheet, $colFirst . $row, $contentAfter['value']);
             $opts = $this->getStyleOpts($contentAfter);
             $sheet->getStyle($colFirst . $row)->applyFromArray($opts);
             $row += 1;
