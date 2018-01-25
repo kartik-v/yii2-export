@@ -35,6 +35,7 @@ use yii\db\ActiveQueryInterface;
 use yii\grid\ActionColumn;
 use yii\grid\Column;
 use yii\grid\DataColumn;
+use yii\grid\SerialColumn;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Inflector;
@@ -1199,6 +1200,12 @@ class ExportMenu extends GridView
             $value = null;
             if ($column instanceof ActionColumn) {
                 $value = null;
+            } elseif ($column instanceof SerialColumn) {
+                $value = $index + 1;
+                $pagination = $column->grid->dataProvider->getPagination();
+                if ($pagination !== false) {
+                    $value += $pagination->getOffset();
+                }
             } elseif (isset($column->content)) {
                 $value = call_user_func($column->content, $model, $key, $index, $column);
             } elseif (method_exists($column, 'getDataCellValue')) {
@@ -1641,7 +1648,7 @@ class ExportMenu extends GridView
             'downloadComplete' => Yii::t(
                 'kvexport',
                 'Request submitted! You may safely close this dialog after saving your downloaded file.'
-            )
+            ),
         ];
         $formId = $this->exportFormOptions['id'];
         $options = Json::encode(
