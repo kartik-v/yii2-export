@@ -1859,6 +1859,8 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Parses format and sets the value of a PHP Spreadsheet Cell
+     *
      * @param Worksheet $sheet
      * @param string    $coord coordinate of the cell, eg: 'A1'
      * @param  mixed    $val value of the cell
