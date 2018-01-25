@@ -330,10 +330,10 @@ class ExportMenu extends GridView
     public $filename;
 
     /**
-     * @var string the folder to save the exported file. Defaults to '@webroot/runtime/tmp/'. If the specified folder
-     * does not exist, it will be attempted to be created or an exception will be thrown.
+     * @var string the folder to save the exported file. Defaults to '@app/runtime/export/'. If the specified folder
+     * does not exist, the extension will attempt to create it - else an exception will be thrown.
      */
-    public $folder = '@webroot/runtime/export';
+    public $folder = '@app/runtime/export';
 
     /**
      * @var string the web accessible path for the saved file location. This property will be parsed only if [[stream]]

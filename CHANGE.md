@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _work in progress_
 
+- (enh #235): Change default export path from `@webroot/runtime/export` to `@app/runtime/export`.
 - Refactor and optimize code.
 - (enh #232): Replace PHPExcel with updated PHPSpreadsheet library.
 - (enh #230): Export HTML content more correctly fixes #168, #126.
