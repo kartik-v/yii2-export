@@ -1043,6 +1043,9 @@ class ExportMenu extends GridView
 
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $column) {
+            if (!empty($column->hiddenFromExport)) {
+                continue;
+            }
             $opts = $styleOpts;
             $this->_endCol++;
             /**
@@ -1204,6 +1207,9 @@ class ExportMenu extends GridView
          */
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $column) {
+            if (!empty($column->hiddenFromExport)) {
+                continue;
+            }
             $format = $this->enableFormatter && isset($column->format) ? $column->format : 'raw';
             $value = null;
             if ($column instanceof ActionColumn) {
