@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _work in progress_
 
+- Refactor and optimize code.
 - (enh #232): Replace PHPExcel with updated PHPSpreadsheet library.
 - (enh #230): Export HTML content more correctly fixes #168, #126.
 
