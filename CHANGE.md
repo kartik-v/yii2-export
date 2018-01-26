@@ -5,7 +5,8 @@ Change Log: `yii2-export`
 
 **Date:** _work in progress_
 
-- (enh #237): Validate `hiddenFromExport` property of columns to hide columns in export output.
+- (enh #239): New property `stripHtml` that would strip Html tags.
+- (enh #238): New style options for header, box, and cells.
 - (enh #236): Autoformat cells via enhanced column configuration style properties.
 - (enh #235): Change default export path from `@webroot/runtime/export` to `@app/runtime/export`.
 - Refactor and optimize code.

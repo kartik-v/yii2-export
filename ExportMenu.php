@@ -16,11 +16,11 @@ use kartik\dynagrid\Dynagrid;
 use kartik\grid\GridView;
 use kartik\mpdf\Pdf;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
-use PhpOffice\PhpSpreadsheet\Helper\Html as HelperHtml;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\BaseWriter;
@@ -269,6 +269,12 @@ class ExportMenu extends GridView
     public $fontAwesome = false;
 
     /**
+     * @var boolean whether to strip HTML tags from each of the source column data before rendering the PHP
+     * Spreadsheet Cell.
+     */
+    public $stripHtml = true;
+
+    /**
      * @var array the export configuration. The array keys must be the one of the `format` constants (CSV, HTML, TEXT,
      * EXCEL, PDF) and the array value is a configuration array consisting of these settings:
      * - `label`: _string_, the label for the export format menu item displayed
@@ -295,10 +301,22 @@ class ExportMenu extends GridView
     public $exportRequestParam;
 
     /**
-     * @var array the output style configuration options. It must be the style configuration array as required by
-     *  `\PhpOffice\PhpSpreadsheet\Spreadsheet`.
+     * @var array the output style configuration options for each data cell. It must be the style configuration
+     * array as required by `\PhpOffice\PhpSpreadsheet\Spreadsheet`.
      */
     public $styleOptions = [];
+
+    /**
+     * @var array the output style configuration options for the header row. It must be the style configuration array as
+     * required by `\PhpOffice\PhpSpreadsheet\Spreadsheet`.
+     */
+    public $headerStyleOptions = [];
+
+    /**
+     * @var array the output style configuration options for the entire spreadsheet box range. It must be the style
+     * configuration array as required by `\PhpOffice\PhpSpreadsheet\Spreadsheet`.
+     */
+    public $boxStyleOptions = [];
 
     /**
      * @var array an array of rows to prepend in front of the grid used to create things like a title. Each array
@@ -520,13 +538,13 @@ class ExportMenu extends GridView
         'font' => [
             'bold' => false,
             'color' => [
-                'argb' => '000000',
+                'argb' => Color::COLOR_DARKBLUE,
             ],
         ],
         'fill' => [
             'type' => Fill::FILL_SOLID,
             'color' => [
-                'argb' => 'C9C9C9',
+                'argb' => Color::COLOR_WHITE,
             ],
         ],
     ];
@@ -551,11 +569,6 @@ class ExportMenu extends GridView
      */
 
     protected $_defaultExportConfig = [];
-
-    /**
-     * @var HelperHtml object instance
-     */
-    protected $_wizard;
 
     /**
      * @var Spreadsheet object instance
@@ -601,43 +614,6 @@ class ExportMenu extends GridView
      * @var array the visble columns for export
      */
     protected $_visibleColumns;
-
-    /**
-     * @var array the default style configuration
-     */
-    protected $_defaultStyleOptions = [
-        self::FORMAT_EXCEL => [
-            'font' => [
-                'bold' => true,
-                'color' => [
-                    'argb' => 'FFFFFFFF',
-                ],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'color' => [
-                    'argb' => '00000000',
-                ],
-            ],
-        ],
-        self::FORMAT_EXCEL_X => [
-            'font' => [
-                'bold' => true,
-                'color' => [
-                    'argb' => 'FFFFFFFF',
-                ],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_GRADIENT_LINEAR,
-                'startColor' => [
-                    'argb' => 'FFA0A0A0',
-                ],
-                'endColor' => [
-                    'argb' => 'FFFFFFFF',
-                ],
-            ],
-        ],
-    ];
 
     /**
      * @var array columns to be grouped
@@ -702,7 +678,6 @@ class ExportMenu extends GridView
         if (empty($this->exportRequestParam)) {
             $this->exportRequestParam = 'exportFull_' . $this->options['id'];
         }
-        $this->_wizard = new HelperHtml();
         $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
         $this->_triggerDownload = Yii::$app->request->post($this->exportRequestParam, false);
         if (!$this->stream) {
@@ -829,7 +804,8 @@ class ExportMenu extends GridView
         if ($this->initProvider) {
             $this->_provider->prepare(true);
         }
-        $this->styleOptions = ArrayHelper::merge($this->_defaultStyleOptions, $this->styleOptions);
+        $this->setDefaultStyles('header');
+        $this->setDefaultStyles('box');
         $this->filterModel = null;
         $this->setDefaultExportConfig();
         $this->exportConfig = ArrayHelper::merge($this->_defaultExportConfig, $this->exportConfig);
@@ -1038,7 +1014,7 @@ class ExportMenu extends GridView
             return;
         }
         $sheet = $this->_objWorksheet;
-        $styleOpts = ArrayHelper::getValue($this->styleOptions, $this->_exportType, []);
+        $styleOpts = ArrayHelper::getValue($this->headerStyleOptions, $this->_exportType, []);
         $colFirst = self::columnName(1);
 
         $this->_endCol = 0;
@@ -1185,11 +1161,7 @@ class ExportMenu extends GridView
                 $models = [];
             }
         }
-
-        // Set autofilter on
-        $from = self::columnName(1) . $this->_beginRow;
-        $to = self::columnName($this->_endCol) . ($this->_endRow + $this->_beginRow);
-        $this->_objWorksheet->setAutoFilter("{$from}:{$to}");
+        $this->generateBox();
         return $this->_endRow;
     }
 
@@ -1238,7 +1210,7 @@ class ExportMenu extends GridView
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
                 $value
             );
-            $this->autoFormat($column, $cell);
+            $this->autoFormat($model, $key, $index, $column, $cell);
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
         }
     }
@@ -1380,16 +1352,103 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Sets default styles
+     *
+     * @param string $section the php spreadsheet section
+     */
+    protected function setDefaultStyles($section)
+    {
+        $defaultStyle = [];
+        $opts = '';
+        if ($section === 'header') {
+            $opts = 'headerStyleOptions';
+            $defaultStyle = [
+                'font' => ['bold' => true],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'color' => [
+                        'argb' => 'FFE5E5E5',
+                    ],
+                ],
+                'borders' => [
+                    'outline' => [
+                        'borderStyle' => Border::BORDER_MEDIUM,
+                        'color' => ['argb' => Color::COLOR_BLACK],
+                    ],
+                    'inside' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color' => ['argb' => Color::COLOR_BLACK],
+                    ],
+                ],
+            ];
+        } elseif ($section === 'box') {
+            $opts = 'boxStyleOptions';
+            $defaultStyle = [
+                'borders' => [
+                    'outline' => [
+                        'borderStyle' => Border::BORDER_MEDIUM,
+                        'color' => ['argb' => Color::COLOR_BLACK],
+                    ],
+                    'inside' => [
+                        'borderStyle' => Border::BORDER_DOTTED,
+                        'color' => ['argb' => Color::COLOR_BLACK],
+                    ],
+                ],
+            ];
+        }
+        if (empty($opts)) {
+            return;
+        }
+        $defaultStyleOptions = [
+            self::FORMAT_HTML => $defaultStyle,
+            self::FORMAT_PDF => $defaultStyle,
+            self::FORMAT_EXCEL => $defaultStyle,
+            self::FORMAT_EXCEL_X => $defaultStyle,
+        ];
+        $this->$opts = array_replace_recursive($defaultStyleOptions, $this->$opts);
+    }
+
+    /**
+     * Generates the box
+     */
+    protected function generateBox()
+    {
+        // Set autofilter on
+        $from = self::columnName(1) . $this->_beginRow;
+        $to = self::columnName($this->_endCol) . ($this->_endRow + $this->_beginRow);
+        $box = "{$from}:{$to}";
+        $this->_objWorksheet->setAutoFilter($box);
+        if (isset($this->boxStyleOptions[$this->_exportType])) {
+            $this->_objWorksheet->getStyle($box)->applyFromArray($this->boxStyleOptions[$this->_exportType]);
+        }
+
+        if (isset($this->headerStyleOptions[$this->_exportType])) {
+            $to = self::columnName($this->_endCol) . $this->_beginRow;
+            $box = "{$from}:{$to}";
+            $this->_objWorksheet->getStyle($box)->applyFromArray($this->headerStyleOptions[$this->_exportType]);
+        }
+    }
+
+    /**
      * Autoformats a cell by auto detecting the grid column alignment and format
      *
-     * @param Column $column
-     * @param Cell   $cell
+     * @param mixed   $model the data model to be rendered
+     * @param mixed   $key the key associated with the data model
+     * @param integer $index the zero-based index of the data model among the model array returned by [[dataProvider]].
+     * @param Column  $column
+     * @param Cell    $cell
      */
-    protected function autoFormat($column, $cell)
+    protected function autoFormat($model, $key, $index, $column, $cell)
     {
         $ord = $cell->getCoordinate();
         $style = $this->_objWorksheet->getStyle($ord);
-        $opts = isset($column->exportMenuStyle) ? $column->exportMenuStyle : [];
+        $opts = ArrayHelper::getValue($this->styleOptions, $this->_exportType, []);
+        if (isset($column->exportMenuStyle)) {
+            $opts = $column->exportMenuStyle;
+            if ($opts instanceof Closure) {
+                $opts = call_user_func($opts, $model, $key, $index, $column);
+            }
+        }
         if (isset($column->hAlign) && !isset($opts['alignment']['horizontal'])) {
             $opts['alignment']['horizontal'] = $column->hAlign;
         }
@@ -1401,7 +1460,7 @@ class ExportMenu extends GridView
             $f = $fmt[0];
             $code = null;
             if ($f === 'integer') {
-                $code = NumberFormat::FORMAT_NUMBER;
+                $code = '0';
             } elseif ($f === 'percent' || $f === 'decimal' || $f === 'currency') {
                 $code = '';
                 if ($f === 'currency') {
@@ -1779,9 +1838,7 @@ class ExportMenu extends GridView
     protected function getStyleOpts($settings = [])
     {
         $styleOpts = ArrayHelper::getValue($settings, 'styleOptions', []);
-        $defOpts = ArrayHelper::getValue($this->_defaultStyleOptions, $this->_exportType, []);
-        $curOpts = ArrayHelper::getValue($styleOpts, $this->_exportType, []);
-        return ArrayHelper::merge($defOpts, $curOpts);
+        return ArrayHelper::getValue($styleOpts, $this->_exportType, []);
     }
 
     /**
@@ -1920,22 +1977,19 @@ class ExportMenu extends GridView
      * Parses format and sets the value of a PHP Spreadsheet Cell
      *
      * @param Worksheet $sheet
-     * @param string    $coord coordinate of the cell, eg: 'A1'
-     * @param  mixed    $val value of the cell
-     * @param bool      $rich whether to convert to rich text
+     * @param string    $index coordinate of the cell, eg: 'A1'
+     * @param mixed     $value value of the cell
      *
      * @return Cell
      */
-    protected function setOutCellValue($sheet, $coord, $val, $rich = true)
+    protected function setOutCellValue($sheet, $index, $value)
     {
-        if ($rich) {
-            $val = $this->_wizard->toRichTextObject($val);
+        if ($this->stripHtml) {
+            $value = strip_tags($value);
         }
-        if ($this->_exportType === self::FORMAT_EXCEL) {
-            $val = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
-        }
-        $cell = $sheet->getCell($coord);
-        $cell->setValue($val);
+        $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+        $cell = $sheet->getCell($index);
+        $cell->setValue($value);
         return $cell;
     }
 
