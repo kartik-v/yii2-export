@@ -4,7 +4,7 @@ Change Log: `yii2-export`
 ## version 1.2.9 (_under development_)
 
 **Date:** _work in progress_
-
+- Added Ukrainian translation.
 - (enh #239): New property `stripHtml` that would strip Html tags.
 - (enh #238): New style options for header, box, and cells.
 - (enh #236): Autoformat cells via enhanced column configuration style properties.
