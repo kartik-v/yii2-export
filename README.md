@@ -33,7 +33,7 @@ The extension offers configurable user interfaces for advanced cases using view 
 You can see detailed [documentation](http://demos.krajee.com/export) and [demonstration](http://demos.krajee.com/export-demo) on usage of the extension.
 
 ## Latest Release
->NOTE: The latest version of the extension is v1.2.9 (_under development_). Refer the [CHANGE LOG](https://github.com/kartik-v/yii2-export/blob/master/CHANGE.md) for details.
+>NOTE: The latest version of the extension is v1.2.9. Refer the [CHANGE LOG](https://github.com/kartik-v/yii2-export/blob/master/CHANGE.md) for details.
 
 ## Installation
 
