@@ -1,14 +1,16 @@
 Change Log: `yii2-export`
 =========================
 
-## version 1.2.9 (_under development_)
+## version 1.2.9
 
-**Date:** _work in progress_
+**Date:** 24-Feb-2018
 
+- (enh #241): Update Ukranian translations.
 - (enh #239): New property `stripHtml` that would strip Html tags.
 - (enh #238): New style options for header, box, and cells.
 - (enh #236): Autoformat cells via enhanced column configuration style properties.
 - (enh #235): Change default export path from `@webroot/runtime/export` to `@app/runtime/export`.
+- (enh #234): Correct temp file deletion.
 - Refactor and optimize code.
 - (enh #232): Replace PHPExcel with updated PHPSpreadsheet library.
 - (enh #230): Export HTML content more correctly fixes #168, #126.
