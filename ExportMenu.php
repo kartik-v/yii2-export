@@ -561,6 +561,11 @@ class ExportMenu extends GridView
      */
     public $dataValidation = null;
         
+    /**
+     * @var bool direct export without $_POST. Use in conjunction with exportTYpe
+     */
+    public $triggerDownload = false;
+    
    /**
      * @var string translation message file category name for i18n
      */
@@ -573,8 +578,10 @@ class ExportMenu extends GridView
 
     /**
      * @var string the data output format type. Defaults to `ExportMenu::FORMAT_EXCEL_X`.
+     * edit: set this to public, so we can use 'direct export' feature. Should be change
+     * to $exportType as it is now not protected type, but public.
      */
-    protected $_exportType = self::FORMAT_EXCEL_X;
+    public $_exportType = self::FORMAT_EXCEL_X;
 
     /**
      * @var array the default export configuration
@@ -699,7 +706,7 @@ class ExportMenu extends GridView
             if ($this->stream) {
                 Yii::$app->controller->layout = false;
             }
-            $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
+            $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE] ? $_POST[self::PARAM_EXPORT_TYPE] : $this->_exportType;
             $this->_columnSelectorEnabled = $_POST[self::PARAM_COLSEL_FLAG];
             $this->initSelectedColumns();
         }
@@ -724,7 +731,7 @@ class ExportMenu extends GridView
         $this->initColumnSelector();
         $this->setVisibleColumns();
         $this->initExport();
-        if (!$this->_triggerDownload) {
+        if (!$this->_triggerDownload && !$this->triggerDownload) {
             $this->registerAssets();
             echo $this->renderExportMenu();
             return;
