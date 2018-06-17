@@ -2050,17 +2050,21 @@ class ExportMenu extends GridView
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     public function createSupplementSheet() {
-        $sheetIndex = 1;
-        foreach ($this->supplementSheet as $sheetName => $sheetData) {
-            ## SHEET INDEX AND NAME
-            $this->_objSpreadsheet->createSheet($sheetIndex);
-            $sheet = $this->_objSpreadsheet->setActiveSheetIndex($sheetIndex)->setTitle($sheetName);
-            $sheetIndex++;
+        if ($this->_exportType == self::FORMAT_EXCEL || $this->_exportType == self::FORMAT_EXCEL_X) {
+            $sheetIndex = 1;
+            foreach ($this->supplementSheet as $sheetName => $sheetData) {
+                ## SHEET INDEX AND NAME
+                $this->_objSpreadsheet->createSheet($sheetIndex);
+                $sheet = $this->_objSpreadsheet->setActiveSheetIndex($sheetIndex)->setTitle($sheetName);
+                $sheetIndex++;
 
-            ## GENERATE BODY
-            $index = 1;
-            foreach ($sheetData as $key => $value) {
-                $sheet->setCellValue('A' . $index, $key)->setCellValue('B' . $index++, $value);
+                ## GENERATE HEADER
+                $sheet->setCellValue('A1', 'Key')->setCellValue('B1', 'Value');
+                ## GENERATE BODY
+                $index = 2;
+                foreach ($sheetData as $key => $value) {
+                    $sheet->setCellValue('A' . $index, $key)->setCellValue('B' . $index++, $value);
+                }
             }
         }
     }
@@ -2074,18 +2078,20 @@ class ExportMenu extends GridView
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
     public function setDataValidation($sheetName, $cell, $length) {
-        $objValidation = $this->_objSpreadsheet->getActiveSheet()->getCell($cell)->getDataValidation();
-        $objValidation->setType(DataValidation::TYPE_LIST);
-        $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
-        $objValidation->setAllowBlank(false);
-        $objValidation->setShowInputMessage(true);
-        $objValidation->setShowErrorMessage(true);
-        $objValidation->setShowDropDown(true);
-        $objValidation->setErrorTitle('Input error');
-        $objValidation->setError('Value is not in list.');
-        $objValidation->setPromptTitle('Pick from list');
-        $objValidation->setPrompt('Please pick a value from the drop-down list.');
-        $objValidation->setFormula1($sheetName . '!$B$1:$B$' . $length);  // Make sure to put the list items between " and "  !!!
+        if ($this->_exportType == self::FORMAT_EXCEL || $this->_exportType == self::FORMAT_EXCEL_X) {
+            $objValidation = $this->_objSpreadsheet->getActiveSheet()->getCell($cell)->getDataValidation();
+            $objValidation->setType(DataValidation::TYPE_LIST);
+            $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+            $objValidation->setAllowBlank(false);
+            $objValidation->setShowInputMessage(true);
+            $objValidation->setShowErrorMessage(true);
+            $objValidation->setShowDropDown(true);
+            $objValidation->setErrorTitle('Input error');
+            $objValidation->setError('Value is not in list.');
+            $objValidation->setPromptTitle('Pick from list');
+            $objValidation->setPrompt('Please pick a value from the drop-down list.');
+            $objValidation->setFormula1($sheetName . '!$B$2:$B$' . $length);  // Make sure to put the list items between " and "  !!!
+        }
     }
 
 }
