@@ -550,6 +550,18 @@ class ExportMenu extends GridView
     ];
 
     /**
+     * @var array create new supplement sheets. Required for data validation in excel. format:
+     * 'supplementSheet' => ['city' => $citiesKeyValueArray], ...]
+     */
+    public $supplementSheet = null;
+        
+    /**
+     * @var array data for creating excel data validation. the format is:
+     * 'dataValidation' => ['sheetName' => ['cellPosition' => count($array)], ...]
+     */
+    public $dataValidation = null;
+        
+   /**
      * @var string translation message file category name for i18n
      */
     protected $_msgCat = 'kvexport';
@@ -735,6 +747,20 @@ class ExportMenu extends GridView
         $this->generateBeforeContent();
         $this->generateHeader();
         $this->generateBody();
+
+        if (!empty($this->dataValidation)) {
+            foreach ($this->dataValidation as $sheetName => $validations) {
+                foreach ($validations as $cell => $length) {
+                    $this->setDataValidation($sheetName, $cell, $length);
+                }
+            }
+        }
+
+        if (!empty($this->supplementSheet)) {
+            $this->createSupplementSheet();
+        }
+
+        $this->_objSpreadsheet->setActiveSheetIndex(0);
         $row = $this->generateFooter();
         $this->generateAfterContent($row);
         $writer = $this->_objWriter;
@@ -2009,4 +2035,50 @@ class ExportMenu extends GridView
         }
         $this->destroyPhpSpreadsheet();
     }
+    
+    /**
+     * Create supplement sheet, usually from dropDownList used by gridView
+     * Need for using dataValidation
+     *
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    public function createSupplementSheet() {
+        $sheetIndex = 1;
+        foreach ($this->supplementSheet as $sheetName => $sheetData) {
+            ## SHEET INDEX AND NAME
+            $this->_objSpreadsheet->createSheet($sheetIndex);
+            $sheet = $this->_objSpreadsheet->setActiveSheetIndex($sheetIndex)->setTitle($sheetName);
+            $sheetIndex++;
+
+            ## GENERATE BODY
+            $index = 1;
+            foreach ($sheetData as $key => $value) {
+                $sheet->setCellValue('A' . $index, $key)->setCellValue('B' . $index++, $value);
+            }
+        }
+    }
+
+    /**
+     * excel Data Validation (dropDownList in excel). Require supplementSheet
+     *
+     * @param $sheetName
+     * @param $cell
+     * @param $length
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    public function setDataValidation($sheetName, $cell, $length) {
+        $objValidation = $this->_objSpreadsheet->getActiveSheet()->getCell($cell)->getDataValidation();
+        $objValidation->setType(DataValidation::TYPE_LIST);
+        $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+        $objValidation->setAllowBlank(false);
+        $objValidation->setShowInputMessage(true);
+        $objValidation->setShowErrorMessage(true);
+        $objValidation->setShowDropDown(true);
+        $objValidation->setErrorTitle('Input error');
+        $objValidation->setError('Value is not in list.');
+        $objValidation->setPromptTitle('Pick from list');
+        $objValidation->setPrompt('Please pick a value from the drop-down list.');
+        $objValidation->setFormula1($sheetName . '!$B$1:$B$' . $length);  // Make sure to put the list items between " and "  !!!
+    }
+
 }
