@@ -2090,7 +2090,7 @@ class ExportMenu extends GridView
             $objValidation->setError('Value is not in list.');
             $objValidation->setPromptTitle('Pick from list');
             $objValidation->setPrompt('Please pick a value from the drop-down list.');
-            $objValidation->setFormula1($sheetName . '!$B$2:$B$' . $length);  // Make sure to put the list items between " and "  !!!
+            $objValidation->setFormula1($sheetName . '!$B$2:$B$' . ($length + 1));  // Make sure to put the list items between " and "  !!!
         }
     }
 
