@@ -550,6 +550,11 @@ class ExportMenu extends GridView
     ];
 
     /**
+     * @var string sheet name. Default to 'Worksheet'
+     */
+    public $sheetName = 'Worksheet';
+        
+    /**
      * @var array create new supplement sheets. Required for data validation in excel. format:
      * 'supplementSheet' => ['city' => $citiesKeyValueArray], ...]
      */
@@ -767,7 +772,7 @@ class ExportMenu extends GridView
             $this->createSupplementSheet();
         }
 
-        $this->_objSpreadsheet->setActiveSheetIndex(0);
+        $this->_objSpreadsheet->setActiveSheetIndex(0)->setTitle($this->sheetName);
         $row = $this->generateFooter();
         $this->generateAfterContent($row);
         $writer = $this->_objWriter;
