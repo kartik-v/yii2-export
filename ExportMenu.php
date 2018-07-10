@@ -550,6 +550,11 @@ class ExportMenu extends GridView
     ];
 
     /**
+     * @var array with extra hidden input form parameters
+     */
+    public $hiddenInput = [];
+	
+    /**
      * @var string translation message file category name for i18n
      */
     protected $_msgCat = 'kvexport';
@@ -875,6 +880,7 @@ class ExportMenu extends GridView
                 'exportTypeParam' => self::PARAM_EXPORT_TYPE,
                 'exportColsParam' => self::PARAM_EXPORT_COLS,
                 'colselFlagParam' => self::PARAM_COLSEL_FLAG,
+                'hiddenInput' => $this->hiddenInput,
             ]
         );
         if ($this->asDropdown) {
