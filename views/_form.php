@@ -24,4 +24,11 @@ echo Html::hiddenInput($exportTypeParam, $exportType);
 echo Html::hiddenInput($exportRequestParam, 1);
 echo Html::hiddenInput($exportColsParam, '');
 echo Html::hiddenInput($colselFlagParam, $columnSelectorEnabled);
+if (isset($hiddenInput))
+{
+   foreach($hiddenInput as $hiddenInputItem)  
+   {
+     echo Html::hiddenInput($hiddenInputItem['name'], $hiddenInputItem['value']);
+   }
+}
 echo Html::endForm();
