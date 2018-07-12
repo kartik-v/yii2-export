@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.0
+
+**Date:** _work-in-progress_
+
+- (enh #249, #250): New property `exportFormHiddenInputs` for submitting additional data with export form.
+
 ## version 1.2.9
 
 **Date:** 24-Feb-2018

@@ -8,6 +8,7 @@
  * Export Submission Form
  *
  */
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 
 /**
@@ -24,4 +25,13 @@ echo Html::hiddenInput($exportTypeParam, $exportType);
 echo Html::hiddenInput($exportRequestParam, 1);
 echo Html::hiddenInput($exportColsParam, '');
 echo Html::hiddenInput($colselFlagParam, $columnSelectorEnabled);
+if (!empty($exportFormHiddenInputs)) {
+    foreach ($exportFormHiddenInputs as $name => $setting) {
+        echo Html::hiddenInput(
+            $name,
+            ArrayHelper::getValue($setting, 'value', null),
+            ArrayHelper::getValue($setting, 'options', [])
+        );
+    }
+}
 echo Html::endForm();

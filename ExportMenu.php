@@ -231,6 +231,25 @@ class ExportMenu extends GridView
     public $exportFormOptions = [];
 
     /**
+     * @var array the configuration of additional hidden inputs that will be rendered with the export form. This will be
+     * set as an array of hidden input `$name => $setting` pairs where:
+     * - `$name`: _string_, is the hidden input name attribute.
+     * - `$setting`: _array_, containing the following settings:
+     *    - `value`: _string_, the value of the hidden input. Defaults to NULL.
+     *    - `options`: _array_, the HTML attributes for the hidden input. Defaults to an empty array `[]`.
+     *
+     * An example of how you can configure this property is shown below:
+     *
+     * ```
+     * [
+     *    'inputName1' => ['value' => 'inputValue1'],
+     *    'inputName2' => ['value' => 'inputValue2', 'options' => ['id' => 'inputId2']],
+     * ]
+     * ```
+     */
+    public $exportFormHiddenInputs = [];
+
+    /**
      * @var array the selected column indexes for export. If not set this will default to all columns.
      */
     public $selectedColumns;
@@ -875,6 +894,7 @@ class ExportMenu extends GridView
                 'exportTypeParam' => self::PARAM_EXPORT_TYPE,
                 'exportColsParam' => self::PARAM_EXPORT_COLS,
                 'colselFlagParam' => self::PARAM_COLSEL_FLAG,
+                'exportFormHiddenInputs'=> $this->exportFormHiddenInputs
             ]
         );
         if ($this->asDropdown) {
