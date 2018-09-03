@@ -1800,7 +1800,7 @@ class ExportMenu extends GridView
             ]
         );
         $menu = 'kvexpmenu_' . hash('crc32', $options);
-        $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);
+        $view->registerJs("var {$menu} = {$options};\n");
         $script = '';
         foreach ($this->exportConfig as $format => $setting) {
             if (!isset($setting) || $setting === false) {
