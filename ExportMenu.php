@@ -534,11 +534,6 @@ class ExportMenu extends GridView
     public $docProperties = [];
 
     /**
-     * @var array the internalization configuration for this widget
-     */
-    public $i18n = [];
-
-    /**
      * @var boolean enable dynagrid for column selection. If set to `true` the inbuilt export menu column selector
      * functionality will be disabled and not rendered and column settings for dynagrid will be used as per settings
      * configured in [[dynagridOptions]].
@@ -567,11 +562,6 @@ class ExportMenu extends GridView
             ],
         ],
     ];
-
-    /**
-     * @var string translation message file category name for i18n
-     */
-    protected $_msgCat = 'kvexport';
 
     /**
      * @var BaseDataProvider the modified data provider for usage with export.
@@ -691,6 +681,7 @@ class ExportMenu extends GridView
      */
     public function init()
     {
+        $this->_msgCat = 'kvexport';
         if (empty($this->options['id'])) {
             $this->options['id'] = $this->getId();
         }

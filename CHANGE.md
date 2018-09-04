@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _work-in-progress_
 
+- (kartik-v/yii2-krajee-base#94): Refactor code and consolidate / optimize properties within traits.
 - (bug #252): Correct krajeeDialog plugin undefined initialization.
 - (enh #249, #250): New property `exportFormHiddenInputs` for submitting additional data with export form.
 
