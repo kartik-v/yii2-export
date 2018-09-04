@@ -569,6 +569,28 @@ class ExportMenu extends GridView
     ];
 
     /**
+     * @var string sheet name. Default to 'Worksheet'
+     */
+    public $sheetName = 'Worksheet';
+        
+    /**
+     * @var array create new supplement sheets. Required for data validation in excel. format:
+     * 'supplementSheet' => ['city' => $citiesKeyValueArray], ...]
+     */
+    public $supplementSheet = null;
+        
+    /**
+     * @var array data for creating excel data validation. the format is:
+     * 'dataValidation' => ['sheetName' => ['cellPosition' => count($array)], ...]
+     */
+    public $dataValidation = null;
+        
+    /**
+     * @var bool direct export without $_POST. Use in conjunction with exportTYpe
+     */
+    public $triggerDownload = false;
+    
+   /**
      * @var string translation message file category name for i18n
      */
     protected $_msgCat = 'kvexport';
@@ -580,8 +602,10 @@ class ExportMenu extends GridView
 
     /**
      * @var string the data output format type. Defaults to `ExportMenu::FORMAT_EXCEL_X`.
+     * edit: set this to public, so we can use 'direct export' feature. Should be change
+     * to $exportType as it is now not protected type, but public.
      */
-    protected $_exportType = self::FORMAT_EXCEL_X;
+    public $_exportType = self::FORMAT_EXCEL_X;
 
     /**
      * @var array the default export configuration
@@ -706,7 +730,7 @@ class ExportMenu extends GridView
             if ($this->stream) {
                 Yii::$app->controller->layout = false;
             }
-            $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
+            $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE] ? $_POST[self::PARAM_EXPORT_TYPE] : $this->_exportType;
             $this->_columnSelectorEnabled = $_POST[self::PARAM_COLSEL_FLAG];
             $this->initSelectedColumns();
         }
@@ -731,7 +755,7 @@ class ExportMenu extends GridView
         $this->initColumnSelector();
         $this->setVisibleColumns();
         $this->initExport();
-        if (!$this->_triggerDownload) {
+        if (!$this->_triggerDownload && !$this->triggerDownload) {
             $this->registerAssets();
             echo $this->renderExportMenu();
             return;
@@ -754,6 +778,20 @@ class ExportMenu extends GridView
         $this->generateBeforeContent();
         $this->generateHeader();
         $this->generateBody();
+
+        if (!empty($this->dataValidation)) {
+            foreach ($this->dataValidation as $sheetName => $validations) {
+                foreach ($validations as $cell => $length) {
+                    $this->setDataValidation($sheetName, $cell, $length);
+                }
+            }
+        }
+
+        if (!empty($this->supplementSheet)) {
+            $this->createSupplementSheet();
+        }
+
+        $this->_objSpreadsheet->setActiveSheetIndex(0)->setTitle($this->sheetName);
         $row = $this->generateFooter();
         $this->generateAfterContent($row);
         $writer = $this->_objWriter;
@@ -2029,4 +2067,56 @@ class ExportMenu extends GridView
         }
         $this->destroyPhpSpreadsheet();
     }
+    
+    /**
+     * Create supplement sheet, usually from dropDownList used by gridView
+     * Need for using dataValidation
+     *
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    public function createSupplementSheet() {
+        if ($this->_exportType == self::FORMAT_EXCEL || $this->_exportType == self::FORMAT_EXCEL_X) {
+            $sheetIndex = 1;
+            foreach ($this->supplementSheet as $sheetName => $sheetData) {
+                ## SHEET INDEX AND NAME
+                $this->_objSpreadsheet->createSheet($sheetIndex);
+                $sheet = $this->_objSpreadsheet->setActiveSheetIndex($sheetIndex)->setTitle($sheetName);
+                $sheetIndex++;
+
+                ## GENERATE HEADER
+                $sheet->setCellValue('A1', 'Key')->setCellValue('B1', 'Value');
+                ## GENERATE BODY
+                $index = 2;
+                foreach ($sheetData as $key => $value) {
+                    $sheet->setCellValue('A' . $index, $key)->setCellValue('B' . $index++, $value);
+                }
+            }
+        }
+    }
+
+    /**
+     * excel Data Validation (dropDownList in excel). Require supplementSheet
+     *
+     * @param $sheetName
+     * @param $cell
+     * @param $length
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    public function setDataValidation($sheetName, $cell, $length) {
+        if ($this->_exportType == self::FORMAT_EXCEL || $this->_exportType == self::FORMAT_EXCEL_X) {
+            $objValidation = $this->_objSpreadsheet->getActiveSheet()->getCell($cell)->getDataValidation();
+            $objValidation->setType(DataValidation::TYPE_LIST);
+            $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+            $objValidation->setAllowBlank(false);
+            $objValidation->setShowInputMessage(true);
+            $objValidation->setShowErrorMessage(true);
+            $objValidation->setShowDropDown(true);
+            $objValidation->setErrorTitle('Input error');
+            $objValidation->setError('Value is not in list.');
+            $objValidation->setPromptTitle('Pick from list');
+            $objValidation->setPrompt('Please pick a value from the drop-down list.');
+            $objValidation->setFormula1($sheetName . '!$B$2:$B$' . ($length + 1));  // Make sure to put the list items between " and "  !!!
+        }
+    }
+
 }
