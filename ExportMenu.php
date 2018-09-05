@@ -772,7 +772,7 @@ class ExportMenu extends GridView
                 readfile($file);
             }
             $this->cleanup($file, $config);
-            exit();
+            \Yii::$app->end();
         } else {
             $this->registerAssets();
             echo $this->renderExportMenu();
@@ -1884,15 +1884,16 @@ class ExportMenu extends GridView
             /**
              * @var Column $column
              */
-            $value = ($column->content === null) ? (method_exists($column, 'getDataCellValue') ?
-                $this->formatter->format($column->getDataCellValue($model, $key, $index), 'raw') :
-                $column->renderDataCell($model, $key, $index)) :
-                call_user_func($column->content, $model, $key, $index, $column);
-            $nextValue = ($column->content === null) ? (method_exists($column, 'getDataCellValue') ?
-                $this->formatter->format($column->getDataCellValue($nextModel, $key, $index), 'raw') :
-                $column->renderDataCell($nextModel, $key, $index)) :
-                call_user_func($column->content, $nextModel, $key, $index, $column);
             if ((isset($this->_groupedColumn[$endCol])) && (!is_null($this->_groupedColumn[$endCol]))) {
+                $value = ($column->content === null) ? (method_exists($column, 'getDataCellValue') ?
+                    $this->formatter->format($column->getDataCellValue($model, $key, $index), 'raw') :
+                    $column->renderDataCell($model, $key, $index)) :
+                    call_user_func($column->content, $model, $key, $index, $column);
+                $nextValue = ($column->content === null) ? (method_exists($column, 'getDataCellValue') ?
+                    $this->formatter->format($column->getDataCellValue($nextModel, $key, $index), 'raw') :
+                    $column->renderDataCell($nextModel, $key, $index)) :
+                    call_user_func($column->content, $nextModel, $key, $index, $column);
+
                 if (is_null($this->_groupedColumn[$endCol]['value'])) {
                     $this->_groupedColumn[$endCol]['value'] = $value;
                     $this->_groupedColumn[$endCol]['firstLine'] = $index;
