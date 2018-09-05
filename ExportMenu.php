@@ -681,7 +681,6 @@ class ExportMenu extends GridView
      */
     public function init()
     {
-        $this->_msgCat = 'kvexport';
         if (empty($this->options['id'])) {
             $this->options['id'] = $this->getId();
         }
