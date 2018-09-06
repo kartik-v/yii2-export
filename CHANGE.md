@@ -3,8 +3,12 @@ Change Log: `yii2-export`
 
 ## version 1.3.0
 
-**Date:** _work-in-progress_
+**Date:** 07-Sep-2018
 
+- Enhancements to support Bootstrap v4.x.
+- Move all source code to `src` directory.
+- (enh #256, #257): Correct documentation.
+- (enh #255): Modify code for better performance.
 - (kartik-v/yii2-krajee-base#94): Refactor code and consolidate / optimize properties within traits.
 - (bug #252): Correct krajeeDialog plugin undefined initialization.
 - (enh #249, #250): New property `exportFormHiddenInputs` for submitting additional data with export form.

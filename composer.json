@@ -34,12 +34,12 @@
     },
     "autoload": {
         "psr-4": {
-            "kartik\\export\\": ""
+            "kartik\\export\\": "src"
         }
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.2.x-dev"
+            "dev-master": "1.3.x-dev"
         }
     }
 }

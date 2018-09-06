@@ -32,8 +32,8 @@ The extension offers configurable user interfaces for advanced cases using view 
 ## Demo
 You can see detailed [documentation](http://demos.krajee.com/export) and [demonstration](http://demos.krajee.com/export-demo) on usage of the extension.
 
-## Latest Release
->NOTE: The latest version of the extension is v1.2.9. Refer the [CHANGE LOG](https://github.com/kartik-v/yii2-export/blob/master/CHANGE.md) for details.
+## Release Changes
+> NOTE: Refer the [CHANGE LOG](https://github.com/kartik-v/yii2-export/blob/master/CHANGE.md) for details on changes to various releases.
 
 ## Installation
 
@@ -55,7 +55,20 @@ or add
 
 to the `require` section of your `composer.json` file.
 
-> Note: we must run `composer update` if we already have stable `kartik-v/yii2-krajee-base`
+> Note: you must run `composer update` to have the latest stable dependencies like `kartik-v/yii2-krajee-base`
+
+## Pre-requisites
+
+The `yii2-export` extension is dependent on `yii2-grid` extension module. In order to start using `yii2-export`, you need to ensure setup of the `gridview` module in your application modules configuration file. For example:
+
+```php
+'modules' => [
+    'gridview' => [
+        'class' => 'kartik\grid\Module',
+        // other module settings
+    ]
+]
+```
 
 ## Usage
 
@@ -85,10 +98,6 @@ echo \kartik\grid\GridView::widget([
     'filterModel' => $searchModel,
     'columns' => $gridColumns
 ]);
-```
-> Note: Set your module config as below
-```
-'gridview' => ['class' => 'kartik\grid\Module']
 ```
 
 ## License
