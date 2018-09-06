@@ -55,6 +55,8 @@ or add
 
 to the `require` section of your `composer.json` file.
 
+> Note: we must run `composer update` if we already have stable `kartik-v/yii2-krajee-base`
+
 ## Usage
 
 ### ExportMenu
