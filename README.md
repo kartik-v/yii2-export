@@ -84,6 +84,10 @@ echo \kartik\grid\GridView::widget([
     'columns' => $gridColumns
 ]);
 ```
+> Note: Set your module config as below
+```
+'gridview' => ['class' => 'kartik\grid\Module']
+```
 
 ## License
 
