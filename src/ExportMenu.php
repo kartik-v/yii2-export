@@ -563,6 +563,13 @@ class ExportMenu extends GridView
     ];
 
     /**
+     * @var boolean enable or disable cell formatting by auto detecting the grid column alignment and format.
+     * If set to `false` the format will not be applied but highly improve performance (up to x3)
+     * configured in [[dynagridOptions]].
+     */
+    public $autoFormat = true;
+
+    /**
      * @var BaseDataProvider the modified data provider for usage with export.
      */
     protected $_provider;
@@ -1233,7 +1240,9 @@ class ExportMenu extends GridView
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
                 $value
             );
-            $this->autoFormat($model, $key, $index, $column, $cell);
+            if ($this->autoFormat){
+                $this->autoFormat($model, $key, $index, $column, $cell);
+            }
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
         }
     }
