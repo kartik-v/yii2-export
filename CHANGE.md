@@ -1,6 +1,14 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.1
+
+**Date:** 24-Sep-2018
+
+- Enhance link file view markup for rendering Bootstrap 4.x styles.
+- (bug #261): Correct headers sending.
+- (enh #260): New property `enableAutoFormat` to control autoformatting excel based on grid format.
+
 ## version 1.3.0
 
 **Date:** 07-Sep-2018

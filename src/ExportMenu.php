@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.0
+ * @version   1.3.1
  */
 
 namespace kartik\export;
@@ -29,6 +29,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Html as WriterHtml;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\base\Model;
+use yii\base\Widget;
 use yii\data\ActiveDataProvider;
 use yii\data\BaseDataProvider;
 use yii\db\ActiveQueryInterface;
@@ -172,6 +173,12 @@ class ExportMenu extends GridView
      * @var boolean whether to show a column selector to select columns for export. Defaults to `true`.
      */
     public $showColumnSelector = true;
+
+    /**
+     * @var boolean enable or disable cell formatting by auto detecting the grid column alignment and format.
+     * If set to `false` the format will not be applied but improve performance configured in [[dynagridOptions]].
+     */
+    public $enableAutoFormat = true;
 
     /**
      * @var array the configuration of the column names in the column selector. Note: column names will be generated
@@ -764,10 +771,10 @@ class ExportMenu extends GridView
         $writer->save($file);
         if ($this->stream) {
             $this->clearOutputBuffers();
+            $this->setHttpHeaders();
             if ($this->_exportType === self::FORMAT_PDF) {
                 $this->renderPDF($file);
             } else {
-                $this->setHttpHeaders();
                 readfile($file);
             }
             $this->cleanup($file, $config);
@@ -786,6 +793,7 @@ class ExportMenu extends GridView
                     echo $this->render(
                         $this->afterSaveView,
                         [
+                            'isBs4' => $this->isBs4(),
                             'file' => $fileName,
                             'icon' => $config['icon'],
                             'href' => Url::to([self::slash($this->linkPath, '/') . $fileName]),
@@ -834,6 +842,7 @@ class ExportMenu extends GridView
      * Renders the export menu
      *
      * @return string the export menu markup
+     * @throws InvalidConfigException
      * @throws \Exception
      */
     public function renderExportMenu()
@@ -910,14 +919,21 @@ class ExportMenu extends GridView
             if (!isset($this->exportContainer['class'])) {
                 $this->exportContainer['class'] = 'btn-group';
             }
+            /**
+             * @var Widget $class
+             */
+            $class = $isBs4 ? 'kartik\bs4dropdown\ButtonDropdown' : 'yii\bootstrap\ButtonDropdown';
+            if (!class_exists($class)) {
+                throw new InvalidConfigException("The '{$class}' does not exist and must be installed for dropdown rendering when 'ExportMenu::asDropdown' is set to 'true'.");
+            }
             if ($isBs4) {
                 $opts['buttonOptions'] = $this->dropdownOptions;
                 $opts['renderContainer'] = false;
-                $out = Html::tag('div', \kartik\bs4dropdown\ButtonDropdown::widget($opts), $this->exportContainer);
+                $out = Html::tag('div', $class::widget($opts), $this->exportContainer);
             } else {
                 $opts['options'] = $this->dropdownOptions;
                 $opts['containerOptions'] = $this->exportContainer;
-                $out = \yii\bootstrap\ButtonDropdown::widget($opts);
+                $out = $class::widget($opts);
             }
             $replacePairs = ['{menu}' => $out, '{columns}' => $this->renderColumnSelector()];
             $content = strtr($this->template, $replacePairs) . "\n" . $form;
@@ -1233,7 +1249,9 @@ class ExportMenu extends GridView
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
                 $value
             );
-            $this->autoFormat($model, $key, $index, $column, $cell);
+            if ($this->enableAutoFormat) {
+                $this->autoFormat($model, $key, $index, $column, $cell);
+            }
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
         }
     }
@@ -1666,7 +1684,7 @@ class ExportMenu extends GridView
         } elseif (isset($column->attribute)) {
             $label = $this->getAttributeLabel($column->attribute);
         } elseif (!$column instanceof DataColumn) {
-            $class = explode('\\', $column::classname());
+            $class = explode('\\', get_class($column));
             $label = Inflector::camel2words(end($class));
         }
         return trim(strip_tags(str_replace(['<br>', '<br/>'], ' ', $label)));
