@@ -76,6 +76,7 @@
         },
         processExport: function (fmt) {
             var self = this, $selected, cols = [];
+            self.$form.attr('action', window.location.href).appendTo('body');
             self.$form.find('[name="export_type"]').val(fmt);
             if (self.target === '_popup') {
                 self.popup = $h.popupDialog('', 'kvExportFullDialog', 350, 120);
