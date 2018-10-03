@@ -1,6 +1,14 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.2
+
+**Date:** 04-Oct-2018
+
+- Add .gitattributes.
+- (bug #264): Correct headers already sent error.
+- (enh #262, #263): Enhance export menu form action.
+
 ## version 1.3.1
 
 **Date:** 24-Sep-2018
