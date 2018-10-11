@@ -9,6 +9,7 @@ Change Log: `yii2-export`
 - (enh #270): Add iframe as default target for export form download.
 - (enh #248): Add direct download, supplement sheets, data validation features.
 - (enh #204): Better event listening for dynamic export menu rendering.
+- (enh #120): Better init of `_columnSelectorEnabled`.
 
 ## version 1.3.3
 

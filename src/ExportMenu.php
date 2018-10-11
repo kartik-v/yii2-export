@@ -659,7 +659,7 @@ class ExportMenu extends GridView
     /**
      * @var boolean whether the column selector is enabled
      */
-    protected $_columnSelectorEnabled = true;
+    protected $_columnSelectorEnabled;
 
     /**
      * @var array the visble columns for export
@@ -849,7 +849,7 @@ class ExportMenu extends GridView
         if (!isset($this->afterSaveView)) {
             $this->afterSaveView = "{$path}/_view";
         }
-        $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
+        $this->_columnSelectorEnabled = $this->showColumnSelector;
         $request = Yii::$app->request;
         $this->_triggerDownload = $request->post($this->exportRequestParam, $this->triggerDownload);
         $this->_exportType = $request->post($this->exportTypeParam, $this->exportType);
