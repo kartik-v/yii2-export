@@ -10,4 +10,4 @@
  * Copyright: 2015, Kartik Visweswaran, Krajee.com
  * For more JQuery plugins visit http://plugins.krajee.com
  * For more Yii related demos visit http://demos.krajee.com
- */.kv-checkbox-list .checkbox{padding:0 20px}.kv-checkbox-list label{width:100%}.kv-checkbox-list label.disabled{cursor:not-allowed;filter:alpha(opacity=65);opacity:.65}.kv-toggle-all{font-style:italic;color:#337ab7}.kv-toggle-all:hover{color:#286090}
+ */.dropdown-menu.kv-checkbox-list{max-height:350px;overflow:auto}.kv-checkbox-list .checkbox{padding:0 20px}.kv-checkbox-list label{width:100%}.kv-checkbox-list label.disabled{cursor:not-allowed;filter:alpha(opacity=65);opacity:.65}.kv-toggle-all{font-style:italic;color:#337ab7}.kv-toggle-all:hover{color:#286090}

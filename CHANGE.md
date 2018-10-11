@@ -3,12 +3,13 @@ Change Log: `yii2-export`
 
 ## version 1.3.3
 
-**Date:** _under development_
+**Date:** 11-Oct-2018
 
 - (enh #269): Correct styles for BS4.
 - (enh #268): Enhance export columns visibility.
 - (enh #267): Configurable export menu form parameters.
 - (enh #266): Enhancements to export form functionality.
+- (enh #225): Enhance column selector dropdown styling.
 
 ## version 1.3.2
 

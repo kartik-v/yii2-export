@@ -11,6 +11,12 @@
  * For more JQuery plugins visit http://plugins.krajee.com
  * For more Yii related demos visit http://demos.krajee.com
  */
+
+.dropdown-menu.kv-checkbox-list {
+    max-height: 350px;
+    overflow: auto;
+}
+
 .kv-checkbox-list .checkbox {
     padding: 0 20px;
 }
