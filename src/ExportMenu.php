@@ -1127,8 +1127,7 @@ class ExportMenu extends GridView
             $delimiter = $this->getSetting('delimiter', "\t");
             $writer->setDelimiter($delimiter);
         }
-        $needsEncoding = $t === self::FORMAT_HTML || $t === self::FORMAT_CSV || $t === self::FORMAT_TEXT;
-        if ($this->encoding === self::ENCODING_UTF8 && $needsEncoding) {
+        if ($this->encoding === self::ENCODING_UTF8 && ($t === self::FORMAT_CSV || $t === self::FORMAT_TEXT)) {
             $writer->setUseBOM(true);
         }
         $this->raiseEvent('onInitWriter', [$this->_objWriter, $this]);
@@ -1222,8 +1221,7 @@ class ExportMenu extends GridView
     {
         $columns = [];
         foreach ($this->columns as $key => $column) {
-            if (!empty($column->hiddenFromExport) || $column instanceof ActionColumn || ($this->_columnSelectorEnabled
-                    && (in_array($key, $this->noExportColumns) || !in_array($key, $this->selectedColumns)))) {
+            if (!empty($column->hiddenFromExport) || $column instanceof ActionColumn || in_array($key, $this->noExportColumns)) {
                 continue;
             }
             $columns[] = $column;
