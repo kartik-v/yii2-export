@@ -58,6 +58,10 @@ class ExportMenu extends GridView
     use TranslationTrait;
 
     /**
+     * @var string UTF-8 encoding
+     */
+    const ENCODING_UTF8 = 'utf-8';
+    /**
      * @var string HTML (Hyper Text Markup Language) export format
      */
     const FORMAT_HTML = 'Html';
@@ -373,9 +377,9 @@ class ExportMenu extends GridView
     public $autoWidth = true;
 
     /**
-     * @var string encoding for the downloaded file header. Defaults to 'utf-8'.
+     * @var string encoding for the downloaded file header. Defaults to [[ENCODING_UTF8]].
      */
-    public $encoding = 'utf-8';
+    public $encoding = self::ENCODING_UTF8;
 
     /**
      * @var string the exported output file name. Defaults to 'grid-export';
@@ -1117,9 +1121,14 @@ class ExportMenu extends GridView
          * @var WriterCsv $writer
          */
         $writer = $this->_objWriter = IOFactory::createWriter($this->_objSpreadsheet, $type);
-        if ($this->_exportType === self::FORMAT_TEXT) {
+        $t = $this->_exportType;
+        if ($t === self::FORMAT_TEXT) {
             $delimiter = $this->getSetting('delimiter', "\t");
             $writer->setDelimiter($delimiter);
+        }
+        $needsEncoding = $t === self::FORMAT_HTML || $t === self::FORMAT_CSV || $t === self::FORMAT_TEXT;
+        if ($this->encoding === self::ENCODING_UTF8 && $needsEncoding) {
+            $writer->setUseBOM(true);
         }
         $this->raiseEvent('onInitWriter', [$this->_objWriter, $this]);
     }

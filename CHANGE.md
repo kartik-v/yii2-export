@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _under development_
 
+- (enh #272): UTF-8 encoding for HTML, CSV, TEXT formats.
 - (enh #271): Locale specific validation messages and code enhancements.
 - (enh #270): Add iframe as default target for export form download.
 - (enh #248): Add direct download, supplement sheets, data validation features.
