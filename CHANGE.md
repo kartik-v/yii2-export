@@ -3,8 +3,9 @@ Change Log: `yii2-export`
 
 ## version 1.3.4
 
-**Date:** _under development_
+**Date:** 12-Oct-2018
 
+- (enh #273): Enhanced PDF Writer `ExportWriterPdf`.
 - (enh #272): UTF-8 encoding for HTML, CSV, TEXT formats.
 - (enh #271): Locale specific validation messages and code enhancements.
 - (enh #270): Add iframe as default target for export form download.

@@ -14,7 +14,6 @@ use kartik\base\TranslationTrait;
 use kartik\dialog\Dialog;
 use kartik\dynagrid\Dynagrid;
 use kartik\grid\GridView;
-use kartik\mpdf\Pdf;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -22,11 +21,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\BaseWriter;
 use PhpOffice\PhpSpreadsheet\Writer\Csv as WriterCsv;
-use PhpOffice\PhpSpreadsheet\Writer\Html as WriterHtml;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\base\Model;
@@ -801,20 +798,13 @@ class ExportMenu extends GridView
         if ($this->stream) {
             $this->clearOutputBuffers();
             $this->setHttpHeaders();
-            if ($this->_exportType === self::FORMAT_PDF) {
-                $this->renderPDF($file);
-            } else {
-                readfile($file);
-            }
+            readfile($file);
             $this->cleanup($file, $config);
             exit();
         } else {
             $this->registerAssets();
             echo $this->renderExportMenu();
             if ($this->_triggerDownload && $this->afterSaveView !== false) {
-                if ($this->_exportType === self::FORMAT_PDF) {
-                    $this->renderPDF($file);
-                }
                 $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
                 if (!empty($config)) {
                     $l = $this->linkFileName;
@@ -1117,11 +1107,22 @@ class ExportMenu extends GridView
      */
     public function initPhpSpreadsheetWriter($type)
     {
+        $t = $this->_exportType;
+        if ($t === self::FORMAT_PDF) {
+            IOFactory::registerWriter($type, ExportWriterPdf::class);
+        }
+        $writer = $this->_objWriter = IOFactory::createWriter($this->_objSpreadsheet, $type);
+        if ($t === self::FORMAT_PDF && !empty($this->exportConfig[$t])) {
+            $cfg = $this->exportConfig[$t];
+            /**
+             * @var ExportWriterPdf $writer
+             */
+            $writer->filename = $this->filename . '.' . ArrayHelper::getValue($cfg, 'extension', 'pdf');
+            $writer->pdfConfig = ArrayHelper::getValue($cfg, 'pdfConfig', []);
+        }
         /**
          * @var WriterCsv $writer
          */
-        $writer = $this->_objWriter = IOFactory::createWriter($this->_objSpreadsheet, $type);
-        $t = $this->_exportType;
         if ($t === self::FORMAT_TEXT) {
             $delimiter = $this->getSetting('delimiter', "\t");
             $writer->setDelimiter($delimiter);
@@ -1642,56 +1643,6 @@ class ExportMenu extends GridView
     }
 
     /**
-     * Parse PDF
-     *
-     * @param string $file the output filename on server with path
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @throws InvalidConfigException
-     */
-    protected function renderPDF($file)
-    {
-        //  Default PDF paper size
-        $spreadsheet = $this->_objSpreadsheet;
-        $sheet = $this->_objWorksheet;
-        /**
-         * @var WriterHtml $w
-         */
-        $w = $this->_objWriter;
-        $page = $sheet->getPageSetup();
-        $orientation = $page->getOrientation() == PageSetup::ORIENTATION_LANDSCAPE ? 'L' : 'P';
-        $properties = $spreadsheet->getProperties();
-        $settings = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
-        $useInlineCss = ArrayHelper::getValue($settings, 'useInlineCss', false);
-        $config = ArrayHelper::getValue($settings, 'pdfConfig', []);
-        $w->setUseInlineCss($useInlineCss);
-        $config = array_replace_recursive(
-            [
-                'orientation' => strtoupper($orientation),
-                'methods' => [
-                    'SetTitle' => $properties->getTitle(),
-                    'SetAuthor' => $properties->getCreator(),
-                    'SetCreator' => $properties->getCreator(),
-                    'SetSubject' => $properties->getSubject(),
-                    'SetKeywords' => $properties->getKeywords(),
-                ],
-                'cssFile' => '',
-                'content' => $w->generateHTMLHeader(false) . $w->generateSheetData() . $w->generateHTMLFooter(),
-            ],
-            $config
-        );
-        if (!$this->stream) {
-            $config['destination'] = Pdf::DEST_FILE;
-            $config['filename'] = $file;
-        } else {
-            $config['destination'] = Pdf::DEST_DOWNLOAD;
-            $extension = ArrayHelper::getValue($settings, 'extension', 'pdf');
-            $config['filename'] = $this->filename . '.' . $extension;
-        }
-        $pdf = new Pdf($config);
-        echo $pdf->render();
-    }
-
-    /**
      * Initialize columns selected for export
      */
     protected function initSelectedColumns()
@@ -1865,7 +1816,7 @@ class ExportMenu extends GridView
                 'alertMsg' => Yii::t('kvexport', 'The PDF export file will be generated for download.'),
                 'mime' => 'application/pdf',
                 'extension' => 'pdf',
-                'writer' => self::FORMAT_HTML,
+                'writer' => 'KrajeePdf', // custom Krajee PDF writer using MPdf library
                 'useInlineCss' => true,
                 'pdfConfig' => [],
             ],
