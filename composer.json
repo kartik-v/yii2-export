@@ -28,7 +28,6 @@
     ],
     "require": {
         "kartik-v/yii2-dynagrid": ">=1.4.5",
-        "kartik-v/yii2-dialog": "~1.0",
         "kartik-v/yii2-mpdf": "~1.0",
         "phpoffice/phpspreadsheet": "~1.0"
     },

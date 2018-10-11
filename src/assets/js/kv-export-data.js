@@ -2,7 +2,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.2
+ * @version   1.3.3
  *
  * Export Data Validation Module.
  *
@@ -38,9 +38,6 @@
         $.each(options, function (key, val) {
             self[key] = val;
         });
-        var settings = options.settings;
-        self.$form = $("#" + settings.formId);
-        self.messages = settings.messages;
         self.popup = '';
         self.listen();
     };
@@ -56,7 +53,7 @@
                 var el = self.popup.document.getElementsByTagName('body');
                 setTimeout(function () {
                     el[0].innerHTML = msg;
-                }, 4000);
+                }, 1800);
             } else {
                 var newmsg = $h.popupTemplate.replace('{msg}', msg);
                 self.popup.document.write(newmsg);
@@ -64,49 +61,64 @@
         },
         listen: function () {
             var self = this;
-            self.$form.attr('action', window.location.href).appendTo('body');
             self.listenClick();
-            if (self.target === '_popup') {
-                self.$form.off('submit.exportmenu').on('submit.exportmenu', function () {
-                    setTimeout(function () {
-                        self.setPopupAlert(self.messages.downloadComplete, true);
-                    }, 1000);
-                });
-            }
         },
         processExport: function (fmt) {
-            var self = this, $selected, cols = [];
-            self.$form.attr('action', window.location.href).appendTo('body');
-            self.$form.find('[name="export_type"]').val(fmt);
-            if (self.target === '_popup') {
+            var self = this, $selected, cols = [], $csrf, yiiLib = window.yii, isPopup, cfg = self.settings,
+                frmConfig, expCols, $form, getInput = function (name, value) {
+                    return $('<input/>', {'type': 'hidden', 'name': name, 'value': value});
+                };
+            isPopup = cfg.target === '_popup';
+            if (isPopup) {
                 self.popup = $h.popupDialog('', 'kvExportFullDialog', 350, 120);
                 self.popup.focus();
-                self.setPopupAlert(self.messages.downloadProgress);
+                self.setPopupAlert(self.settings.messages.downloadProgress);
             }
-            if (!$h.isEmpty(self.columnSelectorId)) {
-                $selected = $('#' + self.columnSelectorId).parent().find('input[name="export_columns_selector[]"]');
+            $csrf = yiiLib ? getInput(yiiLib.getCsrfParam() || '_csrf', yiiLib.getCsrfToken() || null) : null;
+            expCols = '';
+            if (!$h.isEmpty(cfg.colSelId)) {
+                $selected = $('#' + cfg.colSelId).parent().find('input[name="export_columns_selector[]"]');
                 $selected.each(function () {
                     var $el = $(this);
                     if ($el.is(':checked')) {
                         cols.push($el.attr('data-key'));
                     }
                 });
-                self.$form.find('input[name="export_columns"]').val(JSON.stringify(cols));
+                expCols = JSON.stringify(cols);
             }
-            self.$form.trigger('submit');
+            frmConfig = $.extend(true, {}, cfg.formOptions, {
+                action: window.location.href,
+                method: 'post',
+                css: {display: 'none'}
+            });
+            $form = $('<form/>', frmConfig).append($csrf)
+                .append(getInput(cfg.exportTypeParam, fmt), getInput(cfg.exportRequestParam, 1))
+                .append(getInput(cfg.exportColsParam, expCols), getInput(cfg.colSelFlagParam, cfg.colSelEnabled))
+                .appendTo('body');
+            if (!$h.isEmpty(cfg.exportFormHiddenInputs)) {
+                $.each(cfg.exportFormHiddenInputs, function (key, setting) {
+                    var opts = {'name': key, 'value': setting.value || null, 'type': 'hidden'};
+                    opts = $.extend({}, opts, setting.options || {});
+                    $form.append($('<input/>', opts));
+                });
+            }
+            $form.submit().remove();
+            if (isPopup) {
+                self.setPopupAlert(self.settings.messages.downloadComplete, true);
+            }
         },
         listenClick: function () {
             var self = this;
             self.$element.off('click.exportmenu').on('click.exportmenu', function (e) {
-                var fmt, msgs, msg = '', msg1, msg2, msg3, lib = window[self.dialogLib];
+                var fmt, msgs, msg = '', msg1, msg2, msg3, lib = window[self.settings.dialogLib];
                 fmt = $(this).data('format');
                 e.preventDefault();
                 e.stopPropagation();
-                if (!self.showConfirmAlert) {
+                if (!self.settings.showConfirmAlert) {
                     self.processExport(fmt);
                     return;
                 }
-                msgs = self.messages;
+                msgs = self.settings.messages;
                 msg1 = $h.isEmpty(self.alertMsg) ? '' : self.alertMsg;
                 msg2 = $h.isEmpty(msgs.allowPopups) ? '' : msgs.allowPopups;
                 msg3 = $h.isEmpty(msgs.confirmDownload) ? '' : msgs.confirmDownload;
@@ -156,14 +168,19 @@
     };
 
     $.fn.exportdata.defaults = {
-        filename: 'export',
-        target: '_popup',
-        showConfirmAlert: true,
-        columnSelectorId: null,
         alertMsg: '',
-        dialogLib: 'krajeeDialog',
         settings: {
-            formId: '',
+            formOptions: {},
+            exportType: '',
+            colSelEnabled: '',
+            exportRequestParam: '',
+            exportTypeParam: '',
+            exportColsParam: '',
+            exportFormHiddenInputs: {},
+            colSelId: null,
+            target: '_popup',
+            showConfirmAlert: true,
+            dialogLib: 'krajeeDialog',
             messages: {
                 allowPopups: '',
                 confirmDownload: '',

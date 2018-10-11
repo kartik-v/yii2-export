@@ -3,7 +3,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.2
+ * @version   1.3.3
  *
  * Export Submission View
  *
@@ -12,6 +12,7 @@
 use yii\helpers\Html;
 
 /**
+ * @var bool $isBs4
  * @var string $icon
  * @var string $file
  * @var string $href

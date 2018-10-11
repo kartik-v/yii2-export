@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.2
+ * @version   1.3.3
  */
 
 namespace kartik\export;
@@ -92,18 +92,6 @@ class ExportMenu extends GridView
      * Set download target for grid export to a new window that auto closes after download
      */
     const TARGET_BLANK = '_blank';
-    /**
-     * Export type input parameter for export form
-     */
-    const PARAM_EXPORT_TYPE = 'export_type';
-    /**
-     * Export columns input parameter for export form
-     */
-    const PARAM_EXPORT_COLS = 'export_columns';
-    /**
-     * Column selector flag parameter for export form
-     */
-    const PARAM_COLSEL_FLAG = 'column_selector_enabled';
 
     /**
      * @var string the target for submitting the export form, which will trigger the download of the exported file.
@@ -278,7 +266,7 @@ class ExportMenu extends GridView
     public $noExportColumns = [];
 
     /**
-     * @var string the view file for rendering the export form
+     * @var string the view file for rendering the export form. DEPRECATED since v1.3.3 (this is not used any more).
      */
     public $exportFormView = '_form';
 
@@ -324,6 +312,21 @@ class ExportMenu extends GridView
      *  same page).
      */
     public $exportRequestParam;
+
+    /**
+     * @var string the export type input parameter for export form
+     */
+    public $exportTypeParam = 'export_type';
+
+    /**
+     * @var string the export columns input parameter for export form
+     */
+    public $exportColsParam = 'export_columns';
+
+    /**
+     * @var string the column selector flag parameter for export form
+     */
+    public $colSelFlagParam = 'column_selector_enabled';
 
     /**
      * @var array the output style configuration options for each data cell. It must be the style configuration
@@ -703,8 +706,8 @@ class ExportMenu extends GridView
             if ($this->stream) {
                 Yii::$app->controller->layout = false;
             }
-            $this->_exportType = $_POST[self::PARAM_EXPORT_TYPE];
-            $this->_columnSelectorEnabled = $_POST[self::PARAM_COLSEL_FLAG];
+            $this->_exportType = $_POST[$this->exportTypeParam];
+            $this->_columnSelectorEnabled = $_POST[$this->colSelFlagParam];
             $this->initSelectedColumns();
         }
         if ($this->dynagrid) {
@@ -885,19 +888,6 @@ class ExportMenu extends GridView
                 }
             }
         }
-        $form = $this->render(
-            $this->exportFormView,
-            [
-                'options' => $this->exportFormOptions,
-                'exportType' => $this->_exportType,
-                'columnSelectorEnabled' => $this->_columnSelectorEnabled,
-                'exportRequestParam' => $this->exportRequestParam,
-                'exportTypeParam' => self::PARAM_EXPORT_TYPE,
-                'exportColsParam' => self::PARAM_EXPORT_COLS,
-                'colselFlagParam' => self::PARAM_COLSEL_FLAG,
-                'exportFormHiddenInputs' => $this->exportFormHiddenInputs,
-            ]
-        );
         $iconCss = $isBs4 ? 'fas fa-external-link-alt' : 'glyphicon glyphicon-export';
         if ($this->asDropdown) {
             $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="' . $iconCss . '"></i>');
@@ -936,10 +926,10 @@ class ExportMenu extends GridView
                 $out = $class::widget($opts);
             }
             $replacePairs = ['{menu}' => $out, '{columns}' => $this->renderColumnSelector()];
-            $content = strtr($this->template, $replacePairs) . "\n" . $form;
+            $content = strtr($this->template, $replacePairs);
             return Html::tag('div', $content, $this->container);
         } else {
-            return $items . "\n" . $form;
+            return $items;
         }
     }
 
@@ -947,6 +937,7 @@ class ExportMenu extends GridView
      * Renders the columns selector
      *
      * @return string the column selector markup
+     * @throws InvalidConfigException
      */
     public function renderColumnSelector()
     {
@@ -956,6 +947,7 @@ class ExportMenu extends GridView
         return $this->render(
             $this->exportColumnsView,
             [
+                'isBs4' => $this->isBs4(),
                 'options' => $this->columnSelectorOptions,
                 'menuOptions' => $this->columnSelectorMenuOptions,
                 'columnSelector' => $this->columnSelector,
@@ -1056,9 +1048,6 @@ class ExportMenu extends GridView
 
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $column) {
-            if (!empty($column->hiddenFromExport)) {
-                continue;
-            }
             $opts = $styleOpts;
             $this->_endCol++;
             /**
@@ -1092,8 +1081,8 @@ class ExportMenu extends GridView
      */
     public function getVisibleColumns()
     {
-        if (!$this->_columnSelectorEnabled) {
-            return $this->columns;
+        if (!isset($this->_visibleColumns)) {
+            $this->setVisibleColumns();
         }
         return $this->_visibleColumns;
     }
@@ -1103,17 +1092,15 @@ class ExportMenu extends GridView
      */
     public function setVisibleColumns()
     {
-        if (!$this->_columnSelectorEnabled) {
-            $this->_visibleColumns = $this->columns;
-            return;
-        }
-        $cols = [];
+        $columns = [];
         foreach ($this->columns as $key => $column) {
-            if (!in_array($key, $this->noExportColumns) && in_array($key, $this->selectedColumns)) {
-                $cols[] = $column;
+            if (!empty($column->hiddenFromExport) || $column instanceof ActionColumn || ($this->_columnSelectorEnabled
+                    && (in_array($key, $this->noExportColumns) || !in_array($key, $this->selectedColumns)))) {
+                continue;
             }
+            $columns[] = $column;
         }
-        $this->_visibleColumns = $cols;
+        $this->_visibleColumns = $columns;
     }
 
     /**
@@ -1218,14 +1205,9 @@ class ExportMenu extends GridView
          */
         $this->_endCol = 0;
         foreach ($this->getVisibleColumns() as $column) {
-            if (!empty($column->hiddenFromExport)) {
-                continue;
-            }
             $format = $this->enableFormatter && isset($column->format) ? $column->format : 'raw';
             $value = null;
-            if ($column instanceof ActionColumn) {
-                $value = null;
-            } elseif ($column instanceof SerialColumn) {
+            if ($column instanceof SerialColumn) {
                 $value = $index + 1;
                 $pagination = $column->grid->dataProvider->getPagination();
                 if ($pagination !== false) {
@@ -1547,6 +1529,7 @@ class ExportMenu extends GridView
      *
      * @param string $file the output filename on server with path
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @throws InvalidConfigException
      */
     protected function renderPDF($file)
     {
@@ -1600,10 +1583,10 @@ class ExportMenu extends GridView
             return;
         }
         $this->selectedColumns = array_keys($this->columnSelector);
-        if (!isset($_POST[self::PARAM_EXPORT_COLS]) or $_POST[self::PARAM_EXPORT_COLS] === '') {
+        if (!isset($_POST[$this->exportColsParam]) or $_POST[$this->exportColsParam] === '') {
             return;
         }
-        $this->selectedColumns = Json::decode($_POST[self::PARAM_EXPORT_COLS]);
+        $this->selectedColumns = Json::decode($_POST[$this->exportColsParam]);
     }
 
     /**
@@ -1818,16 +1801,24 @@ class ExportMenu extends GridView
                 'Request submitted! You may safely close this dialog after saving your downloaded file.'
             ),
         ];
-        $formId = $this->exportFormOptions['id'];
-        $options = Json::encode(
-            [
-                'formId' => $formId,
-                'messages' => $this->messages,
-                'dialogLib' => new JsExpression(
-                    ArrayHelper::getValue($this->krajeeDialogSettings, 'libName', 'krajeeDialog')
-                ),
-            ]
-        );
+        $options = [
+            'target' => $this->target,
+            'formOptions' => $this->exportFormOptions,
+            'messages' => $this->messages,
+            'exportType' => $this->_exportType,
+            'colSelFlagParam' => $this->colSelFlagParam,
+            'colSelEnabled' => $this->_columnSelectorEnabled ? 1 : 0,
+            'exportRequestParam' => $this->exportRequestParam,
+            'exportTypeParam' => $this->exportTypeParam,
+            'exportColsParam' => $this->exportColsParam,
+            'exportFormHiddenInputs' => $this->exportFormHiddenInputs,
+            'showConfirmAlert' => $this->showConfirmAlert,
+            'dialogLib' => ArrayHelper::getValue($this->krajeeDialogSettings, 'libName', 'krajeeDialog'),
+        ];
+        if ($this->_columnSelectorEnabled) {
+            $options['colSelId'] = $this->columnSelectorOptions['id'];
+        }
+        $options = Json::encode($options);
         $menu = 'kvexpmenu_' . hash('crc32', $options);
         $view->registerJs("var {$menu} = {$options};\n", View::POS_HEAD);
         $script = '';
@@ -1836,16 +1827,10 @@ class ExportMenu extends GridView
                 continue;
             }
             $id = $this->options['id'] . '-' . strtolower($format);
-            $options = [
+            $options = Json::encode([
                 'settings' => new JsExpression($menu),
                 'alertMsg' => $setting['alertMsg'],
-                'target' => $this->target,
-                'showConfirmAlert' => $this->showConfirmAlert,
-            ];
-            if ($this->_columnSelectorEnabled) {
-                $options['columnSelectorId'] = $this->columnSelectorOptions['id'];
-            }
-            $options = Json::encode($options);
+            ]);
             $script .= "jQuery('#{$id}').exportdata({$options});\n";
         }
         if ($this->_columnSelectorEnabled) {
