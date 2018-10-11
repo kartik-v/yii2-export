@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.3
+ * @version   1.3.4
  */
 
 namespace kartik\export;
@@ -16,6 +16,7 @@ use kartik\dynagrid\Dynagrid;
 use kartik\grid\GridView;
 use kartik\mpdf\Pdf;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -57,48 +58,52 @@ class ExportMenu extends GridView
     use TranslationTrait;
 
     /**
-     * HTML (Hyper Text Markup Language) export format
+     * @var string HTML (Hyper Text Markup Language) export format
      */
     const FORMAT_HTML = 'Html';
     /**
-     * CSV (comma separated values) export format
+     * @var string CSV (comma separated values) export format
      */
     const FORMAT_CSV = 'Csv';
     /**
-     * Text export format
+     * @var string Text export format
      */
     const FORMAT_TEXT = 'Txt';
     /**
-     * PDF (Portable Document Format) export format
+     * @var string PDF (Portable Document Format) export format
      */
     const FORMAT_PDF = 'Pdf';
     /**
-     * Microsoft Excel 95+ export format
+     * @var string Microsoft Excel 95+ export format
      */
     const FORMAT_EXCEL = 'Xls';
     /**
-     * Microsoft Excel 2007+ export format
+     * @var string Microsoft Excel 2007+ export format
      */
     const FORMAT_EXCEL_X = 'Xlsx';
     /**
-     * Set download target for grid export to a popup browser window
+     * @var string Set download target for grid export to a popup browser window
      */
     const TARGET_POPUP = '_popup';
     /**
-     * Set download target for grid export to the same open document on the browser
+     * @var string Set download target for grid export to a dynamically generated iframe
+     */
+    const TARGET_IFRAME = '_iframe';
+    /**
+     * @var string Set download target for grid export to the same open document on the browser
      */
     const TARGET_SELF = '_self';
     /**
-     * Set download target for grid export to a new window that auto closes after download
+     * @var string Set download target for grid export to a new window that auto closes after download
      */
     const TARGET_BLANK = '_blank';
 
     /**
      * @var string the target for submitting the export form, which will trigger the download of the exported file.
-     * Must be one of the `TARGET_` constants. Defaults to [[TARGET_POPUP]]. Note if you set [[stream]] to `false`,
+     * Must be one of the `TARGET_` constants. Defaults to [[TARGET_IFRAME]]. Note if you set [[stream]] to `false`,
      * then this will be overridden to [[TARGET_SELF]].
      */
-    public $target = self::TARGET_POPUP;
+    public $target = self::TARGET_IFRAME;
 
     /**
      * @var array configuration settings for the Krajee dialog widget that will be used to render alerts and
@@ -266,7 +271,7 @@ class ExportMenu extends GridView
     public $noExportColumns = [];
 
     /**
-     * @var string the view file for rendering the export form. DEPRECATED since v1.3.3 (this is not used any more).
+     * @var string the view file for rendering the export form. DEPRECATED since v1.3.4 (not parsed or used anymore).
      */
     public $exportFormView = '_form';
 
@@ -573,14 +578,42 @@ class ExportMenu extends GridView
     ];
 
     /**
-     * @var BaseDataProvider the modified data provider for usage with export.
+     * @var string the sheet name. Defaults to 'Worksheet'.
      */
-    protected $_provider;
+    public $sheetName = 'Worksheet';
+
+    /**
+     * @var array|null new supplement sheets to be created. Required for data validation in excel. An example setting:
+     * ```
+     * 'supplementSheets' => ['city' => $citiesKeyValueArray, 'state' => $stateKeyValueArray],
+     * ```
+     * If set to empty or null will be ignored.
+     */
+    public $supplementSheets = null;
+
+    /**
+     * @var array|null data for creating excel data validation. An example setting:
+     * ```
+     * 'dataValidation' => ['sheetName1' => ['cellPosition' => count($array)], 'sheetName2' => []],
+     * ```
+     * If set to empty or null will be ignored.
+     */
+    public $dataValidation = null;
 
     /**
      * @var string the data output format type. Defaults to `ExportMenu::FORMAT_EXCEL_X`.
      */
-    protected $_exportType = self::FORMAT_EXCEL_X;
+    public $exportType = self::FORMAT_EXCEL_X;
+
+    /**
+     * @var boolean flag to identify if download is triggered
+     */
+    public $triggerDownload = false;
+
+    /**
+     * @var BaseDataProvider the modified data provider for usage with export.
+     */
+    protected $_provider;
 
     /**
      * @var array the default export configuration
@@ -645,9 +678,15 @@ class ExportMenu extends GridView
     protected $_groupedRow = null;
 
     /**
-     * @var boolean flag to identify if download is triggered
+     * @var string the data output format type. Defaults to `ExportMenu::FORMAT_EXCEL_X`.
      */
-    protected $_triggerDownload = false;
+    private $_exportType;
+
+    /**
+     * @var boolean private flag that will use $_POST [[exportRequestParam]] setting if available or use the
+     * [[triggerDownload]] setting
+     */
+    private $_triggerDownload;
 
     /**
      * Appends slash to path if it does not exist
@@ -698,7 +737,9 @@ class ExportMenu extends GridView
             $this->exportRequestParam = 'exportFull_' . $this->options['id'];
         }
         $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
-        $this->_triggerDownload = Yii::$app->request->post($this->exportRequestParam, false);
+        $request = Yii::$app->request;
+        $this->_triggerDownload = $request->post($this->exportRequestParam, $this->triggerDownload);
+        $this->_exportType = $request->post($this->exportTypeParam, $this->exportType);
         if (!$this->stream) {
             $this->target = self::TARGET_SELF;
         }
@@ -706,8 +747,7 @@ class ExportMenu extends GridView
             if ($this->stream) {
                 Yii::$app->controller->layout = false;
             }
-            $this->_exportType = $_POST[$this->exportTypeParam];
-            $this->_columnSelectorEnabled = $_POST[$this->colSelFlagParam];
+            $this->_columnSelectorEnabled = $request->post($this->colSelFlagParam, $this->_columnSelectorEnabled);
             $this->initSelectedColumns();
         }
         if ($this->dynagrid) {
@@ -754,6 +794,17 @@ class ExportMenu extends GridView
         $this->generateBeforeContent();
         $this->generateHeader();
         $this->generateBody();
+        if (!empty($this->dataValidation)) {
+            foreach ($this->dataValidation as $sheetName => $validations) {
+                foreach ($validations as $cell => $length) {
+                    $this->setDataValidation($sheetName, $cell, $length);
+                }
+            }
+        }
+        if (!empty($this->supplementSheets)) {
+            $this->createSupplementSheets();
+        }
+        $this->_objSpreadsheet->setActiveSheetIndex(0)->setTitle($this->sheetName);
         $row = $this->generateFooter();
         $this->generateAfterContent($row);
         $writer = $this->_objWriter;
@@ -809,6 +860,60 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Create supplement sheets, usually from dropDownList used by gridView. Needed for using dataValidation.
+     *
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    public function createSupplementSheets()
+    {
+        if ($this->_exportType != self::FORMAT_EXCEL && $this->_exportType != self::FORMAT_EXCEL_X) {
+            return;
+        }
+        $sheetIndex = 1;
+        foreach ($this->supplementSheets as $sheetName => $sheetData) {
+            // sheet index & name
+            $this->_objSpreadsheet->createSheet($sheetIndex);
+            $sheet = $this->_objSpreadsheet->setActiveSheetIndex($sheetIndex)->setTitle($sheetName);
+            $sheetIndex++;
+            // generate header
+            $sheet->setCellValue('A1', 'Key')->setCellValue('B1', 'Value');
+            // generate body
+            $index = 2;
+            foreach ($sheetData as $key => $value) {
+                $sheet->setCellValue('A' . $index, $key)->setCellValue('B' . $index++, $value);
+            }
+        }
+    }
+
+    /**
+     * Excel Data Validation (dropDownList in excel). Requires `supplementSheets`.
+     *
+     * @param string $sheetName
+     * @param int|string $cell
+     * @param int $length
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     */
+    public function setDataValidation($sheetName, $cell, $length)
+    {
+        if ($this->_exportType != self::FORMAT_EXCEL && $this->_exportType != self::FORMAT_EXCEL_X) {
+            return;
+        }
+        $objValidation = $this->_objSpreadsheet->getActiveSheet()->getCell($cell)->getDataValidation();
+        $objValidation->setType(DataValidation::TYPE_LIST);
+        $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+        $objValidation->setAllowBlank(false);
+        $objValidation->setShowInputMessage(true);
+        $objValidation->setShowErrorMessage(true);
+        $objValidation->setShowDropDown(true);
+        $objValidation->setErrorTitle('Input error');
+        $objValidation->setError('Value is not in list.');
+        $objValidation->setPromptTitle('Pick from list');
+        $objValidation->setPrompt('Please pick a value from the drop-down list.');
+        // make sure to put the list items between " and "  !!!
+        $objValidation->setFormula1($sheetName . '!$B$2:$B$' . ($length + 1));
+    }
+
+    /**
      * Initializes export settings
      */
     public function initExport()
@@ -832,13 +937,10 @@ class ExportMenu extends GridView
         if (!isset($this->filename)) {
             $this->filename = Yii::t('kvexport', 'grid-export');
         }
-        $target = $this->target == self::TARGET_POPUP ? 'kvExportFullDialog' : $this->target;
-        $id = ArrayHelper::getValue($this->exportFormOptions, 'id', $this->options['id'] . '-form');
         Html::addCssClass($this->exportFormOptions, 'kv-export-full-form');
-        $this->exportFormOptions += [
-            'id' => $id,
-            'target' => $target,
-        ];
+        if (!isset($this->exportFormOptions['id'])) {
+            $this->exportFormOptions['id'] = $this->options['id'] . '-export-form';
+        }
     }
 
     /**
@@ -1296,16 +1398,6 @@ class ExportMenu extends GridView
     }
 
     /**
-     * Gets the currently selected export type
-     *
-     * @return string
-     */
-    public function getExportType()
-    {
-        return $this->_exportType;
-    }
-
-    /**
      * Gets the PhpSpreadsheet object
      *
      * @return \PhpOffice\PhpSpreadsheet\Spreadsheet the current \PhpOffice\PhpSpreadsheet\Spreadsheet object instance
@@ -1582,11 +1674,8 @@ class ExportMenu extends GridView
         if (!$this->_columnSelectorEnabled) {
             return;
         }
-        $this->selectedColumns = array_keys($this->columnSelector);
-        if (!isset($_POST[$this->exportColsParam]) or $_POST[$this->exportColsParam] === '') {
-            return;
-        }
-        $this->selectedColumns = Json::decode($_POST[$this->exportColsParam]);
+        $expCols = Yii::$app->request->post($this->exportColsParam, '');
+        $this->selectedColumns = empty($expCols) ? array_keys($this->columnSelector) : Json::decode($expCols);
     }
 
     /**
@@ -1993,20 +2082,14 @@ class ExportMenu extends GridView
         $config = ArrayHelper::getValue($this->exportConfig, $this->_exportType, []);
         $extension = ArrayHelper::getValue($config, 'extension', 'xlsx');
         $mime = ArrayHelper::getValue($config, 'mime', null);
-        if (strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') == false) {
-            header('Cache-Control: no-cache');
-            header('Pragma: no-cache');
-        } else {
-            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-            header('Pragma: public');
-        }
-        header('Expires: Sat, 26 Jul 1979 05:00:00 GMT');
-        header("Content-Encoding: {$this->encoding}");
+        header('Cache-Control: public, must-revalidate, max-age=0');
+        header('Pragma: public');
+        header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
         if (!empty($mime)) {
             header("Content-Type: {$mime}; charset={$this->encoding}");
         }
         header("Content-Disposition: attachment; filename=\"{$this->filename}.{$extension}\"");
-        header('Cache-Control: max-age=0');
     }
 
     /**
