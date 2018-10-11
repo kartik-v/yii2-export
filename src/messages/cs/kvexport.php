@@ -19,6 +19,12 @@
 return [
     'Download exported file' => '',
     'Exported File' => '',
+    'Input error' => '',
+    'Key' => '',
+    'Pick from list' => '',
+    'Please pick a value from the drop-down list.' => '',
+    'Value' => '',
+    'Value is not in list.' => '',
     'CSV' => 'CSV',
     'Column' => 'Sloupec',
     'Comma Separated Values' => 'Hodnoty oddělené čárkou',

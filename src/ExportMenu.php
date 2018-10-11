@@ -100,10 +100,10 @@ class ExportMenu extends GridView
 
     /**
      * @var string the target for submitting the export form, which will trigger the download of the exported file.
-     * Must be one of the `TARGET_` constants. Defaults to [[TARGET_IFRAME]]. Note if you set [[stream]] to `false`,
-     * then this will be overridden to [[TARGET_SELF]].
+     * Must be one of the `TARGET_` constants. Defaults to [[TARGET_SELF]]. Note if you set [[stream]] to `false`,
+     * then this will be always overridden to [[TARGET_SELF]].
      */
-    public $target = self::TARGET_IFRAME;
+    public $target = self::TARGET_SELF;
 
     /**
      * @var array configuration settings for the Krajee dialog widget that will be used to render alerts and
@@ -278,7 +278,7 @@ class ExportMenu extends GridView
     /**
      * @var string the view file for rendering the columns selection
      */
-    public $exportColumnsView = '_columns';
+    public $exportColumnsView;
 
     /**
      * @var boolean whether to use font awesome icons for rendering the icons as defined in [[exportConfig]]. If set to
@@ -416,7 +416,7 @@ class ExportMenu extends GridView
      * [[stream]] is `false`. You can set this to `false` to not display any file link details for view. This defaults
      * to the `_view` PHP file in the `views` folder of the extension.
      */
-    public $afterSaveView = '_view';
+    public $afterSaveView;
 
     /**
      * @var integer  fetch models from the dataprovider using batches of this size. Set this to `0` (the default) to
@@ -729,36 +729,7 @@ class ExportMenu extends GridView
      */
     public function init()
     {
-        $this->_msgCat = 'kvexport';
-        if (empty($this->options['id'])) {
-            $this->options['id'] = $this->getId();
-        }
-        if (empty($this->exportRequestParam)) {
-            $this->exportRequestParam = 'exportFull_' . $this->options['id'];
-        }
-        $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
-        $request = Yii::$app->request;
-        $this->_triggerDownload = $request->post($this->exportRequestParam, $this->triggerDownload);
-        $this->_exportType = $request->post($this->exportTypeParam, $this->exportType);
-        if (!$this->stream) {
-            $this->target = self::TARGET_SELF;
-        }
-        if ($this->_triggerDownload) {
-            if ($this->stream) {
-                Yii::$app->controller->layout = false;
-            }
-            $this->_columnSelectorEnabled = $request->post($this->colSelFlagParam, $this->_columnSelectorEnabled);
-            $this->initSelectedColumns();
-        }
-        if ($this->dynagrid) {
-            $this->_columnSelectorEnabled = false;
-            $options = $this->dynagridOptions;
-            $options['columns'] = $this->columns;
-            $options['storage'] = 'db';
-            $options['gridOptions']['dataProvider'] = $this->dataProvider;
-            $dynagrid = new DynaGrid($options);
-            $this->columns = $dynagrid->getColumns();
-        }
+        $this->initSettings();
         parent::init();
     }
 
@@ -860,6 +831,52 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Initialize export menu settings
+     */
+    protected function initSettings()
+    {
+        $this->_msgCat = 'kvexport';
+        if (empty($this->options['id'])) {
+            $this->options['id'] = $this->getId();
+        }
+        if (empty($this->exportRequestParam)) {
+            $this->exportRequestParam = 'exportFull_' . $this->options['id'];
+        }
+        $path = '@vendor/kartik-v/yii2-export/src/views';
+        if (!isset($this->exportColumnsView)) {
+            $this->exportColumnsView = "{$path}/_columns";
+        }
+        if (!isset($this->afterSaveView)) {
+            $this->afterSaveView = "{$path}/_view";
+        }
+        $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
+        $request = Yii::$app->request;
+        $this->_triggerDownload = $request->post($this->exportRequestParam, $this->triggerDownload);
+        $this->_exportType = $request->post($this->exportTypeParam, $this->exportType);
+        if (!$this->stream) {
+            $this->target = self::TARGET_SELF;
+        }
+        if ($this->_triggerDownload) {
+            if ($this->stream) {
+                Yii::$app->controller->layout = false;
+            }
+            $this->_columnSelectorEnabled = $request->post($this->colSelFlagParam, $this->_columnSelectorEnabled);
+            $this->initSelectedColumns();
+        }
+        if ($this->dynagrid) {
+            $this->_columnSelectorEnabled = false;
+            $options = $this->dynagridOptions;
+            $options['columns'] = $this->columns;
+            if (!isset($options['storage'])) {
+                $options['storage'] = DynaGrid::TYPE_DB;
+            }
+            $options['gridOptions']['dataProvider'] = $this->dataProvider;
+            $dynagrid = new DynaGrid($options);
+            $this->columns = $dynagrid->getColumns();
+        }
+    }
+
+    /**
      * Create supplement sheets, usually from dropDownList used by gridView. Needed for using dataValidation.
      *
      * @throws \PhpOffice\PhpSpreadsheet\Exception
@@ -876,7 +893,7 @@ class ExportMenu extends GridView
             $sheet = $this->_objSpreadsheet->setActiveSheetIndex($sheetIndex)->setTitle($sheetName);
             $sheetIndex++;
             // generate header
-            $sheet->setCellValue('A1', 'Key')->setCellValue('B1', 'Value');
+            $sheet->setCellValue('A1', Yii::t('kvexport', 'Key'))->setCellValue('B1', Yii::t('kvexport', 'Value'));
             // generate body
             $index = 2;
             foreach ($sheetData as $key => $value) {
@@ -899,18 +916,17 @@ class ExportMenu extends GridView
             return;
         }
         $objValidation = $this->_objSpreadsheet->getActiveSheet()->getCell($cell)->getDataValidation();
-        $objValidation->setType(DataValidation::TYPE_LIST);
-        $objValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
-        $objValidation->setAllowBlank(false);
-        $objValidation->setShowInputMessage(true);
-        $objValidation->setShowErrorMessage(true);
-        $objValidation->setShowDropDown(true);
-        $objValidation->setErrorTitle('Input error');
-        $objValidation->setError('Value is not in list.');
-        $objValidation->setPromptTitle('Pick from list');
-        $objValidation->setPrompt('Please pick a value from the drop-down list.');
-        // make sure to put the list items between " and "  !!!
-        $objValidation->setFormula1($sheetName . '!$B$2:$B$' . ($length + 1));
+        $objValidation->setType(DataValidation::TYPE_LIST)
+            ->setErrorStyle(DataValidation::STYLE_INFORMATION)
+            ->setAllowBlank(false)
+            ->setShowInputMessage(true)
+            ->setShowErrorMessage(true)
+            ->setShowDropDown(true)
+            ->setErrorTitle(Yii::t('kvexport', 'Input error'))
+            ->setError(Yii::t('kvexport', 'Value is not in list.'))
+            ->setPromptTitle(Yii::t('kvexport', 'Pick from list'))
+            ->setPrompt(Yii::t('kvexport', 'Please pick a value from the drop-down list.'))
+            ->setFormula1($sheetName . '!$B$2:$B$' . ($length + 1));
     }
 
     /**

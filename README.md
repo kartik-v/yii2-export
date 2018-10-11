@@ -27,7 +27,7 @@ In addition, with release v1.2.0, the extension also displays a handy grid colum
 The extension offers configurable user interfaces for advanced cases using view templates.
 
 - `exportColumnsView` allows you to setup your own custom view file for rendering the column selector dropdown.
-- `afterSaveView` allows you to setup your own after save view file if you are configuring to save exported file on server .
+- `afterSaveView` allows you to setup your own after save view file if you are configuring to save exported file on server.
 
 ## Demo
 You can see detailed [documentation](http://demos.krajee.com/export) and [demonstration](http://demos.krajee.com/export-demo) on usage of the extension.

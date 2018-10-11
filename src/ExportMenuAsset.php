@@ -26,7 +26,6 @@ class ExportMenuAsset extends AssetBundle
         $this->depends = array_merge(["\\kartik\\dialog\\DialogAsset"], $this->depends);
         $this->setSourcePath(__DIR__ . '/assets');
         $this->setupAssets('js', ['js/kv-export-data']);
-        $this->setupAssets('css', ['css/kv-export-data']);
         parent::init();
     }
 }

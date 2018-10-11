@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _under development_
 
+- (enh #271): Locale specific validation messages and code enhancements.
 - (enh #270): Add iframe as default target for export form download.
 - (enh #248): Add direct download, supplement sheets, data validation features.
 - (enh #204): Better event listening for dynamic export menu rendering.
