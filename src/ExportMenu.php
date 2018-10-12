@@ -793,7 +793,7 @@ class ExportMenu extends GridView
                 "Invalid permissions to write to '{$this->folder}' as set in `ExportMenu::folder` property."
             );
         }
-        $file = self::slash($this->folder) . $this->filename . '.' . $config['extension'];
+        $file = self::slash($this->folder) . iconv("UTF-8", "ISO-8859-1//TRANSLIT", $this->filename) . '.' . $config['extension'];
         $writer->save($file);
         if ($this->stream) {
             $this->clearOutputBuffers();
