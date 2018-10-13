@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.6
+
+**Date:** 13-Oct-2018
+
+- Enhance `ExportWriterPdf` to allow custom formatting
+
 ## version 1.3.5
 
 **Date:** 13-Oct-2018

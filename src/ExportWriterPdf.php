@@ -3,7 +3,7 @@
 /**
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
  * @package yii2-export
- * @version 1.3.5
+ * @version 1.3.6
  */
 
 namespace kartik\export;
@@ -48,13 +48,14 @@ class ExportWriterPdf extends Mpdf
      *
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      * @throws PhpSpreadsheetException
+     * @throws \yii\base\InvalidConfigException
      */
     public function save($pFilename)
     {
         $fileHandle = parent::prepareForSave($pFilename);
 
         //  Default PDF paper size
-        $paperSize = 'LETTER'; // Letter (8.5"x11")
+        $paperSize = Pdf::FORMAT_A4;
 
         //  Check for paper size and page orientation
         if (null === $this->getSheetIndex()) {
@@ -89,25 +90,19 @@ class ExportWriterPdf extends Mpdf
 
         //  Create PDF
         $pdf = $this->createExternalWriterInstance([
+            'format' => $paperSize,
             'orientation' => $orientation,
             'methods' => [
                 'SetTitle' => $properties->getTitle(),
                 'SetAuthor' => $properties->getCreator(),
                 'SetSubject' => $properties->getSubject(),
                 'SetKeywords' => $properties->getKeywords(),
-                'SetCreator' => $properties->getCreator(),
+                'SetCreator' => $properties->getCreator()
             ],
         ]);
-        $ortmp = $orientation;
-        $lib = $pdf->getApi();
-        /** @noinspection PhpUndefinedMethodInspection */
-        $lib->_setPageSize(strtoupper($paperSize), $ortmp);
-        $lib->DefOrientation = $orientation;
-        /** @noinspection PhpUndefinedMethodInspection */
-        $lib->AddPage($orientation);
         $content = $this->generateHTMLHeader(false) . $this->generateSheetData() . $this->generateHTMLFooter();
         //  Write to file
-        fwrite($fileHandle, $pdf->Output(static::cleanHTML($content), $this->filename, Pdf::DEST_STRING));
+        fwrite($fileHandle, $pdf->output(static::cleanHTML($content), $this->filename, Pdf::DEST_STRING));
         parent::restoreStateAfterSave($fileHandle);
     }
 
