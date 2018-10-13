@@ -3,11 +3,12 @@
 /**
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
  * @package yii2-export
- * @version 1.3.4
+ * @version 1.3.5
  */
 
 namespace kartik\export;
 
+use DOMDocument;
 use kartik\mpdf\Pdf;
 use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
@@ -24,7 +25,7 @@ class ExportWriterPdf extends Mpdf
     /**
      * @var string the exported output file name. Defaults to 'grid-export';
      */
-    public $filename;
+    public $filename = '';
 
     /**
      * @var array kartik\mpdf\Pdf component configuration settings
@@ -53,7 +54,7 @@ class ExportWriterPdf extends Mpdf
         $fileHandle = parent::prepareForSave($pFilename);
 
         //  Default PDF paper size
-        $paperSize = 'LETTER'; //    Letter    (8.5 in. by 11 in.)
+        $paperSize = 'LETTER'; // Letter (8.5"x11")
 
         //  Check for paper size and page orientation
         if (null === $this->getSheetIndex()) {
@@ -104,12 +105,42 @@ class ExportWriterPdf extends Mpdf
         $lib->DefOrientation = $orientation;
         /** @noinspection PhpUndefinedMethodInspection */
         $lib->AddPage($orientation);
-        $content = strtr($this->generateHTMLHeader(false) . $this->generateSheetData() . $this->generateHTMLFooter(), [
-           '@page { margin-left: 0.7in; margin-right: 0.7in; margin-top: 0.75in; margin-bottom: 0.75in; }' => '',
-           'body { margin-left: 0.7in; margin-right: 0.7in; margin-top: 0.75in; margin-bottom: 0.75in; }' => '',
-        ]);
+        $content = $this->generateHTMLHeader(false) . $this->generateSheetData() . $this->generateHTMLFooter();
         //  Write to file
-        fwrite($fileHandle, $pdf->Output($content, $this->filename, Pdf::DEST_STRING));
+        fwrite($fileHandle, $pdf->Output(static::cleanHTML($content), $this->filename, Pdf::DEST_STRING));
         parent::restoreStateAfterSave($fileHandle);
+    }
+
+    /**
+     * Cleans HTML of embedded script, style, and link tags
+     *
+     * @param string $content the source HTML content
+     * @return string the cleaned HTML content
+     */
+    protected static function cleanHTML($content)
+    {
+        if (empty($content)) {
+            return $content;
+        }
+        $doc = new DOMDocument();
+        $doc->loadHTML($content);
+        static::removeElementsByTagName('script', $doc);
+        static::removeElementsByTagName('style', $doc);
+        static::removeElementsByTagName('link', $doc);
+        return $doc->saveHTML();
+    }
+
+    /**
+     * Remove DOM elements by tag name
+     * @param string $tagName the tag name to parse and remove
+     * @param DOMDocument $document the DomDocument object
+     */
+    protected static function removeElementsByTagName($tagName, $document)
+    {
+        $nodeList = $document->getElementsByTagName($tagName);
+        for ($nodeIdx = $nodeList->length; --$nodeIdx >= 0;) {
+            $node = $nodeList->item($nodeIdx);
+            $node->parentNode->removeChild($node);
+        }
     }
 }

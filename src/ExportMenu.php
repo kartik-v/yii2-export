@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.4
+ * @version   1.3.5
  */
 
 namespace kartik\export;
@@ -793,7 +793,8 @@ class ExportMenu extends GridView
                 "Invalid permissions to write to '{$this->folder}' as set in `ExportMenu::folder` property."
             );
         }
-        $file = self::slash($this->folder) . iconv("UTF-8", "ISO-8859-1//TRANSLIT", $this->filename) . '.' . $config['extension'];
+        $filename = iconv("UTF-8", "ISO-8859-1//TRANSLIT", $this->filename);
+        $file = self::slash($this->folder) . $filename . '.' . $config['extension'];
         $writer->save($file);
         if ($this->stream) {
             $this->clearOutputBuffers();
@@ -1221,7 +1222,12 @@ class ExportMenu extends GridView
     {
         $columns = [];
         foreach ($this->columns as $key => $column) {
-            if (!empty($column->hiddenFromExport) || $column instanceof ActionColumn || in_array($key, $this->noExportColumns)) {
+            $isActionColumn = $column instanceof ActionColumn;
+            $isNoExport = in_array($key, $this->noExportColumns);
+            if ($isActionColumn && !$isNoExport) {
+                $this->noExportColumns[] = $key;
+            }
+            if (!empty($column->hiddenFromExport) || $isActionColumn || $isNoExport) {
                 continue;
             }
             $columns[] = $column;

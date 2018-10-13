@@ -1,6 +1,13 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.5
+
+**Date:** 13-Oct-2018
+
+- Enhance PDF output rendering by cleaning HTML for unwanted tags. 
+- (enh #274): Correctly parse UTF-8 filename.
+
 ## version 1.3.4
 
 **Date:** 12-Oct-2018
