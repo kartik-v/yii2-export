@@ -1,6 +1,13 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.7
+
+**Date:** _under development_
+
+- Update README.
+- (enh #279): Update Persian translations.
+
 ## version 1.3.6
 
 **Date:** 13-Oct-2018
