@@ -1758,6 +1758,8 @@ class ExportMenu extends GridView
         if ($provider instanceof ActiveDataProvider && $provider->query instanceof ActiveQueryInterface) {
             $model = new $provider->query->modelClass;
             return $model->getAttributeLabel($attribute);
+        } elseif ($provider instanceof ActiveDataProvider && $provider->query instanceof QueryInterface) {
+            return Inflector::camel2words($attribute);
         } else {
             $models = $provider->getModels();
             if (($model = reset($models)) instanceof Model) {
