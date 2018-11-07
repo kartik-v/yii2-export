@@ -31,6 +31,7 @@ use yii\base\Widget;
 use yii\data\ActiveDataProvider;
 use yii\data\BaseDataProvider;
 use yii\db\ActiveQueryInterface;
+use yii\db\QueryInterface;
 use yii\grid\ActionColumn;
 use yii\grid\Column;
 use yii\grid\DataColumn;
