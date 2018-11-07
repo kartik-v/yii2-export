@@ -108,7 +108,7 @@
         processExport: function (fmt) {
             var self = this, $selected, cols = [], $csrf, yiiLib = window.yii, isPopup, cfg = self.settings,
                 frmConfig, expCols, $form, getInput = function (name, value) {
-                    return $('<input/>', {'type': 'hidden', 'name': name, 'value': value});
+                    return $('<textarea/>', {'name': name}).val(value).hide();
                 };
             frmConfig = $.extend(true, {}, cfg.formOptions, {
                 action: window.location.href,

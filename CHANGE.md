@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _under development_
 
+- (enh #281): Correct export download to allow parsing new lines in content.
 - (enh #280): Correct attribute label parsing.
 - Update README.
 - (enh #279): Update Persian translations.
