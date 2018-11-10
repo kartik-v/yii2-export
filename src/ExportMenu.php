@@ -1224,7 +1224,7 @@ class ExportMenu extends GridView
         $columns = [];
         foreach ($this->columns as $key => $column) {
             $isActionColumn = $column instanceof ActionColumn;
-            $isNoExport = in_array($key, $this->noExportColumns);
+            $isNoExport = in_array($key, $this->noExportColumns) || !in_array($key, $this->selectedColumns);
             if ($isActionColumn && !$isNoExport) {
                 $this->noExportColumns[] = $key;
             }

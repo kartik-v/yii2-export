@@ -139,6 +139,7 @@
                 });
                 expCols = JSON.stringify(cols);
             }
+            console.log(expCols);
             $form = $('<form/>', frmConfig).append($csrf)
                 .append(getInput(cfg.exportTypeParam, fmt), getInput(cfg.exportRequestParam, 1))
                 .append(getInput(cfg.exportColsParam, expCols), getInput(cfg.colSelFlagParam, cfg.colSelEnabled))

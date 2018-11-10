@@ -3,8 +3,10 @@ Change Log: `yii2-export`
 
 ## version 1.3.7
 
-**Date:** _under development_
+**Date:** 10-Nov-2018
 
+- (enh #283): Correct export columns validation.
+- (enh #282): Include use `yii\db\QueryInterface`.
 - (enh #281): Correct export download to allow parsing new lines in content.
 - (enh #280): Correct attribute label parsing.
 - Update README.

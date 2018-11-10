@@ -97,7 +97,7 @@ class ExportWriterPdf extends Mpdf
                 'SetAuthor' => $properties->getCreator(),
                 'SetSubject' => $properties->getSubject(),
                 'SetKeywords' => $properties->getKeywords(),
-                'SetCreator' => $properties->getCreator()
+                'SetCreator' => $properties->getCreator(),
             ],
         ]);
         $content = $this->generateHTMLHeader(false) . $this->generateSheetData() . $this->generateHTMLFooter();
