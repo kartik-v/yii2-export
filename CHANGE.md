@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.8
+
+**Date:** _under development_
+
+- (bug #284): Correct validation when `showColumnSelector` is `false`.
+
 ## version 1.3.7
 
 **Date:** 10-Nov-2018

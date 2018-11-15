@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.7
+ * @version   1.3.8
  */
 
 namespace kartik\export;
@@ -1224,7 +1224,8 @@ class ExportMenu extends GridView
         $columns = [];
         foreach ($this->columns as $key => $column) {
             $isActionColumn = $column instanceof ActionColumn;
-            $isNoExport = in_array($key, $this->noExportColumns) || !in_array($key, $this->selectedColumns);
+            $isNoExport = in_array($key, $this->noExportColumns) || 
+                ($this->showColumnSelector && is_array($this->selectedColumns) && !in_array($key, $this->selectedColumns));
             if ($isActionColumn && !$isNoExport) {
                 $this->noExportColumns[] = $key;
             }
