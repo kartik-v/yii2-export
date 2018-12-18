@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.3.9
+
+**Date:** _under development_
+
+- (enh #288): Correct export column selection when `asDropdown` is `false`.
+
 ## version 1.3.8
 
 **Date:** 29-Nov-2018

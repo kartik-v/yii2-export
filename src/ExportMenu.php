@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.8
+ * @version   1.3.9
  */
 
 namespace kartik\export;
@@ -166,6 +166,7 @@ class ExportMenu extends GridView
 
     /**
      * @var boolean whether to show a column selector to select columns for export. Defaults to `true`.
+     * This is applicable only if [[asDropdown]] is set to `true`. Else this property is ignored.
      */
     public $showColumnSelector = true;
 
@@ -845,7 +846,7 @@ class ExportMenu extends GridView
         if (!isset($this->afterSaveView)) {
             $this->afterSaveView = "{$path}/_view";
         }
-        $this->_columnSelectorEnabled = $this->showColumnSelector;
+        $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
         $request = Yii::$app->request;
         $this->_triggerDownload = $request->post($this->exportRequestParam, $this->triggerDownload);
         $this->_exportType = $request->post($this->exportTypeParam, $this->exportType);

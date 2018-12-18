@@ -2,7 +2,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2018
- * @version   1.3.8
+ * @version   1.3.9
  *
  * Export Data Validation Module.
  *
