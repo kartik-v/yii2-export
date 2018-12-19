@@ -836,6 +836,7 @@ class ExportMenu extends GridView
      */
     protected function initSettings()
     {
+        $this->showPageSummary = false; // force disable page-summary for `ExportMenu` (issue #162)
         $this->_msgCat = 'kvexport';
         if (empty($this->options['id'])) {
             $this->options['id'] = $this->getId();

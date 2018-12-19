@@ -8,12 +8,13 @@ Change Log: `yii2-export`
 - (enh #288): Correct export column selection when `asDropdown` is `false`.
 - (enh #276): Ability to configure explicit cell formats (header, footer, content, before, after).
    Explicit cell formats must be one of the `PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_` constants.
-   This can be set via `cellFormat` settings at one or more of the following levels. 
+   This can be set via `cellFormat` settings at one or more of the following levels.
    -  `Column::headerOptions['cellFormat']` within `columns` array items.
    -  `Column::contentOptions['cellFormat']` within `columns` array items.
    -  `Column::footerOptions['cellFormat']` within `columns` array items.
    -  The `cellFormat` setting for each array item within `ExportMenu::contentBefore`
    -  The `cellFormat` setting for each array item within `ExportMenu::contentAfter`
+- (enh #162): Disable page summary validation and rendering for `yii2-export`.
 
 ## version 1.3.8
 
