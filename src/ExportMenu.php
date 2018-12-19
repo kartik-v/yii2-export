@@ -358,6 +358,8 @@ class ExportMenu extends GridView
      * @var array an array of rows to prepend in front of the grid used to create things like a title. Each array
      * should be set with the following settings:
      * - value: string, the value of the merged row
+     * - cellFormat: string|null, the explicit cell format to apply (should be one of the
+     *   `PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_` constants)
      * - styleOptions: array, array of configuration options to set the style. See $styleOptions on how to configure.
      */
     public $contentBefore = [];
@@ -366,6 +368,8 @@ class ExportMenu extends GridView
      * @var array an array of rows to append after the footer row. Each array
      * should be set with the following settings:
      * - value: string, the value of the merged row
+     * - cellFormat: string|null, the explicit cell format to apply (should be one of the
+     *   `PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_` constants)
      * - styleOptions: array, array of configuration options to set the style. See $styleOptions on how to configure.
      */
     public $contentAfter = [];
@@ -1155,7 +1159,8 @@ class ExportMenu extends GridView
         $colFirst = self::columnName(1);
         $sheet = $this->_objWorksheet;
         foreach ($this->contentBefore as $contentBefore) {
-            $this->setOutCellValue($sheet, $colFirst . $this->_beginRow, $contentBefore['value']);
+            $format = ArrayHelper::getValue($contentBefore, 'cellFormat', null);
+            $this->setOutCellValue($sheet, $colFirst . $this->_beginRow, $contentBefore['value'], $format);
             $opts = $this->getStyleOpts($contentBefore);
             $sheet->getStyle($colFirst . $this->_beginRow)->applyFromArray($opts);
             $this->_beginRow += 1;
@@ -1185,7 +1190,8 @@ class ExportMenu extends GridView
              */
             $head = ($column instanceof DataColumn) ? $this->getColumnHeader($column) : $column->header;
             $id = self::columnName($this->_endCol) . $this->_beginRow;
-            $cell = $this->setOutCellValue($sheet, $id, $head);
+            $format = ArrayHelper::remove($column->headerOptions, 'cellFormat', null);
+            $cell = $this->setOutCellValue($sheet, $id, $head, $format);
             if (isset($column->hAlign) && !isset($opts['alignment']['horizontal'])) {
                 $opts['alignment']['horizontal'] = $column->hAlign;
             }
@@ -1225,8 +1231,9 @@ class ExportMenu extends GridView
         $columns = [];
         foreach ($this->columns as $key => $column) {
             $isActionColumn = $column instanceof ActionColumn;
-            $isNoExport = in_array($key, $this->noExportColumns) || 
-                ($this->showColumnSelector && is_array($this->selectedColumns) && !in_array($key, $this->selectedColumns));
+            $isNoExport = in_array($key, $this->noExportColumns) ||
+                ($this->showColumnSelector && is_array($this->selectedColumns) && !in_array($key,
+                        $this->selectedColumns));
             if ($isActionColumn && !$isNoExport) {
                 $this->noExportColumns[] = $key;
             }
@@ -1361,12 +1368,14 @@ class ExportMenu extends GridView
             } else {
                 $value = '';
             }
+            $format = ArrayHelper::remove($column->contentOptions, 'cellFormat', null);
             $cell = $this->setOutCellValue(
                 $this->_objWorksheet,
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
-                $value
+                $value,
+                $format
             );
-            if ($this->enableAutoFormat) {
+            if ($this->enableAutoFormat && $format === null) {
                 $this->autoFormat($model, $key, $index, $column, $cell);
             }
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
@@ -1393,10 +1402,12 @@ class ExportMenu extends GridView
             if ($column->footer) {
                 $footerExists = true;
                 $footer = trim($column->footer) !== '' ? $column->footer : $column->grid->blankDisplay;
+                $format = ArrayHelper::remove($column->footerOptions, 'cellFormat', null);
                 $cell = $this->setOutCellValue(
                     $this->_objSpreadsheet->getActiveSheet(),
                     self::columnName($this->_endCol) . ($row + 1),
-                    $footer
+                    $footer,
+                    $format
                 );
                 $this->raiseEvent('onRenderFooterCell', [$cell, $footer, $this]);
             }
@@ -1420,7 +1431,8 @@ class ExportMenu extends GridView
         $afterContentBeginRow = $row;
         $sheet = $this->_objWorksheet;
         foreach ($this->contentAfter as $contentAfter) {
-            $this->setOutCellValue($sheet, $colFirst . $row, $contentAfter['value']);
+            $format = ArrayHelper::getValue($contentAfter, 'cellFormat', null);
+            $this->setOutCellValue($sheet, $colFirst . $row, $contentAfter['value'], $format);
             $opts = $this->getStyleOpts($contentAfter);
             $sheet->getStyle($colFirst . $row)->applyFromArray($opts);
             $row += 1;
@@ -2083,18 +2095,23 @@ class ExportMenu extends GridView
      * @param Worksheet $sheet
      * @param string $index coordinate of the cell, eg: 'A1'
      * @param mixed $value value of the cell
-     *
+     * @param string|null $format the explicit cell format to apply (should be one of the
+     *        `PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_` constants)
      * @return Cell
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
-    protected function setOutCellValue($sheet, $index, $value)
+    protected function setOutCellValue($sheet, $index, $value, $format = null)
     {
         if ($this->stripHtml) {
             $value = strip_tags($value);
         }
         $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
         $cell = $sheet->getCell($index);
-        $cell->setValue($value);
+        if ($format === null) {
+            $cell->setValue($value);
+        } else {
+            $cell->setValueExplicit($value, $format);
+        }
         return $cell;
     }
 
