@@ -801,10 +801,11 @@ class ExportMenu extends GridView
         }
         $filename = iconv("UTF-8", "ISO-8859-1//TRANSLIT", $this->filename);
         $file = self::slash($this->folder) . $filename . '.' . $config['extension'];
+        $this->clearOutputBuffers();
         $writer->save($file);
         if ($this->stream) {
-            $this->clearOutputBuffers();
             $this->setHttpHeaders();
+            $this->clearOutputBuffers();
             readfile($file);
             $this->cleanup($file, $config);
             exit();
