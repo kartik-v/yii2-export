@@ -1,9 +1,15 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.4.0
+
+**Date:** _under development_
+
+- (enh #292): Clean output buffers before readfile dump to browser.
+
 ## version 1.3.9
 
-**Date:** 23-Dec-2018
+**Date:** 19-Dec-2018
 
 - (enh #292): Clean output buffers before readfile dump to browser.
 - (enh #288): Correct export column selection when `asDropdown` is `false`.
