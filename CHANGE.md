@@ -3,9 +3,11 @@ Change Log: `yii2-export`
 
 ## version 1.4.0
 
-**Date:** _under development_
+**Date:** 25-May-2019
 
+- (enh #296): Create model via instance method.
 - (enh #292): Clean output buffers before readfile dump to browser.
+- Implement stale bot.
 
 ## version 1.3.9
 
