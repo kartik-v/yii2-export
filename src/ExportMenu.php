@@ -942,6 +942,8 @@ class ExportMenu extends GridView
             $this->_provider->pagination = clone($this->dataProvider->pagination);
             $this->_provider->pagination->pageSize = $this->batchSize;
             $this->_provider->refresh();
+            $this->_provider->pagination->page = null;                                            
+            \Yii::$app->request->setQueryParams([$this->_provider->pagination->pageParam => 1]);  
         } else {
             $this->_provider->pagination = false;
         }
