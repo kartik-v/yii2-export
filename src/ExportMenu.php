@@ -941,6 +941,7 @@ class ExportMenu extends GridView
             /** @noinspection PhpUndefinedFieldInspection */
             $this->_provider->pagination = clone($this->dataProvider->pagination);
             $this->_provider->pagination->pageSize = $this->batchSize;
+            $this->_provider->refresh();
         } else {
             $this->_provider->pagination = false;
         }
