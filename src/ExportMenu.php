@@ -1305,6 +1305,9 @@ class ExportMenu extends GridView
         $this->findGroupedColumn();
         while (count($models) > 0) {
             $keys = $this->_provider->getKeys();
+            if ($this->_provider instanceof ArrayDataProvider) {
+                $models = array_values($models);                
+            }                                                   
             foreach ($models as $index => $model) {
                 $key = $keys[$index];
                 $this->generateRow($model, $key, $this->_endRow);
