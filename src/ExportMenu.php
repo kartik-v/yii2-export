@@ -941,6 +941,11 @@ class ExportMenu extends GridView
             /** @noinspection PhpUndefinedFieldInspection */
             $this->_provider->pagination = clone($this->dataProvider->pagination);
             $this->_provider->pagination->pageSize = $this->batchSize;
+            $this->_provider->refresh();
+            if (\Yii::$app->request->getBodyParam('exportFull_export')) {
+                $this->_provider->pagination->page = null;
+                \Yii::$app->request->setQueryParams([$this->_provider->pagination->pageParam => 1]);
+            } 
         } else {
             $this->_provider->pagination = false;
         }
@@ -1302,6 +1307,9 @@ class ExportMenu extends GridView
         $this->findGroupedColumn();
         while (count($models) > 0) {
             $keys = $this->_provider->getKeys();
+            if ($this->_provider instanceof ArrayDataProvider) {
+                $models = array_values($models);                
+            }                                                   
             foreach ($models as $index => $model) {
                 $key = $keys[$index];
                 $this->generateRow($model, $key, $this->_endRow);
