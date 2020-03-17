@@ -1252,6 +1252,16 @@ class ExportMenu extends GridView
     }
 
     /**
+     * Gets the currently selected export type
+     *
+     * @return string
+     */
+    public function getExportType()
+    {
+        return $this->_exportType;
+    }
+
+    /**
      * Gets the column header content
      *
      * @param DataColumn $col
