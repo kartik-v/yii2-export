@@ -1,6 +1,15 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.4.1
+
+**Date:** _under development_
+
+- (enh #318): Correct icons for bootstrap 4.
+- (enh #317): Get export type function.
+- (enh #309): Fix the loss of the first page if batchSize.
+- (enh #304): Activating Open Collective.
+
 ## version 1.4.0
 
 **Date:** 25-May-2019

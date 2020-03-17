@@ -2,8 +2,8 @@
 /**
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
- * @version   1.4.0
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2020
+ * @version   1.4.1
  * 
  * Column Selector View
  *

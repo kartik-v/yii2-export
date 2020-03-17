@@ -3,8 +3,8 @@
 /**
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
- * @version   1.4.0
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2020
+ * @version   1.4.1
  */
 
 namespace kartik\export;
@@ -29,6 +29,7 @@ use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\base\Widget;
 use yii\data\ActiveDataProvider;
+use yii\data\ArrayDataProvider;
 use yii\data\BaseDataProvider;
 use yii\db\ActiveQueryInterface;
 use yii\db\QueryInterface;
@@ -147,7 +148,8 @@ class ExportMenu extends GridView
      * @var array the HTML attributes for the export button menu. Applicable only if [[asDropdown]] is set to `true`.
      * The following special options are available:
      * - `label`: _string_, defaults to empty string
-     * - `icon`: _string_, defaults to `<i class="glyphicon glyphicon-export"></i>`
+     * - `icon`: _string_, defaults to `<i class="glyphicon glyphicon-export"></i>` for BS3 and
+     * `<i class="fas fa-external-link-alt"></i>` for BS4
      * - `title`: _string_, defaults to `Export data in selected format`.
      * - `menuOptions`: _array_, the HTML attributes for the dropdown menu.
      * - `itemsBefore`: _array_, any additional items that will be merged/prepended before with the export dropdown list.
@@ -189,7 +191,8 @@ class ExportMenu extends GridView
      * @var array the HTML attributes for the column selector dropdown button. The following special options are
      * recognized:
      * - `label`: _string_, defaults to empty string.
-     * - `icon`: _string_, defaults to `<i class="glyphicon glyphicon-list"></i>`
+     * - `icon`: _string_, defaults to `<i class="glyphicon glyphicon-list"></i>` for BS3 and
+     * `<i class="fas fa-list"></i>` for BS4
      * - `title`: _string_, defaults to `Select columns for export`.
      */
     public $columnSelectorOptions = [];
@@ -942,10 +945,10 @@ class ExportMenu extends GridView
             $this->_provider->pagination = clone($this->dataProvider->pagination);
             $this->_provider->pagination->pageSize = $this->batchSize;
             $this->_provider->refresh();
-            if (\Yii::$app->request->getBodyParam('exportFull_export')) {
+            if (Yii::$app->request->getBodyParam('exportFull_export')) {
                 $this->_provider->pagination->page = null;
-                \Yii::$app->request->setQueryParams([$this->_provider->pagination->pageParam => 1]);
-            } 
+                Yii::$app->request->setQueryParams([$this->_provider->pagination->pageParam => 1]);
+            }
         } else {
             $this->_provider->pagination = false;
         }
@@ -1318,8 +1321,8 @@ class ExportMenu extends GridView
         while (count($models) > 0) {
             $keys = $this->_provider->getKeys();
             if ($this->_provider instanceof ArrayDataProvider) {
-                $models = array_values($models);                
-            }                                                   
+                $models = array_values($models);
+            }
             foreach ($models as $index => $model) {
                 $key = $keys[$index];
                 $this->generateRow($model, $key, $this->_endRow);
@@ -1732,7 +1735,7 @@ class ExportMenu extends GridView
         $this->columnSelectorOptions = array_replace_recursive(
             [
                 'id' => $id,
-                'icon' => '<i class="glyphicon glyphicon-list"></i>',
+                'icon' => $this->isBs4() ? '<i class="fas fa-list"></i>' : '<i class="glyphicon glyphicon-list"></i>',
                 'title' => Yii::t('kvexport', 'Select columns to export'),
                 'type' => 'button',
                 'data-toggle' => 'dropdown',
@@ -2085,7 +2088,7 @@ class ExportMenu extends GridView
                     $value = "=min($groupedRange)";
                     break;
             }
-            if ($value instanceof \Closure) {
+            if ($value instanceof Closure) {
                 $value = call_user_func($value, $groupedRange, $this);
             }
             $this->_groupedRow[] = !isset($value) || $value === '' ? '' : strip_tags($value);
