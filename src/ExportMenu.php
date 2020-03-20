@@ -206,7 +206,7 @@ class ExportMenu extends GridView
      * @var array the settings for the toggle all checkbox to check / uncheck the columns as a batch. Should be setup as
      * an associative array which can have the following keys:
      * - `show`: _boolean_, whether the batch toggle checkbox is to be shown. Defaults to `true`.
-     * - `label`: _string_, the label to be displayed for toggle all. Defaults to `Toggle All`.
+     * - `label`: _string_, the label to be displayed for toggle all. Defaults to `Select Columns`.
      * - `options`: _array_, the HTML attributes for the toggle label text. Defaults to `['class'=>'kv-toggle-all']`
      */
     public $columnBatchToggleSettings = [];
@@ -1075,6 +1075,7 @@ class ExportMenu extends GridView
         return $this->render(
             $this->exportColumnsView,
             [
+                'id' => $this->options['id'],
                 'isBs4' => $this->isBs4(),
                 'options' => $this->columnSelectorOptions,
                 'menuOptions' => $this->columnSelectorMenuOptions,

@@ -17,14 +17,6 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Download exported file' => '',
-    'Exported File' => '',
-    'Input error' => '',
-    'Key' => '',
-    'Pick from list' => '',
-    'Please pick a value from the drop-down list.' => '',
-    'Value' => '',
-    'Value is not in list.' => '',
     'CSV' => 'CSV',
     'Column' => 'Alan',
     'Comma Separated Values' => 'Virgülle Ayrılmış Değerler',
@@ -52,6 +44,14 @@ return [
     'The HTML export file will be generated for download.' => 'HTML aktarım dosyası oluşturulacak.',
     'The PDF export file will be generated for download.' => 'PDF aktarım dosyası oluşturulacak.',
     'The TEXT export file will be generated for download.' => 'Text aktarım dosyası oluşturulacak.',
-    'Toggle All' => 'Tümünü seç',
     'grid-export' => 'export',
+    'Download exported file' => '',
+    'Exported File' => '',
+    'Input error' => '',
+    'Key' => '',
+    'Pick from list' => '',
+    'Please pick a value from the drop-down list.' => '',
+    'Value' => '',
+    'Value is not in list.' => '',
+    'Toggle All' => '@@Tümünü seç@@',
 ];

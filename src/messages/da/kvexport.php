@@ -50,8 +50,8 @@ return [
     'The HTML export file will be generated for download.' => '',
     'The PDF export file will be generated for download.' => '',
     'The TEXT export file will be generated for download.' => '',
-    'Toggle All' => '',
     'Value' => '',
     'Value is not in list.' => '',
     'grid-export' => '',
+    'Toggle All' => '@@@@',
 ];

@@ -17,6 +17,10 @@
     padding: 0 20px;
 }
 
+.kv-checkbox-list .custom-checkbox {
+    margin: 0.4rem 0 0.4rem 0.8rem;
+}
+
 .kv-checkbox-list label {
     width: 100%;
 }

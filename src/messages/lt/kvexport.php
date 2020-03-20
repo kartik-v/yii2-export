@@ -17,12 +17,6 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Input error' => '',
-    'Key' => '',
-    'Pick from list' => '',
-    'Please pick a value from the drop-down list.' => '',
-    'Value' => '',
-    'Value is not in list.' => '',
     'CSV' => 'CSV',
     'Column' => 'Stulpelis',
     'Comma Separated Values' => 'Kableliu atskirtos reikšmės',
@@ -52,6 +46,12 @@ return [
     'The HTML export file will be generated for download.' => 'Bus sugeneruotas HTML eksporto failas parsisiuntimui.',
     'The PDF export file will be generated for download.' => 'Bus sugeneruotas PDF eksporto failas parsisiuntimui.',
     'The TEXT export file will be generated for download.' => 'Bus sugeneruotas TEXT eksporto failas parsisiuntimui.',
-    'Toggle All' => 'Žymėti visus',
     'grid-export' => 'lentelės eksportas',
+    'Input error' => '',
+    'Key' => '',
+    'Pick from list' => '',
+    'Please pick a value from the drop-down list.' => '',
+    'Value' => '',
+    'Value is not in list.' => '',
+    'Toggle All' => '@@Žymėti visus@@',
 ];

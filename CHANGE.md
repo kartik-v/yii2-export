@@ -5,6 +5,7 @@ Change Log: `yii2-export`
 
 **Date:** _under development_
 
+- (enh #319): Enhancements of export column selector.
 - (enh #318): Correct icons for bootstrap 4.
 - (enh #317): Get export type function.
 - (enh #309): Fix the loss of the first page if batchSize.

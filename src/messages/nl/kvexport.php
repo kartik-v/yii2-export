@@ -17,12 +17,6 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Input error' => '',
-    'Key' => '',
-    'Pick from list' => '',
-    'Please pick a value from the drop-down list.' => '',
-    'Value' => '',
-    'Value is not in list.' => '',
     'CSV' => 'CSV',
     'Column' => 'Kolom',
     'Comma Separated Values' => 'Komma gescheiden waardes',
@@ -52,6 +46,12 @@ return [
     'The HTML export file will be generated for download.' => 'Het HTML export bestand zal gegenereerd worden om te downloaden',
     'The PDF export file will be generated for download.' => 'Het PDF export bestand zal gegenereerd worden om te downloaden',
     'The TEXT export file will be generated for download.' => 'Het TEXT export bestand zal gegenereerd worden om te downloaden',
-    'Toggle All' => 'Wissel alles',
     'grid-export' => 'raster-export',
+    'Input error' => '',
+    'Key' => '',
+    'Pick from list' => '',
+    'Please pick a value from the drop-down list.' => '',
+    'Value' => '',
+    'Value is not in list.' => '',
+    'Toggle All' => '@@Wissel alles@@',
 ];

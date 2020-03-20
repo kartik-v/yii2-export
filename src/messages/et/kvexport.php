@@ -17,12 +17,6 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Input error' => '',
-    'Key' => '',
-    'Pick from list' => '',
-    'Please pick a value from the drop-down list.' => '',
-    'Value' => '',
-    'Value is not in list.' => '',
     'CSV' => 'CSV',
     'Column' => 'Veerg',
     'Comma Separated Values' => 'Komaga eristatud väärtused',
@@ -52,6 +46,12 @@ return [
     'The HTML export file will be generated for download.' => 'Genereerin HTML faili alla laadimiseks.',
     'The PDF export file will be generated for download.' => 'Genereerin PDF faili alla laadimiseks.',
     'The TEXT export file will be generated for download.' => 'Genereerin TEXT faili alla laadimiseks.',
-    'Toggle All' => 'Vali kõik',
     'grid-export' => 'grid-export',
+    'Input error' => '',
+    'Key' => '',
+    'Pick from list' => '',
+    'Please pick a value from the drop-down list.' => '',
+    'Value' => '',
+    'Value is not in list.' => '',
+    'Toggle All' => '@@Vali kõik@@',
 ];
