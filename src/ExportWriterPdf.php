@@ -50,7 +50,7 @@ class ExportWriterPdf extends Mpdf
      * @throws PhpSpreadsheetException
      * @throws \yii\base\InvalidConfigException
      */
-    public function save($pFilename)
+    public function save($pFilename): void
     {
         $fileHandle = parent::prepareForSave($pFilename);
 
