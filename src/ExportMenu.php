@@ -1391,7 +1391,7 @@ class ExportMenu extends GridView
             } else {
                 $value = '';
             }
-            $format = ArrayHelper::remove($column->contentOptions, 'cellFormat', null);
+            $format = ArrayHelper::getValue($column->contentOptions, 'cellFormat', null);
             $cell = $this->setOutCellValue(
                 $this->_objWorksheet,
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
