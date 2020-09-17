@@ -1393,7 +1393,7 @@ class ExportMenu extends GridView
             }
             $contentOptions = $column->contentOptions;
             if (is_callable($contentOptions)) {
-                $contentOptions = $contentOptions($model, $key, $index);
+                $contentOptions = $contentOptions($model, $key, $index, $column);
             }
             $format = ArrayHelper::getValue($contentOptions, 'cellFormat', null);
             $cell = $this->setOutCellValue(
