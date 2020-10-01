@@ -1391,7 +1391,11 @@ class ExportMenu extends GridView
             } else {
                 $value = '';
             }
-            $format = ArrayHelper::getValue($column->contentOptions, 'cellFormat', null);
+            $contentOptions = $column->contentOptions;
+            if (is_callable($contentOptions)) {
+                $contentOptions = $contentOptions($model, $key, $index, $column);
+            }
+            $format = ArrayHelper::getValue($contentOptions, 'cellFormat', null);
             $cell = $this->setOutCellValue(
                 $this->_objWorksheet,
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
