@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2020
- * @version   1.4.1
+ * @version   1.4.2
  */
 
 namespace kartik\export;
@@ -799,7 +799,7 @@ class ExportMenu extends GridView
                 "Invalid permissions to write to '{$this->folder}' as set in `ExportMenu::folder` property."
             );
         }
-        $filename = iconv("UTF-8", "ISO-8859-1//TRANSLIT", $this->filename);
+        $filename = static::sanitize($this->filename);
         $file = self::slash($this->folder) . $filename . '.' . $config['extension'];
         if ($this->stream) {
             $this->clearOutputBuffers();
@@ -941,7 +941,6 @@ class ExportMenu extends GridView
     {
         $this->_provider = clone($this->dataProvider);
         if ($this->batchSize && $this->_provider->pagination) {
-            /** @noinspection PhpUndefinedFieldInspection */
             $this->_provider->pagination = clone($this->dataProvider->pagination);
             $this->_provider->pagination->pageSize = $this->batchSize;
             $this->_provider->refresh();
@@ -1102,7 +1101,6 @@ class ExportMenu extends GridView
         $lastModifiedBy = 'krajee';
         extract($this->docProperties);
         $properties = $this->_objSpreadsheet->getProperties();
-        /** @noinspection PhpParamsInspection */
         $properties->setCreator($creator)
             ->setTitle($title)
             ->setSubject($subject)
@@ -2159,5 +2157,21 @@ class ExportMenu extends GridView
             @unlink($file);
         }
         $this->destroyPhpSpreadsheet();
+    }
+
+    /**
+     * Sanitizes file name
+     * @param string $string
+     * @return string
+     */
+    public static function sanitize($string)
+    {
+        $reserved = ['?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')'] +
+            ['|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr(0)];
+        $string = str_replace($reserved, '-', trim($string));
+        $string = preg_replace_callback('/[^\x20-\x7f]/', function ($match) {
+            return strtolower(str_replace('%', '', urlencode($match[0])));
+        }, $string);
+        return trim($string, ' -');
     }
 }

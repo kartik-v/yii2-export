@@ -1,6 +1,13 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.4.2
+
+**Date:** _under development_
+
+- (enh #330): Sanitize file names in a better way.
+- (enh #328, #329): Allow closure for contentOptions.
+
 ## version 1.4.1
 
 **Date:** 27-Jul-2020
