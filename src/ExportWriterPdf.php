@@ -55,9 +55,9 @@ class ExportWriterPdf extends Mpdf
         $config = ['tempDir' => $this->tempDir . '/mpdf'];
         $pdf = $this->createExternalWriterInstance($config);
         
+        $this->spreadsheet->getActiveSheet()->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd(1,1);
         $pdf->cssInline = $this->generateStyles(false);
-        $html = $this->generateSheetData();
-        
+        $html = str_replace("<div style='page: page0'>", '<div>', $this->generateSheetData());
         //  Write to file
         fwrite($fileHandle, $pdf->output($html, '', 'S'));
 
