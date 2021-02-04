@@ -28,7 +28,7 @@ class ExportWriterPdf extends Mpdf
      * @var array kartik\mpdf\Pdf component configuration settings
      */
     public $pdfConfig = [];
-
+    
     /**
      * @inheritdoc
      */
@@ -38,7 +38,29 @@ class ExportWriterPdf extends Mpdf
             unset($config['tempDir']);
         }
         $config = array_replace_recursive($config, $this->pdfConfig);
+        
         $pdf = new Pdf($config);
-        return $pdf->getApi();
+        return $pdf;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function save($pFilename): void
+    {
+        $fileHandle = parent::prepareForSave($pFilename);
+
+        
+        //  Create PDF
+        $config = ['tempDir' => $this->tempDir . '/mpdf'];
+        $pdf = $this->createExternalWriterInstance($config);
+        
+        $pdf->cssInline = $this->generateStyles(false);
+        $html = $this->generateSheetData();
+        
+        //  Write to file
+        fwrite($fileHandle, $pdf->output($html, '', 'S'));
+
+        parent::restoreStateAfterSave();
     }
 }
