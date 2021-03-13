@@ -99,7 +99,8 @@ $gridColumns = [
 // Renders a export dropdown menu
 echo ExportMenu::widget([
     'dataProvider' => $dataProvider,
-    'columns' => $gridColumns
+    'columns' => $gridColumns,
+    'clearBuffers' => true, //optional
 ]);
 
 // You can choose to render your own GridView separately
