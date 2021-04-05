@@ -1,5 +1,5 @@
 {
-    "name": "kartik-v/yii2-export",
+    "name": "ant-kritsky/yii2-export-1",
     "description": "A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.)",
     "keywords": [
         "yii2",
@@ -16,7 +16,7 @@
         "xlsx",
         "OpenXML"
     ],
-    "homepage": "https://github.com/kartik-v/yii2-export",
+    "homepage": "https://github.com/ant-kritsky/yii2-export-1",
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
     "authors": [
