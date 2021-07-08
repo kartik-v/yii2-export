@@ -1393,7 +1393,14 @@ class ExportMenu extends GridView
             if (is_callable($contentOptions)) {
                 $contentOptions = $contentOptions($model, $key, $index, $column);
             }
-            $format = ArrayHelper::getValue($contentOptions, 'cellFormat', null);
+
+            //20201026 Scott: To avoid 'Closure object cannot have properties' error 
+            try {
+                $format = ArrayHelper::getValue($column->contentOptions, 'cellFormat', null);
+            } catch (\Error $e) {
+                $format = null;
+            }
+            
             $cell = $this->setOutCellValue(
                 $this->_objWorksheet,
                 self::columnName($this->_endCol) . ($index + $this->_beginRow + 1),
