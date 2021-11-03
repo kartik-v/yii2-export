@@ -2149,10 +2149,10 @@ class ExportMenu extends GridView
      */
     protected function setOutCellValue($sheet, $index, $value, $format = null)
     {
+        $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
         if ($this->stripHtml) {
             $value = strip_tags($value);
         }
-        $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
         $cell = $sheet->getCell($index);
         if ($format === null) {
             $cell->setValue($value);
