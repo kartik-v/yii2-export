@@ -1,7 +1,7 @@
 /*!
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2020
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2021
  * @version   1.4.2
  *
  * Export Data Validation Module.
@@ -33,11 +33,11 @@
             return $('<iframe/>', {name: id, css: {'display': 'none'}}).appendTo('body');
         },
         popupTemplate: '<html style="display:table;width:100%;height:100%;">' +
-        '<title>Export Data - &copy; Krajee</title>' +
-        '<body style="display:table-cell;font-family:Helvetica,Arial,sans-serif;color:#888;font-weight:bold;line-height:1.4em;text-align:center;vertical-align:middle;width:100%;height:100%;padding:0 10px;">' +
-        '{msg}' +
-        '</body>' +
-        '</html>'
+            '<title>Export Data - &copy; Krajee</title>' +
+            '<body style="display:table-cell;font-family:Helvetica,Arial,sans-serif;color:#888;font-weight:bold;line-height:1.4em;text-align:center;vertical-align:middle;width:100%;height:100%;padding:0 10px;">' +
+            '{msg}' +
+            '</body>' +
+            '</html>'
     };
     ExportData = function (element, options) {
         var self = this;

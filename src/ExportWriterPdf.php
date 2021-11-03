@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2020
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2021
  * @package yii2-export
  * @version 1.4.2
  */
@@ -39,6 +39,7 @@ class ExportWriterPdf extends Mpdf
         }
         $config = array_replace_recursive($config, $this->pdfConfig);
         $pdf = new Pdf($config);
+
         return $pdf->getApi();
     }
 }

@@ -6,10 +6,12 @@
     yii2-export
     <hr>
     <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DTP3NZQ6G2AYU"
-       title="Donate via Paypal" target="_blank">
-        <img src="http://kartik-v.github.io/bootstrap-fileinput-samples/samples/donate.png" alt="Donate"/>
-    </a>
+       title="Donate via Paypal" target="_blank"><img height="60" src="https://kartik-v.github.io/bootstrap-fileinput-samples/samples/donate.png" alt="Donate"/></a>
+    &nbsp; &nbsp; &nbsp;
+    <a href="https://www.buymeacoffee.com/kartikv" title="Buy me a coffee" ><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="60" alt="kartikv" /></a>
 </h1>
+
+<div align="center">
 
 [![Stable Version](https://poser.pugx.org/kartik-v/yii2-export/v/stable)](https://packagist.org/packages/kartik-v/yii2-export)
 [![Unstable Version](https://poser.pugx.org/kartik-v/yii2-export/v/unstable)](https://packagist.org/packages/kartik-v/yii2-export)
@@ -17,6 +19,8 @@
 [![Total Downloads](https://poser.pugx.org/kartik-v/yii2-export/downloads)](https://packagist.org/packages/kartik-v/yii2-export)
 [![Monthly Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/monthly)](https://packagist.org/packages/kartik-v/yii2-export)
 [![Daily Downloads](https://poser.pugx.org/kartik-v/yii2-export/d/daily)](https://packagist.org/packages/kartik-v/yii2-export)
+
+</div>
 
 A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.) using the [PhpSpreadsheet](https://github.com/PHPOffice/phpspreadsheet) library. The widget allows you to configure the dataProvider, columns just like a yii\grid\GridView. However, it just displays the export actions in form of a ButtonDropdown menu, for embedding into any of your GridView or other components.
 
@@ -51,7 +55,23 @@ The preferred way to install this extension is through [composer](http://getcomp
 
 > Note: Read this [web tip /wiki](http://webtips.krajee.com/setting-composer-minimum-stability-application/) on setting the `minimum-stability` settings for your application's composer.json.
 
-Either run
+### Pre-requisites
+
+Install the necessary pre-requisite (Krajee Dropdown Extension) based on your bootstrap version:
+
+- For Bootstrap v5.x install the extension `kartik-v/yii2-bootstrap5-dropdown`
+- For Bootstrap v4.x install the extension `kartik-v/yii2-bootstrap4-dropdown`
+- For Bootstrap v3.x install the extension `kartik-v/yii2-dropdown-x`
+
+For example if you are using the Bootstrap v5.x add the following to the `require` section of your `composer.json` file:
+
+```
+"kartik-v/yii2-bootstrap5-dropdown": "@dev"
+```
+
+### Install
+
+Either run:
 
 ```
 $ php composer.phar require kartik-v/yii2-export "@dev"

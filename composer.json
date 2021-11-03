@@ -1,44 +1,44 @@
 {
-    "name": "kartik-v/yii2-export",
-    "description": "A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.)",
-    "keywords": [
-        "yii2",
-        "extension",
-        "widget",
-        "export",
-        "spreadsheet",
-        "html",
-        "csv",
-        "text",
-        "pdf",
-        "json",
-        "xls",
-        "xlsx",
-        "OpenXML"
-    ],
-    "homepage": "https://github.com/kartik-v/yii2-export",
-    "type": "yii2-extension",
-    "license": "BSD-3-Clause",
-    "authors": [
-        {
-            "name": "Kartik Visweswaran",
-            "email": "kartikv2@gmail.com",
-            "homepage": "http://www.krajee.com/"
-        }
-    ],
-    "require": {
-        "kartik-v/yii2-dynagrid": ">=1.4.5",
-        "kartik-v/yii2-mpdf": ">=1.0",
-        "phpoffice/phpspreadsheet": ">=1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "kartik\\export\\": "src"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.4.x-dev"
-        }
+  "name": "kartik-v/yii2-export",
+  "description": "A library to export server/db data in various formats (e.g. excel, html, pdf, csv etc.)",
+  "keywords": [
+    "yii2",
+    "extension",
+    "widget",
+    "export",
+    "spreadsheet",
+    "html",
+    "csv",
+    "text",
+    "pdf",
+    "json",
+    "xls",
+    "xlsx",
+    "OpenXML"
+  ],
+  "homepage": "https://github.com/kartik-v/yii2-export",
+  "type": "yii2-extension",
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Kartik Visweswaran",
+      "email": "kartikv2@gmail.com",
+      "homepage": "http://www.krajee.com/"
     }
+  ],
+  "require": {
+    "kartik-v/yii2-dynagrid": ">=1.4.5",
+    "kartik-v/yii2-mpdf": ">=1.0",
+    "phpoffice/phpspreadsheet": ">=1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "kartik\\export\\": "src"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.4.x-dev"
+    }
+  }
 }
