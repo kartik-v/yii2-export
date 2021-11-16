@@ -4,7 +4,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2021
- * @version   1.4.2
+ * @version   1.4.3
  */
 
 namespace kartik\export;
@@ -1750,13 +1750,14 @@ class ExportMenu extends GridView
             ],
             $this->columnSelectorMenuOptions
         );
+        $dataToggle = 'data-'.($this->isBs(5) ? 'bs-' : '').'toggle';
         $this->columnSelectorOptions = array_replace_recursive(
             [
                 'id' => $id,
                 'icon' => !$this->isBs(3) ? '<i class="fas fa-list"></i>' : '<i class="glyphicon glyphicon-list"></i>',
                 'title' => Yii::t('kvexport', 'Select columns to export'),
                 'type' => 'button',
-                'data-toggle' => 'dropdown',
+                $dataToggle => 'dropdown',
                 'aria-haspopup' => 'true',
                 'aria-expanded' => 'false',
             ],

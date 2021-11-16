@@ -3,7 +3,7 @@
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2021
- * @version   1.4.2
+ * @version   1.4.3
  *
  * Column Selector View
  *

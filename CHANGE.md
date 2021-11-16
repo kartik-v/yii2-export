@@ -1,6 +1,12 @@
 Change Log: `yii2-export`
 =========================
 
+## version 1.4.3
+
+**Date:** _under development_
+
+- (enh #355): Correct dropdown init for Bootstrap v5.x.
+
 ## version 1.4.2
 
 **Date:** 03-Nov-2021
