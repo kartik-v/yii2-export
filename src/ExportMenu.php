@@ -691,13 +691,13 @@ class ExportMenu extends GridView
     /**
      * @var string the data output format type. Defaults to `ExportMenu::FORMAT_EXCEL_X`.
      */
-    private $_exportType;
+    protected $_exportType;
 
     /**
      * @var boolean private flag that will use $_POST [[exportRequestParam]] setting if available or use the
      * [[triggerDownload]] setting
      */
-    private $_triggerDownload;
+    protected $_triggerDownload;
 
     /**
      * Appends slash to path if it does not exist
