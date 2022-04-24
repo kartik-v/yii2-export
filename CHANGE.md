@@ -6,6 +6,7 @@ Change Log: `yii2-export`
 **Date:** _under development_
 
 - (enh #355): Correct dropdown init for Bootstrap v5.x.
+- (enh #360): Check for web context before accessing `post()`
 
 ## version 1.4.2
 
