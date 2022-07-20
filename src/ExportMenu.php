@@ -1409,7 +1409,7 @@ class ExportMenu extends GridView
 
             //20201026 Scott: To avoid 'Closure object cannot have properties' error 
             try {
-                $format = ArrayHelper::getValue($column->contentOptions, 'cellFormat');
+                $format = ArrayHelper::getValue($contentOptions, 'cellFormat');
             } catch (Exception $e) {
                 $format = null;
             }
