@@ -1153,6 +1153,12 @@ class ExportMenu extends GridView
             $delimiter = $this->getSetting('delimiter', "\t");
             $writer->setDelimiter($delimiter);
         }
+
+        if ($t === self::FORMAT_CSV) {
+            $delimiter = $this->getSetting('delimiter', ",");
+            $writer->setDelimiter($delimiter);
+        }
+
         if ($this->encoding === self::ENCODING_UTF8 && ($t === self::FORMAT_CSV || $t === self::FORMAT_TEXT)) {
             $writer->setUseBOM(true);
         }
@@ -1867,6 +1873,7 @@ class ExportMenu extends GridView
                 'mime' => 'application/csv',
                 'extension' => 'csv',
                 'writer' => self::FORMAT_CSV,
+                'delimiter' => ",",
             ],
             self::FORMAT_TEXT => [
                 'label' => Yii::t('kvexport', 'Text'),
