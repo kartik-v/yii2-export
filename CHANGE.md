@@ -3,10 +3,15 @@ Change Log: `yii2-export`
 
 ## version 1.4.3
 
-**Date:** _under development_
+**Date:** 25-Jul-2023
 
-- (enh #355): Correct dropdown init for Bootstrap v5.x.
+- (enh #373): *BC Breaking*: Enhance ExportMenu template parts rendering to prevent wrong Bootstrap 5 plugin initializations.
+- (enh #372): Enhance export to consider grid table filters.
+- (enh #366): Introduce a custom delimiter option for the export config FORMAT_CSV.
+- (enh #364): Fix contentOptions in `generateRow`.
+- (enh #363): Catch throwable exception in `generateRow`.
 - (enh #360): Check for web context before accessing `post()`
+- (enh #355): Correct dropdown init for Bootstrap v5.x.
 
 ## version 1.4.2
 

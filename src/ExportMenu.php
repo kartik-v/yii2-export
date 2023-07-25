@@ -3,7 +3,7 @@
 /**
  * @package   yii2-export
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2021
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2023
  * @version   1.4.3
  */
 
@@ -25,6 +25,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\BaseWriter;
 use PhpOffice\PhpSpreadsheet\Writer\Csv as WriterCsv;
+use Throwable;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\base\Model;
@@ -44,6 +45,7 @@ use yii\helpers\Inflector;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\web\JsExpression;
+use yii\web\Request;
 use yii\web\View;
 
 /**
@@ -860,9 +862,9 @@ class ExportMenu extends GridView
         }
         $this->_columnSelectorEnabled = $this->showColumnSelector && $this->asDropdown;
         $request = Yii::$app->request;
-        if ($request instanceof \yii\web\Request) {
-          $this->_triggerDownload = $request->post($this->exportRequestParam, $this->triggerDownload);
-          $this->_exportType = $request->post($this->exportTypeParam, $this->exportType);
+        if ($request instanceof Request) {
+            $this->_triggerDownload = $request->post($this->exportRequestParam, $this->triggerDownload);
+            $this->_exportType = $request->post($this->exportTypeParam, $this->exportType);
         } else {
             $this->_triggerDownload = $this->triggerDownload;
             $this->_exportType = $this->exportType;
@@ -874,7 +876,7 @@ class ExportMenu extends GridView
             if ($this->stream) {
                 Yii::$app->controller->layout = false;
             }
-            $this->_columnSelectorEnabled = $request instanceof \yii\web\Request ?
+            $this->_columnSelectorEnabled = $request instanceof Request ?
                 $request->post($this->colSelFlagParam, $this->_columnSelectorEnabled) :
                 $this->_columnSelectorEnabled;
             $this->initSelectedColumns();
@@ -977,10 +979,11 @@ class ExportMenu extends GridView
         if (!isset($this->exportFormOptions['id'])) {
             $this->exportFormOptions['id'] = $this->options['id'].'-export-form';
         }
+        $this->_provider->refresh();
     }
 
     /**
-     * Renders the export menu
+     * Renders the export menu widget.
      *
      * @return string the export menu markup
      * @throws InvalidConfigException
@@ -989,8 +992,6 @@ class ExportMenu extends GridView
     public function renderExportMenu()
     {
         $items = $this->asDropdown ? [] : '';
-        $notBs3 = !$this->isBs(3);
-        Html::addCssClass($this->dropdownOptions, ['btn', $this->getDefaultBtnCss()]);
         foreach ($this->exportConfig as $format => $settings) {
             if (!isset($settings) || $settings === false) {
                 continue;
@@ -1020,53 +1021,68 @@ class ExportMenu extends GridView
             } else {
                 $tag = ArrayHelper::remove($options, 'tag', 'li');
                 if ($tag !== false) {
-                    $items .= Html::tag($tag, Html::a($label, '#', $linkOptions), $options);
+                    $items .= Html::tag($tag, Html::a($label, '#', $linkOptions), $options) . "\n";
                 } else {
-                    $items .= Html::a($label, '#', $linkOptions);
+                    $items .= Html::a($label, '#', $linkOptions) . "\n";
                 }
             }
         }
-        $iconCss = $notBs3 ? 'fas fa-external-link-alt' : 'glyphicon glyphicon-export';
         if ($this->asDropdown) {
-            $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="'.$iconCss.'"></i>');
-            $label = ArrayHelper::remove($this->dropdownOptions, 'label');
-            $label = $label === null ? $icon : $icon.' '.$label;
-            if (!isset($this->dropdownOptions['title'])) {
-                $this->dropdownOptions['title'] = Yii::t('kvexport', 'Export data in selected format');
-            }
-            $menuOptions = ArrayHelper::remove($this->dropdownOptions, 'menuOptions', []);
-            $itemsBefore = ArrayHelper::remove($this->dropdownOptions, 'itemsBefore', []);
-            $itemsAfter = ArrayHelper::remove($this->dropdownOptions, 'itemsAfter', []);
-            $items = ArrayHelper::merge($itemsBefore, $items, $itemsAfter);
-            $opts = [
-                'label' => $label,
-                'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions,],
-                'encodeLabel' => false,
-            ];
+            $this->replacePart('template', '{menu}', [$this, 'renderDropdownMenu'], [$items]);
+            $this->replacePart('template', '{columns}', [$this, 'renderColumnSelector']);
 
-            if (!isset($this->exportContainer['class'])) {
-                $this->exportContainer['class'] = 'btn-group';
-            }
-            /**
-             * @var Widget $class
-             */
-            $class = $this->getDropdownClass(true);
-            if ($notBs3) {
-                $opts['buttonOptions'] = $this->dropdownOptions;
-                $opts['renderContainer'] = false;
-                $out = Html::tag('div', $class::widget($opts), $this->exportContainer);
-            } else {
-                $opts['options'] = $this->dropdownOptions;
-                $opts['containerOptions'] = $this->exportContainer;
-                $out = $class::widget($opts);
-            }
-            $replacePairs = ['{menu}' => $out, '{columns}' => $this->renderColumnSelector()];
-            $content = strtr($this->template, $replacePairs);
-
-            return Html::tag('div', $content, $this->container);
+            return Html::tag('div', $this->template, $this->container);
         } else {
             return $items;
         }
+    }
+
+    /**
+     * Renders the dropdown menu button and items.
+     *
+     * @param  array  $items
+     * @return string
+     * @throws InvalidConfigException|Throwable
+     */
+    public function renderDropdownMenu($items)
+    {
+        Html::addCssClass($this->dropdownOptions, ['btn', $this->getDefaultBtnCss()]);
+        $notBs3 = !$this->isBs(3);
+        $iconCss = $notBs3 ? 'fas fa-external-link-alt' : 'glyphicon glyphicon-export';
+        $icon = ArrayHelper::remove($this->dropdownOptions, 'icon', '<i class="'.$iconCss.'"></i>');
+        $label = ArrayHelper::remove($this->dropdownOptions, 'label');
+        $label = $label === null ? $icon : $icon.' '.$label;
+        if (!isset($this->dropdownOptions['title'])) {
+            $this->dropdownOptions['title'] = Yii::t('kvexport', 'Export data in selected format');
+        }
+        $menuOptions = ArrayHelper::remove($this->dropdownOptions, 'menuOptions', []);
+        $itemsBefore = ArrayHelper::remove($this->dropdownOptions, 'itemsBefore', []);
+        $itemsAfter = ArrayHelper::remove($this->dropdownOptions, 'itemsAfter', []);
+        $items = ArrayHelper::merge($itemsBefore, $items, $itemsAfter);
+        $opts = [
+            'label' => $label,
+            'dropdown' => ['items' => $items, 'encodeLabels' => false, 'options' => $menuOptions,],
+            'encodeLabel' => false,
+        ];
+
+        if (!isset($this->exportContainer['class'])) {
+            $this->exportContainer['class'] = 'btn-group';
+        }
+        /**
+         * @var Widget $class
+         */
+        $class = $this->getDropdownClass(true);
+        if ($notBs3) {
+            $opts['buttonOptions'] = $this->dropdownOptions;
+            $opts['renderContainer'] = false;
+            $out = Html::tag('div', $class::widget($opts), $this->exportContainer);
+        } else {
+            $opts['options'] = $this->dropdownOptions;
+            $opts['containerOptions'] = $this->exportContainer;
+            $out = $class::widget($opts);
+        }
+
+        return $out;
     }
 
     /**
@@ -1149,7 +1165,7 @@ class ExportMenu extends GridView
         /**
          * @var WriterCsv $writer
          */
-        if ($t === self::FORMAT_TEXT) {
+        if ($t === self::FORMAT_TEXT || $t === self::FORMAT_CSV) {
             $delimiter = $this->getSetting('delimiter', "\t");
             $writer->setDelimiter($delimiter);
         }
@@ -1403,14 +1419,13 @@ class ExportMenu extends GridView
             }
             $contentOptions = $column->contentOptions;
             if (is_callable($contentOptions)) {
-                /** @noinspection PhpUnusedLocalVariableInspection */
                 $contentOptions = $contentOptions($model, $key, $index, $column);
             }
 
             //20201026 Scott: To avoid 'Closure object cannot have properties' error 
             try {
                 $format = ArrayHelper::getValue($contentOptions, 'cellFormat');
-            } catch (Exception $e) {
+            } catch (Exception|Throwable $e) {
                 $format = null;
             }
 
@@ -1867,6 +1882,7 @@ class ExportMenu extends GridView
                 'mime' => 'application/csv',
                 'extension' => 'csv',
                 'writer' => self::FORMAT_CSV,
+                'delimiter' => ",",
             ],
             self::FORMAT_TEXT => [
                 'label' => Yii::t('kvexport', 'Text'),
@@ -1920,7 +1936,6 @@ class ExportMenu extends GridView
 
     /**
      * Registers client assets needed for Export Menu widget
-     * @throws Exception
      */
     protected function registerAssets()
     {
@@ -2017,16 +2032,13 @@ class ExportMenu extends GridView
     }
 
     /**
-     * Search all groupable columns
+     * Search all group-able columns
      */
     protected function findGroupedColumn()
     {
         foreach ($this->getVisibleColumns() as $key => $column) {
-            if (isset($column->group) && $column->group == true) {
-                $this->_groupedColumn[$key] = ['firstLine' => -1, 'value' => null];
-            } else {
-                $this->_groupedColumn[$key] = null;
-            }
+            $this->_groupedColumn[$key] = empty($column) || empty($column->group) ? null :
+                ['firstLine' => -1, 'value' => null];
         }
         $this->_groupedColumn[] = null; //prevent the overflow
         $this->_groupedColumn[] = null; //prevent the overflow
@@ -2087,7 +2099,7 @@ class ExportMenu extends GridView
      */
     protected function generateGroupedRow($groupFooter, $groupedCol)
     {
-        $endGroupedCol = 0;
+        //$endGroupedCol = 0;
         $this->_groupedRow = [];
         $fLine = ArrayHelper::getValue($this->_groupedColumn[$groupedCol], 'firstLine', -1);
         $fLine = ($fLine == $this->_beginRow) ? $this->_beginRow + 1 : ($fLine + 3);
@@ -2096,7 +2108,7 @@ class ExportMenu extends GridView
         list($endLine, $firstLine) = ($endLine > $firstLine) ? [$endLine, $firstLine] : [$firstLine, $endLine];
         foreach ($this->getVisibleColumns() as $key => $column) {
             $value = $groupFooter[$key] ?? '';
-            $endGroupedCol++;
+            //$endGroupedCol++;
             $groupedRange = self::columnName($key + 1).$firstLine.':'.self::columnName($key + 1).$endLine;
             //$lastCell = self::columnName($key + 1) . $endLine - 1;
             if (isset($column->group) && $column->group) {
@@ -2104,19 +2116,19 @@ class ExportMenu extends GridView
             }
             switch ($value) {
                 case self::F_SUM:
-                    $value = "=sum($groupedRange)";
+                    $value = "=SUM($groupedRange)";
                     break;
                 case self::F_COUNT:
-                    $value = '=countif('.$groupedRange.',"*")';
+                    $value = '=COUNTIF('.$groupedRange.',"*")';
                     break;
                 case self::F_AVG:
                     $value = "=AVERAGE($groupedRange)";
                     break;
                 case self::F_MAX:
-                    $value = "=max($groupedRange)";
+                    $value = "=MAX($groupedRange)";
                     break;
                 case self::F_MIN:
-                    $value = "=min($groupedRange)";
+                    $value = "=MIN($groupedRange)";
                     break;
             }
             if ($value instanceof Closure) {
