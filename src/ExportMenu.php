@@ -44,6 +44,7 @@ use yii\helpers\Html;
 use yii\helpers\Inflector;
 use yii\helpers\Json;
 use yii\helpers\Url;
+use yii\web\Application;
 use yii\web\JsExpression;
 use yii\web\Request;
 use yii\web\View;
@@ -531,6 +532,20 @@ class ExportMenu extends GridView
     public $onRenderFooterCell = null;
 
     /**
+     * @var Closure the callback function to be executed on rendering each body data ROW content. The anonymous
+     * function should have the following signature:
+     * ```php
+     * function ($model, $key, $index, $widget)
+     * ```
+     * where:
+     * - `$model`: Model, the data model to be rendered
+     * - `$key`: mixed, the key associated with the data model
+     * - `$index`: integer, the zero-based index of the data model among the model array returned by [[dataProvider]].
+     * - `$widget`: ExportMenu, the current ExportMenu object instance
+     */
+    public $onRenderDataRow = null;
+
+    /**
      * @var Closure the callback function to be executed on rendering the sheet. The anonymous function should have the
      * following signature:
      * ```php
@@ -957,7 +972,7 @@ class ExportMenu extends GridView
             $this->_provider->pagination = clone($this->dataProvider->pagination);
             $this->_provider->pagination->pageSize = $this->batchSize;
             $this->_provider->refresh();
-            if (Yii::$app->request->getBodyParam('exportFull_export')) {
+            if (is_a(Yii::$app, Application::class) && Yii::$app->request->getBodyParam('exportFull_export')) {
                 $this->_provider->pagination->page = null;
                 Yii::$app->request->setQueryParams([$this->_provider->pagination->pageParam => 1]);
             }
@@ -1422,7 +1437,7 @@ class ExportMenu extends GridView
                 $contentOptions = $contentOptions($model, $key, $index, $column);
             }
 
-            //20201026 Scott: To avoid 'Closure object cannot have properties' error 
+            //20201026 Scott: To avoid 'Closure object cannot have properties' error
             try {
                 $format = ArrayHelper::getValue($contentOptions, 'cellFormat');
             } catch (Exception|Throwable $e) {
@@ -1440,6 +1455,7 @@ class ExportMenu extends GridView
             }
             $this->raiseEvent('onRenderDataCell', [$cell, $value, $model, $key, $index, $this]);
         }
+        $this->raiseEvent('onRenderDataRow', [$model, $key, $index, $this]);
     }
 
     /**
