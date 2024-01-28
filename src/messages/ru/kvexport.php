@@ -34,7 +34,7 @@ return [
     'The TEXT export file will be generated for download.' => 'Будет сгенерирован файл в формате TEXT.',
     'CSV' => '',
     'Comma Separated Values' => '',
-    'Download exported file' => '',
+    'Download exported file' => 'Скачать экспортированный файл',
     'Excel 2007+' => '',
     'Excel 95 +' => '',
     'Exported File' => '',
