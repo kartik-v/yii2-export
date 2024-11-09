@@ -32,7 +32,7 @@ class ExportWriterPdf extends Mpdf
     /**
      * @inheritdoc
      */
-    protected function createExternalWriterInstance($config = [])
+    protected function createExternalWriterInstance(array $config) : \Mpdf\Mpdf
     {
         if (isset($config['tempDir'])) {
             unset($config['tempDir']);
